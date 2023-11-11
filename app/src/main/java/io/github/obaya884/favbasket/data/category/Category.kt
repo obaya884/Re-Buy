@@ -6,8 +6,8 @@ import java.util.Date
 
 @Entity(tableName = "categories")
 data class Category(
-    @PrimaryKey(autoGenerate = true) val id: Int,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
-    val createdAt: Date,
-    val updatedAt: Date
+    val createdAt: Date = Date(),
+    val updatedAt: Date = Date()
 )
