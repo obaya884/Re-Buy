@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">FavBasket</string>
+
+    <!-- Drawer Item -->
+    <string name="drawer_home">ホーム</string>
+    <string name="drawer_item_edit">アイテム編集</string>
+    <string name="drawer_category_edit">カテゴリー編集</string>
 </resources>
