@@ -52,9 +52,7 @@ fun ItemEditScreen(
             IconButton(onClick = { showDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Item")
             }
-        },
-        bottomSheetContent = {},
-        sheetPeekHeight = 0.dp
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier

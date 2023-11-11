@@ -52,9 +52,7 @@ fun CategoryEditScreen(
             IconButton(onClick = { showDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Category")
             }
-        },
-        bottomSheetContent = {},
-        sheetPeekHeight = 0.dp
+        }
     ) { innerPadding ->
         LazyColumn(
             modifier = Modifier
