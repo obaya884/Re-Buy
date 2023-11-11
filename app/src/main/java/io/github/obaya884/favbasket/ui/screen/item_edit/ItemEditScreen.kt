@@ -36,18 +36,20 @@ import androidx.navigation.NavController
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 
 @Composable
-fun ItemEditScreen(navController: NavController) {
+fun ItemEditScreen(
+    navController: NavController
+) {
     val viewModel = hiltViewModel<ItemEditViewModel>()
-    val items = viewModel.items.collectAsState()
+    val items by viewModel.items.collectAsState()
 
-    val showDialog = remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
     var newItemName by remember { mutableStateOf("") }
 
     FavBasketAppScaffold(
         navController = navController,
         topBarTitle = "Item Edit",
         topBarActions = {
-            IconButton(onClick = { showDialog.value = true }) {
+            IconButton(onClick = { showDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = "Add Item")
             }
         },
@@ -59,7 +61,7 @@ fun ItemEditScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(items.value) { item ->
+            items(items) { item ->
                 Text(
                     text = item.name,
                     modifier = Modifier
@@ -69,8 +71,8 @@ fun ItemEditScreen(navController: NavController) {
             }
         }
 
-        if (showDialog.value) {
-            Dialog(onDismissRequest = { showDialog.value = false }) {
+        if (showDialog) {
+            Dialog(onDismissRequest = { showDialog = false }) {
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.padding(16.dp)
@@ -98,14 +100,14 @@ fun ItemEditScreen(navController: NavController) {
                                 .fillMaxWidth()
                                 .padding(top = 16.dp)
                         ) {
-                            TextButton(onClick = { showDialog.value = false }) {
+                            TextButton(onClick = { showDialog = false }) {
                                 Text("Cancel")
                             }
                             Spacer(Modifier.width(8.dp))
                             Button(onClick = {
                                 viewModel.addItem(newItemName)
                                 newItemName = ""
-                                showDialog.value = false
+                                showDialog = false
                             }) {
                                 Text("Add")
                             }
