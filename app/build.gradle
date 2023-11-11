@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace 'io.github.obaya884.favbasket'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "io.github.obaya884.favbasket"
