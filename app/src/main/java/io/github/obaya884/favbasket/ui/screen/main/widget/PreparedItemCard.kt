@@ -39,6 +39,7 @@ fun PreparedItemCard(item: Item, onCheckedChange: (Boolean) -> Unit) {
             modifier = Modifier
         )
 
+        // TODO: consider to use IconToggleButton
         Checkbox(
             checked = item.isInBasket,
             onCheckedChange = null
