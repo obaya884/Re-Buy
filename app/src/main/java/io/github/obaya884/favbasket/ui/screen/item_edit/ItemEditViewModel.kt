@@ -34,4 +34,10 @@ class ItemEditViewModel @Inject constructor(
             itemRepository.insert(newItem)
         }
     }
+
+    fun deleteItem(item: Item) {
+        viewModelScope.launch {
+            itemRepository.delete(item)
+        }
+    }
 }
