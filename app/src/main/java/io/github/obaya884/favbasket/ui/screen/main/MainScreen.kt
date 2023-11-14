@@ -109,21 +109,17 @@ fun MainScreen(navController: NavController) {
                 )
             }
         ) {
-            Column(
+            LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(innerPadding)
             ) {
-                LazyColumn(
-                    modifier = Modifier
-                ) {
-                    items(uiState.preparedItems) { item ->
-                        PreparedItemCard(item) { isInBasket ->
-                            if (isInBasket) {
-                                viewModel.removeFromBasket(item)
-                            } else {
-                                viewModel.addToBasket(item)
-                            }
+                items(uiState.preparedItems, key = { item -> item.id }) { item ->
+                    PreparedItemCard(item) { isInBasket ->
+                        if (isInBasket) {
+                            viewModel.removeFromBasket(item)
+                        } else {
+                            viewModel.addToBasket(item)
                         }
                     }
                 }
@@ -198,7 +194,7 @@ fun MainScreenBottomSheetContent(
                 }
             } else {
 
-                items(uiState.inBasketItems) { item ->
+                items(uiState.inBasketItems, key = { item -> item.id }) { item ->
                     InBasketItemCard(item)
                 }
             }
