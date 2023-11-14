@@ -8,6 +8,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -31,8 +32,12 @@ fun ItemEditScreen(
     var showDialog by remember { mutableStateOf(false) }
 
     FavBasketAppScaffold(
-        navController = navController,
         topBarTitle = "Item Edit",
+        topBarNavigationIcon = {
+            IconButton(onClick = { navController.navigateUp() }) {
+                Icon(Icons.Default.ArrowBack, contentDescription = "Localized description")
+            }
+        },
         topBarActions = {
             // TODO: move to floating action button
             IconButton(

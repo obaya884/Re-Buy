@@ -1,5 +1,7 @@
 package io.github.obaya884.favbasket.ui
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -7,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import io.github.obaya884.favbasket.ui.screen.category_edit.CategoryEditScreen
 import io.github.obaya884.favbasket.ui.screen.item_edit.ItemEditScreen
 import io.github.obaya884.favbasket.ui.screen.main.MainScreen
+import io.github.obaya884.favbasket.ui.screen.setting.SettingScreen
 import io.github.obaya884.favbasket.ui.theme.FavBasketTheme
 
 @Composable
@@ -15,10 +18,19 @@ fun FavBasketApp() {
     FavBasketTheme {
         NavHost(
             navController = navController,
-            startDestination = Screen.Main.route
+            startDestination = Screen.Main.route,
+            enterTransition = {
+                EnterTransition.None
+            },
+            exitTransition = {
+                ExitTransition.None
+            }
         ) {
             composable(Screen.Main.route) {
                 MainScreen(navController)
+            }
+            composable(Screen.Setting.route) {
+                SettingScreen(navController)
             }
             composable(Screen.CategoryEdit.route) {
                 CategoryEditScreen(navController)
@@ -32,6 +44,7 @@ fun FavBasketApp() {
 
 sealed class Screen(val route: String) {
     object Main : Screen("main")
+    object Setting : Screen("setting")
     object CategoryEdit : Screen("category_edit")
     object ItemEdit : Screen("item_edit")
 }

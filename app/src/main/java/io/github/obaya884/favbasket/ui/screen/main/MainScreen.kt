@@ -6,8 +6,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.Icon
+import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -19,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
+import io.github.obaya884.favbasket.ui.Screen
 import io.github.obaya884.favbasket.ui.screen.main.widget.InBasketItemCard
 import io.github.obaya884.favbasket.ui.screen.main.widget.PreparedItemCard
 
@@ -28,8 +33,16 @@ fun MainScreen(navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
 
     FavBasketAppScaffold(
-        navController = navController,
         topBarTitle = "Home",
+        topBarNavigationIcon = {
+            IconButton(
+                onClick = {
+                    navController.navigate(Screen.Setting.route)
+                }
+            ) {
+                Icon(Icons.Default.Settings, contentDescription = "Setting")
+            }
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier

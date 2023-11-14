@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.domain.ItemRepository
-import io.github.obaya884.favbasket.ui.screen.main.uistate.MainUiState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

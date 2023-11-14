@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.main.uistate
+package io.github.obaya884.favbasket.ui.screen.main
 
 import io.github.obaya884.favbasket.data.item.Item
 
