@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.favbasket.data.item.Item
+import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.domain.ItemRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,7 +33,7 @@ class MainViewModel @Inject constructor(
             itemRepository.getAll()
                 .collect { items ->
                     _preparedItems.value = items
-                    _inBasketItems.value = items.filter { it.isInBasket }
+                    _inBasketItems.value = items.filter { it.status == ItemStatus.IN_BASKET }
                 }
         }
     }

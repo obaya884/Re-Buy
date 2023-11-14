@@ -10,8 +10,12 @@ import io.github.obaya884.favbasket.data.category.CategoryDao
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemDao
 
-@Database(entities = [Item::class, Category::class], version = 1, exportSchema = false)
 @TypeConverters(DateLongConverter::class)
+@Database(
+    entities = [Item::class, Category::class],
+    version = 1,
+    exportSchema = true
+)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
     abstract fun categoryDao(): CategoryDao

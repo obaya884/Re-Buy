@@ -20,8 +20,14 @@ import java.util.Date
 data class Item(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
-    val isInBasket: Boolean = false,
+    val status: ItemStatus = ItemStatus.NO_DEAL,
     val categoryId: Int? = null,
     val createdAt: Date = Date(),
     val updatedAt: Date = Date()
 )
+
+enum class ItemStatus {
+    NO_DEAL,
+    IN_BASKET,
+    BOUGHT
+}

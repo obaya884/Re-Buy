@@ -18,8 +18,8 @@ interface ItemDao {
     @Query("UPDATE items SET name = :newName, updatedAt = :updatedAt WHERE id = :itemId")
     suspend fun updateItemName(itemId: Int, newName: String, updatedAt: Date)
 
-    @Query("UPDATE items SET isInBasket = :newIsInBasket, updatedAt = :updatedAt WHERE id = :itemId")
-    suspend fun updateItemIsInBasket(itemId: Int, newIsInBasket: Boolean, updatedAt: Date)
+    @Query("UPDATE items SET status = :newStatus, updatedAt = :updatedAt WHERE id = :itemId")
+    suspend fun updateItemStatus(itemId: Int, newStatus: ItemStatus, updatedAt: Date)
 
     @Query("UPDATE items SET categoryId = :newCategoryId, updatedAt = :updatedAt WHERE id = :itemId")
     suspend fun updateItemCategoryId(itemId: Int, newCategoryId: Int?, updatedAt: Date)

@@ -2,6 +2,7 @@ package io.github.obaya884.favbasket.domain
 
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemDao
+import io.github.obaya884.favbasket.data.item.ItemStatus
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
@@ -17,21 +18,21 @@ class ItemRepository(private val itemDao: ItemDao) {
     }
 
     suspend fun addToBasket(item: Item) {
-        if (item.isInBasket) return
+        if (item.status == ItemStatus.IN_BASKET) return
 
-        itemDao.updateItemIsInBasket(
+        itemDao.updateItemStatus(
             itemId = item.id,
-            newIsInBasket = true,
+            newStatus = ItemStatus.IN_BASKET,
             updatedAt = Date()
         )
     }
 
     suspend fun removeFromBasket(item: Item) {
-        if (!item.isInBasket) return
+        if (item.status != ItemStatus.IN_BASKET) return
 
-        itemDao.updateItemIsInBasket(
+        itemDao.updateItemStatus(
             itemId = item.id,
-            newIsInBasket = false,
+            newStatus = ItemStatus.NO_DEAL,
             updatedAt = Date()
         )
     }

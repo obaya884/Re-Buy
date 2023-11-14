@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.data.item.Item
+import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 import kotlinx.coroutines.launch
@@ -198,7 +199,7 @@ fun PreparedItemCard(item: Item, onCheckedChange: (Boolean) -> Unit) {
             .clickable(
                 role = Role.Checkbox,
                 onClick = {
-                    onCheckedChange(item.isInBasket)
+                    onCheckedChange(item.status == ItemStatus.IN_BASKET)
                 }
             )
             .fillMaxWidth()
@@ -211,7 +212,7 @@ fun PreparedItemCard(item: Item, onCheckedChange: (Boolean) -> Unit) {
 
         // TODO: consider to use IconToggleButton
         Checkbox(
-            checked = item.isInBasket,
+            checked = item.status == ItemStatus.IN_BASKET,
             onCheckedChange = null
         )
     }
