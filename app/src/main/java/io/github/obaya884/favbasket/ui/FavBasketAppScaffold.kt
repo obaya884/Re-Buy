@@ -13,6 +13,7 @@ fun FavBasketAppScaffold(
     topBarTitle: String,
     topBarNavigationIcon: @Composable (() -> Unit)? = null,
     topBarActions: @Composable RowScope.() -> Unit = {},
+    floatingActionButton: @Composable () -> Unit = { },
     content: @Composable (PaddingValues) -> Unit,
 ) {
     val scaffoldState = rememberScaffoldState()
@@ -25,7 +26,8 @@ fun FavBasketAppScaffold(
                 navigationIcon = topBarNavigationIcon,
                 actions = topBarActions
             )
-        }
+        },
+        floatingActionButton = floatingActionButton
     ) { innerPadding ->
         content(innerPadding)
     }

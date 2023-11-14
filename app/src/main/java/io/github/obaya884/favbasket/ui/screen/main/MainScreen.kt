@@ -1,22 +1,36 @@
 package io.github.obaya884.favbasket.ui.screen.main
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.twotone.KeyboardArrowDown
+import androidx.compose.material.icons.twotone.Send
+import androidx.compose.material.icons.twotone.ShoppingCart
+import androidx.compose.material.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -26,11 +40,16 @@ import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 import io.github.obaya884.favbasket.ui.screen.main.widget.InBasketItemCard
 import io.github.obaya884.favbasket.ui.screen.main.widget.PreparedItemCard
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreen(navController: NavController) {
     val viewModel = hiltViewModel<MainViewModel>()
     val uiState by viewModel.uiState.collectAsState()
+    val bottomSheetState =
+        rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+    val coroutineScope = rememberCoroutineScope()
 
     FavBasketAppScaffold(
         topBarTitle = "Home",
@@ -42,49 +61,116 @@ fun MainScreen(navController: NavController) {
             ) {
                 Icon(Icons.Default.Settings, contentDescription = "Setting")
             }
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                modifier = Modifier.size(68.dp),
+                onClick = {
+                    coroutineScope.launch {
+                        if (bottomSheetState.isVisible) {
+                            bottomSheetState.hide()
+                        } else {
+                            bottomSheetState.show()
+                        }
+                    }
+                }
+            ) {
+                // TODO: シートが開ききらないとアイコンが切り替わらない。押した直後に切り替えたい
+                if (bottomSheetState.isVisible) {
+                    Icon(
+                        imageVector = Icons.TwoTone.KeyboardArrowDown,
+                        contentDescription = "hide shopping cart",
+                        modifier = Modifier.size(32.dp)
+                    )
+                } else {
+                    Icon(
+                        imageVector = Icons.TwoTone.ShoppingCart,
+                        contentDescription = "show shopping cart",
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
         }
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(innerPadding)
+        ModalBottomSheetLayout(
+            sheetState = bottomSheetState,
+            sheetContent = {
+                MainScreenBottomSheetContent(uiState)
+            }
         ) {
-            Text(
-                text = "Prepared Item",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+            Column(
                 modifier = Modifier
-                    .background(MaterialTheme.colors.primary)
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            )
-            LazyColumn(
-                modifier = Modifier
+                    .padding(innerPadding)
             ) {
-                items(uiState.preparedItems) { item ->
-                    PreparedItemCard(item) { isInBasket ->
-                        if (isInBasket) {
-                            viewModel.removeFromBasket(item)
-                        } else {
-                            viewModel.addToBasket(item)
+                LazyColumn(
+                    modifier = Modifier
+                ) {
+                    items(uiState.preparedItems) { item ->
+                        PreparedItemCard(item) { isInBasket ->
+                            if (isInBasket) {
+                                viewModel.removeFromBasket(item)
+                            } else {
+                                viewModel.addToBasket(item)
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun MainScreenBottomSheetContent(
+    uiState: MainUiState
+) {
+    val context = LocalContext.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 320.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colors.primary)
+        ) {
             Text(
-                text = "In Basket Item",
+                text = "買い物リスト",
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
-                    .background(MaterialTheme.colors.primary)
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
+                    .weight(1f)
+                    .padding(horizontal = 12.dp, vertical = 12.dp)
             )
-            LazyColumn(
-                modifier = Modifier
+            IconButton(
+                enabled = uiState.inBasketItems.isNotEmpty(),
+                onClick = {
+                    // TODO: transition to shopping screen
+                    Toast.makeText(context, "出発", Toast.LENGTH_SHORT).show()
+                }
             ) {
+                Icon(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                    imageVector = Icons.TwoTone.Send,
+                    contentDescription = "出発",
+                    tint = if (uiState.inBasketItems.isNotEmpty()) Color.White else Color.Gray
+                )
+            }
+        }
+        LazyColumn(
+            modifier = Modifier
+        ) {
+            if (uiState.inBasketItems.isEmpty()) {
+                // TODO: implement Empty State
+                item("empty_message") {
+                    Text(text = "アイテムを追加してください")
+                }
+            } else {
+
                 items(uiState.inBasketItems) { item ->
                     InBasketItemCard(item)
                 }
