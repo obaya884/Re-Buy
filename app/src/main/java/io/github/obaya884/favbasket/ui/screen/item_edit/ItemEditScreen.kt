@@ -52,7 +52,7 @@ fun ItemEditScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(items) { item ->
+            items(items, key = { item -> item.id }) { item ->
                 EditScreenItem(
                     name = item.name,
                     onTapDelete = {

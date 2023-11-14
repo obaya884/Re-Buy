@@ -51,7 +51,7 @@ fun CategoryEditScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(categories) { category ->
+            items(categories, key = { category -> category.id }) { category ->
                 EditScreenItem(
                     name = category.name,
                     onTapDelete = {
