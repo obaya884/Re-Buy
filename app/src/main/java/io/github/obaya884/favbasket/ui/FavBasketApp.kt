@@ -13,16 +13,25 @@ import io.github.obaya884.favbasket.ui.theme.FavBasketTheme
 fun FavBasketApp() {
     val navController = rememberNavController()
     FavBasketTheme {
-        NavHost(navController, startDestination = "main") {
-            composable("main") {
+        NavHost(
+            navController = navController,
+            startDestination = Screen.Main.route
+        ) {
+            composable(Screen.Main.route) {
                 MainScreen(navController)
             }
-            composable("category_edit") {
+            composable(Screen.CategoryEdit.route) {
                 CategoryEditScreen(navController)
             }
-            composable("item_edit") {
+            composable(Screen.ItemEdit.route) {
                 ItemEditScreen(navController)
             }
         }
     }
+}
+
+sealed class Screen(val route: String) {
+    object Main : Screen("main")
+    object CategoryEdit : Screen("category_edit")
+    object ItemEdit : Screen("item_edit")
 }

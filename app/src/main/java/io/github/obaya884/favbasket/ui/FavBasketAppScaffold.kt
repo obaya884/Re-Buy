@@ -31,6 +31,7 @@ fun FavBasketAppScaffold(
             TopAppBar(
                 title = { Text(topBarTitle) },
                 navigationIcon = {
+                    // TODO: this place is for displaying the back button.
                     IconButton(onClick = { scope.launch { scaffoldState.drawerState.open() } }) {
                         Icon(
                             Icons.Default.Menu,
@@ -38,6 +39,7 @@ fun FavBasketAppScaffold(
                         )
                     }
                 },
+                // TODO: this place is for displaying the setting button.
                 actions = topBarActions
             )
         },
