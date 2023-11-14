@@ -109,7 +109,6 @@ fun ShoppingItem(
             modifier = Modifier.weight(1f)
         )
 
-        // TODO: consider to use IconToggleButton
         Checkbox(
             checked = scheduledBoughtItemIds.contains(item.id),
             onCheckedChange = null
