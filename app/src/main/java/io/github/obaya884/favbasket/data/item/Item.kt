@@ -9,12 +9,14 @@ import java.util.Date
 
 @Entity(
     tableName = "items",
-    foreignKeys = [ForeignKey(
-        entity = Category::class,
-        parentColumns = ["id"],
-        childColumns = ["categoryId"],
-        onDelete = ForeignKey.CASCADE
-    )],
+    foreignKeys = [
+        ForeignKey(
+            entity = Category::class,
+            parentColumns = ["id"],
+            childColumns = ["categoryId"],
+            onDelete = ForeignKey.SET_NULL
+        )
+    ],
     indices = [Index("categoryId")]
 )
 data class Item(
@@ -22,6 +24,7 @@ data class Item(
     val name: String,
     val status: ItemStatus = ItemStatus.NO_DEAL,
     val categoryId: Int? = null,
+    // TODO: 日付の扱い見直し
     val createdAt: Date = Date(),
     val updatedAt: Date = Date()
 )
