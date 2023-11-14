@@ -10,6 +10,7 @@ import io.github.obaya884.favbasket.ui.screen.category_edit.CategoryEditScreen
 import io.github.obaya884.favbasket.ui.screen.item_edit.ItemEditScreen
 import io.github.obaya884.favbasket.ui.screen.main.MainScreen
 import io.github.obaya884.favbasket.ui.screen.setting.SettingScreen
+import io.github.obaya884.favbasket.ui.screen.shopping.ShoppingScreen
 import io.github.obaya884.favbasket.ui.theme.FavBasketTheme
 
 @Composable
@@ -38,13 +39,17 @@ fun FavBasketApp() {
             composable(Screen.ItemEdit.route) {
                 ItemEditScreen(navController)
             }
+            composable(Screen.Shopping.route) {
+                ShoppingScreen(navController)
+            }
         }
     }
 }
 
 sealed class Screen(val route: String) {
-    object Main : Screen("main")
-    object Setting : Screen("setting")
-    object CategoryEdit : Screen("category_edit")
-    object ItemEdit : Screen("item_edit")
+    data object Main : Screen("main")
+    data object Setting : Screen("setting")
+    data object CategoryEdit : Screen("category_edit")
+    data object ItemEdit : Screen("item_edit")
+    data object Shopping : Screen("shopping")
 }

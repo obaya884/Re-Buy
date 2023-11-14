@@ -1,6 +1,5 @@
 package io.github.obaya884.favbasket.ui.screen.main
 
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -11,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Checkbox
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.FloatingActionButton
@@ -18,9 +18,11 @@ import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.KeyboardArrowDown
 import androidx.compose.material.icons.twotone.List
 import androidx.compose.material.icons.twotone.Send
@@ -32,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -97,8 +98,15 @@ fun MainScreen(navController: NavController) {
     ) { innerPadding ->
         ModalBottomSheetLayout(
             sheetState = bottomSheetState,
+            sheetShape = RoundedCornerShape(12.dp),
             sheetContent = {
-                MainScreenBottomSheetContent(uiState)
+                MainScreenBottomSheetContent(
+                    uiState = uiState,
+                    bottomSheetState = bottomSheetState,
+                    onClickGoShopping = {
+                        navController.navigate(Screen.Shopping.route)
+                    }
+                )
             }
         ) {
             Column(
@@ -124,11 +132,15 @@ fun MainScreen(navController: NavController) {
     }
 }
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreenBottomSheetContent(
-    uiState: MainUiState
+    uiState: MainUiState,
+    bottomSheetState: ModalBottomSheetState,
+    onClickGoShopping: () -> Unit
 ) {
-    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,6 +151,19 @@ fun MainScreenBottomSheetContent(
                 .fillMaxWidth()
                 .background(MaterialTheme.colors.primary)
         ) {
+            IconButton(
+                onClick = {
+                    coroutineScope.launch { bottomSheetState.hide() }
+                }
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .padding(horizontal = 12.dp, vertical = 12.dp),
+                    imageVector = Icons.TwoTone.Close,
+                    contentDescription = "close the bottom sheet",
+                    tint = Color.White
+                )
+            }
             Text(
                 text = "買い物リスト",
                 color = Color.White,
@@ -151,8 +176,7 @@ fun MainScreenBottomSheetContent(
             IconButton(
                 enabled = uiState.inBasketItems.isNotEmpty(),
                 onClick = {
-                    // TODO: transition to shopping screen
-                    Toast.makeText(context, "出発", Toast.LENGTH_SHORT).show()
+                    onClickGoShopping()
                 }
             ) {
                 Icon(
