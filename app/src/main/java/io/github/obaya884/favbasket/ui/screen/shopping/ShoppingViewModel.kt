@@ -1,0 +1,54 @@
+package io.github.obaya884.favbasket.ui.screen.shopping
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.obaya884.favbasket.data.item.Item
+import io.github.obaya884.favbasket.data.item.ItemStatus
+import io.github.obaya884.favbasket.domain.ItemRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class ShoppingViewModel @Inject constructor(
+    private val itemRepository: ItemRepository
+) : ViewModel() {
+    private val _inBasketItems = MutableStateFlow<List<Item>>(listOf())
+    private val _scheduledBoughtItemIds = MutableStateFlow<List<Int>>(listOf())
+
+    val uiState: StateFlow<ShoppingUiState> =
+        combine(_inBasketItems, _scheduledBoughtItemIds) { inBasketItems, boughtItemIds ->
+            ShoppingUiState(
+                inBasketItems = inBasketItems,
+                scheduledBoughtItemIds = boughtItemIds
+            )
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, ShoppingUiState(listOf(), listOf()))
+
+    init {
+        viewModelScope.launch {
+            itemRepository.getAll()
+                .collect { items ->
+                    _inBasketItems.value = items.filter { it.status == ItemStatus.IN_BASKET }
+                }
+        }
+    }
+
+    fun markScheduledBought(itemId: Int) {
+        _scheduledBoughtItemIds.value = _scheduledBoughtItemIds.value + itemId
+    }
+
+    fun unMarkScheduledBought(itemId: Int) {
+        _scheduledBoughtItemIds.value = _scheduledBoughtItemIds.value - itemId
+    }
+
+    fun changeBoughtConfirm() = viewModelScope.launch {
+        _scheduledBoughtItemIds.value.forEach { id ->
+            itemRepository.updateStatusAsBought(id)
+        }
+    }
+}
