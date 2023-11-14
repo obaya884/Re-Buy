@@ -28,6 +28,7 @@ class MainViewModel @Inject constructor(
             )
         }.stateIn(viewModelScope, SharingStarted.Eagerly, MainUiState(listOf(), listOf()))
 
+    // TODO: この画面の時にBOUGHT状態のアイテムが存在しないはず。というのを実装で保証したい。
     init {
         viewModelScope.launch {
             itemRepository.getAll()
@@ -39,10 +40,10 @@ class MainViewModel @Inject constructor(
     }
 
     fun addToBasket(item: Item) = viewModelScope.launch {
-        itemRepository.addToBasket(item)
+        itemRepository.updateStatusAsInBasket(item)
     }
 
     fun removeFromBasket(item: Item) = viewModelScope.launch {
-        itemRepository.removeFromBasket(item)
+        itemRepository.updateStatusAsNoDeal(item)
     }
 }

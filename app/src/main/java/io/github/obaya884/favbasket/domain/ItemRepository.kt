@@ -17,7 +17,17 @@ class ItemRepository(private val itemDao: ItemDao) {
         itemDao.deleteItem(item)
     }
 
-    suspend fun addToBasket(item: Item) {
+    suspend fun updateStatusAsNoDeal(item: Item) {
+        if (item.status == ItemStatus.NO_DEAL) return
+
+        itemDao.updateItemStatus(
+            itemId = item.id,
+            newStatus = ItemStatus.NO_DEAL,
+            updatedAt = Date()
+        )
+    }
+
+    suspend fun updateStatusAsInBasket(item: Item) {
         if (item.status == ItemStatus.IN_BASKET) return
 
         itemDao.updateItemStatus(
@@ -27,12 +37,12 @@ class ItemRepository(private val itemDao: ItemDao) {
         )
     }
 
-    suspend fun removeFromBasket(item: Item) {
-        if (item.status != ItemStatus.IN_BASKET) return
+    suspend fun updateStatusAsBought(id: Int) {
+        val item = itemDao.getItemById(id)
 
         itemDao.updateItemStatus(
             itemId = item.id,
-            newStatus = ItemStatus.NO_DEAL,
+            newStatus = ItemStatus.BOUGHT,
             updatedAt = Date()
         )
     }
