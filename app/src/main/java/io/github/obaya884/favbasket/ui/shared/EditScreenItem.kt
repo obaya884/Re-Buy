@@ -53,6 +53,7 @@ fun EditScreenItem(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
+            // TODO: implement the divider with the color of the theme
             Spacer(
                 modifier = Modifier
                     .fillMaxWidth()

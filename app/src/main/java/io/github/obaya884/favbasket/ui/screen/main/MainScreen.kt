@@ -101,6 +101,7 @@ fun MainScreen(navController: NavController) {
             sheetShape = RoundedCornerShape(12.dp),
             sheetContent = {
                 MainScreenBottomSheetContent(
+                    modifier = Modifier.padding(innerPadding),
                     uiState = uiState,
                     bottomSheetState = bottomSheetState,
                     onClickGoShopping = {
@@ -131,6 +132,7 @@ fun MainScreen(navController: NavController) {
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreenBottomSheetContent(
+    modifier: Modifier = Modifier,
     uiState: MainUiState,
     bottomSheetState: ModalBottomSheetState,
     onClickGoShopping: () -> Unit
@@ -138,7 +140,7 @@ fun MainScreenBottomSheetContent(
     val coroutineScope = rememberCoroutineScope()
 
     Column(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .heightIn(min = 320.dp)
     ) {

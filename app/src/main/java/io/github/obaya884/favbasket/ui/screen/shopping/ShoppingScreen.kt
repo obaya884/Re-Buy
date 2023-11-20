@@ -35,7 +35,7 @@ fun ShoppingScreen(navController: NavController) {
         topBarNavigationIcon = {
             IconButton(
                 onClick = {
-                    // TODO: implement the confirmation UX to prevent the screen is back immediately and the item status isn't changed.
+                    // TODO: implement the confirmation UX with AlertDialog to prevent the screen is back immediately and the item status isn't changed.
                     navController.navigateUp()
                 }
             ) {

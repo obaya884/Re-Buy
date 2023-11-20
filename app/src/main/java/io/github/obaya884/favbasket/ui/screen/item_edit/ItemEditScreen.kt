@@ -56,7 +56,7 @@ fun ItemEditScreen(
                 EditScreenItem(
                     name = item.name,
                     onTapDelete = {
-                        // TODO: add confirmation UX like a dialog.
+                        // TODO: with AlertDialog
                         viewModel.deleteItem(item)
                     }
                 )
