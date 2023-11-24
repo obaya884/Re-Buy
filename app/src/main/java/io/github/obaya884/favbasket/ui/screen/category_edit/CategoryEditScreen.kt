@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -69,7 +68,6 @@ fun CategoryEditScreen(
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier
-                    .size(68.dp)
                     .offset(y = (-48).dp),
                 onClick = {
                     showCategoryAddDialog = true
@@ -77,8 +75,7 @@ fun CategoryEditScreen(
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Add Item",
-                    modifier = Modifier.size(32.dp)
+                    contentDescription = "Add Item"
                 )
             }
         }
