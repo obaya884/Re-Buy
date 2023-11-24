@@ -2,8 +2,10 @@ package io.github.obaya884.favbasket.ui.screen.item_edit
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -16,6 +18,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
@@ -38,12 +41,16 @@ fun ItemEditScreen(
                 Icon(Icons.Default.ArrowBack, contentDescription = "Localized description")
             }
         },
-        topBarActions = {
-            // TODO: move to floating action button
-            IconButton(
+        floatingActionButton = {
+            FloatingActionButton(
+                modifier = Modifier.size(68.dp),
                 onClick = { showDialog = true }
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Add Item")
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Item",
+                    modifier = Modifier.size(32.dp)
+                )
             }
         }
     ) { innerPadding ->
