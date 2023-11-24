@@ -21,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.shared.EditScreenItem
-import io.github.obaya884.favbasket.ui.shared.TextFieldDialog
+import io.github.obaya884.favbasket.ui.shared.TextFieldAddDialog
+import io.github.obaya884.favbasket.ui.shared.TextFieldEditDialog
 
 @Composable
 fun ItemEditScreen(
@@ -32,7 +34,10 @@ fun ItemEditScreen(
     val viewModel = hiltViewModel<ItemEditViewModel>()
     val items by viewModel.items.collectAsState()
 
-    var showDialog by remember { mutableStateOf(false) }
+    var showItemAddDialog by remember { mutableStateOf(false) }
+    var showItemEditDialog by remember { mutableStateOf(false) }
+    // TODO: Data層が染み出しすぎてる。idとnameだけ保持できれば良いのでここでItemを使う必要はない。
+    var editItem by remember { mutableStateOf(Item(0, "")) }
 
     FavBasketAppScaffold(
         topBarTitle = "Item Edit",
@@ -44,7 +49,9 @@ fun ItemEditScreen(
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.size(68.dp),
-                onClick = { showDialog = true }
+                onClick = {
+                    showItemAddDialog = true
+                }
             ) {
                 Icon(
                     Icons.Default.Add,
@@ -62,7 +69,10 @@ fun ItemEditScreen(
             items(items, key = { item -> item.id }) { item ->
                 EditScreenItem(
                     name = item.name,
-                    onTapEdit = {},
+                    onTapEdit = {
+                        showItemEditDialog = true
+                        editItem = item
+                    },
                     onTapDelete = {
                         // TODO: with AlertDialog
                         viewModel.deleteItem(item)
@@ -71,19 +81,33 @@ fun ItemEditScreen(
             }
         }
 
-        if (showDialog) {
+        if (showItemAddDialog) {
             // TODO: try to use ModalBottomSheet composable for aiming a more current UX.
-            TextFieldDialog(
+            TextFieldAddDialog(
                 title = "Add Item",
                 onConfirm = {
                     viewModel.addItem(it)
-                    showDialog = false
+                    showItemAddDialog = false
                 },
                 onDismiss = {
-                    showDialog = false
+                    showItemAddDialog = false
+                }
+            )
+        }
+
+        if (showItemEditDialog) {
+            TextFieldEditDialog(
+                title = "Edit Item",
+                editId = editItem.id,
+                editName = editItem.name,
+                onConfirm = { id, name ->
+                    viewModel.editItemName(id, name)
+                    showItemEditDialog = false
+                },
+                onDismiss = {
+                    showItemEditDialog = false
                 }
             )
         }
     }
 }
-

@@ -16,22 +16,28 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextButton
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 
 @Composable
-fun TextFieldDialog(
+fun TextFieldEditDialog(
     title: String,
-    onConfirm: (String) -> Unit,
+    editId: Int,
+    editName: String,
+    onConfirm: (Int, String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var inputString by remember { mutableStateOf("") }
+
+    SideEffect {
+        inputString = editName
+    }
 
     Dialog(
         onDismissRequest = {
@@ -75,7 +81,7 @@ fun TextFieldDialog(
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            onConfirm(inputString)
+                            onConfirm(editId, inputString)
                         }
                     ) {
                         Text("Add")
@@ -84,14 +90,4 @@ fun TextFieldDialog(
             }
         }
     }
-}
-
-@Preview
-@Composable
-fun TextFieldDialogPreview() {
-    TextFieldDialog(
-        title = "Add Item",
-        onConfirm = {},
-        onDismiss = {}
-    )
 }

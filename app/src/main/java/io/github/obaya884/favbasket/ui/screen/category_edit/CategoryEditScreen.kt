@@ -21,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import io.github.obaya884.favbasket.data.category.Category
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.shared.EditScreenItem
-import io.github.obaya884.favbasket.ui.shared.TextFieldDialog
+import io.github.obaya884.favbasket.ui.shared.TextFieldAddDialog
+import io.github.obaya884.favbasket.ui.shared.TextFieldEditDialog
 
 @Composable
 fun CategoryEditScreen(
@@ -32,7 +34,9 @@ fun CategoryEditScreen(
     val viewModel = hiltViewModel<CategoryEditViewModel>()
     val categories by viewModel.categories.collectAsState()
 
-    var showDialog by remember { mutableStateOf(false) }
+    var showCategoryAddDialog by remember { mutableStateOf(false) }
+    var showCategoryEditDialog by remember { mutableStateOf(false) }
+    var editCategory by remember { mutableStateOf(Category(0, "")) }
 
     FavBasketAppScaffold(
         topBarTitle = "Category Edit",
@@ -44,7 +48,9 @@ fun CategoryEditScreen(
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier.size(68.dp),
-                onClick = { showDialog = true }
+                onClick = {
+                    showCategoryAddDialog = true
+                }
             ) {
                 Icon(
                     Icons.Default.Add,
@@ -62,7 +68,10 @@ fun CategoryEditScreen(
             items(categories, key = { category -> category.id }) { category ->
                 EditScreenItem(
                     name = category.name,
-                    onTapEdit = {},
+                    onTapEdit = {
+                        showCategoryEditDialog = true
+                        editCategory = category
+                    },
                     onTapDelete = {
                         // TODO: with AlertDialog
                         viewModel.deleteCategory(category)
@@ -71,15 +80,30 @@ fun CategoryEditScreen(
             }
         }
 
-        if (showDialog) {
-            TextFieldDialog(
+        if (showCategoryAddDialog) {
+            TextFieldAddDialog(
                 title = "Add Category",
                 onConfirm = {
                     viewModel.addCategory(it)
-                    showDialog = false
+                    showCategoryAddDialog = false
                 },
                 onDismiss = {
-                    showDialog = false
+                    showCategoryAddDialog = false
+                }
+            )
+        }
+
+        if (showCategoryEditDialog) {
+            TextFieldEditDialog(
+                title = "Edit Category",
+                editId = editCategory.id,
+                editName = editCategory.name,
+                onConfirm = { id, name ->
+                    viewModel.editCategoryName(id, name)
+                    showCategoryEditDialog = false
+                },
+                onDismiss = {
+                    showCategoryEditDialog = false
                 }
             )
         }

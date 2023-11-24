@@ -17,6 +17,14 @@ class ItemRepository(private val itemDao: ItemDao) {
         itemDao.deleteItem(item)
     }
 
+    suspend fun updateName(id: Int, newName: String) {
+        itemDao.updateItemName(
+            itemId = id,
+            newName = newName,
+            updatedAt = Date()
+        )
+    }
+
     suspend fun updateStatusAsNoDeal(item: Item) {
         if (item.status == ItemStatus.NO_DEAL) return
 

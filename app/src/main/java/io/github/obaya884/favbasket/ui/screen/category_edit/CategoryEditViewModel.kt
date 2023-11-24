@@ -35,6 +35,12 @@ class CategoryEditViewModel @Inject constructor(
         }
     }
 
+    fun editCategoryName(categoryId: Int, newName: String) {
+        viewModelScope.launch {
+            categoryRepository.updateName(categoryId, newName)
+        }
+    }
+
     fun deleteCategory(category: Category) {
         viewModelScope.launch {
             categoryRepository.delete(category)
