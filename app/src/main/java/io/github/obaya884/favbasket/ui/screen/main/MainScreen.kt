@@ -98,7 +98,7 @@ fun MainScreen(navController: NavController) {
     ) { innerPadding ->
         ModalBottomSheetLayout(
             sheetState = bottomSheetState,
-            sheetShape = RoundedCornerShape(12.dp),
+            sheetShape = RoundedCornerShape(topEnd = 12.dp, topStart = 12.dp),
             sheetContent = {
                 MainScreenBottomSheetContent(
                     modifier = Modifier.padding(innerPadding),
