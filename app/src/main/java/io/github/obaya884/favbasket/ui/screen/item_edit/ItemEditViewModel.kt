@@ -3,7 +3,9 @@ package io.github.obaya884.favbasket.ui.screen.item_edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.obaya884.favbasket.data.category.Category
 import io.github.obaya884.favbasket.data.item.Item
+import io.github.obaya884.favbasket.domain.CategoryRepository
 import io.github.obaya884.favbasket.domain.ItemRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -12,17 +14,29 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ItemEditViewModel @Inject constructor(
-    private val itemRepository: ItemRepository
+    private val itemRepository: ItemRepository,
+    private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     private val _items = MutableStateFlow<List<Item>>(listOf())
     val items: StateFlow<List<Item>> = _items
 
+    private val _categories = MutableStateFlow<List<Category>>(listOf())
+    val categories: StateFlow<List<Category>> = _categories
+
     init {
         viewModelScope.launch {
-            itemRepository.getAll()
-                .collect { items ->
-                    _items.value = items
-                }
+            launch {
+                itemRepository.getAll()
+                    .collect { items ->
+                        _items.value = items
+                    }
+            }
+            launch {
+                categoryRepository.getAll()
+                    .collect { categories ->
+                        _categories.value = categories
+                    }
+            }
         }
     }
 
@@ -38,6 +52,12 @@ class ItemEditViewModel @Inject constructor(
     fun editItemName(itemId: Int, newName: String) {
         viewModelScope.launch {
             itemRepository.updateName(itemId, newName)
+        }
+    }
+
+    fun editItemCategory(itemId: Int, newCategoryId: Int) {
+        viewModelScope.launch {
+            itemRepository.updateCategory(itemId, newCategoryId)
         }
     }
 
