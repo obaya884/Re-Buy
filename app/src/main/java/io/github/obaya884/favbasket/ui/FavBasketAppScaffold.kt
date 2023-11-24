@@ -7,6 +7,7 @@ import androidx.compose.material.Text
 import androidx.compose.material.TopAppBar
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun FavBasketAppScaffold(
@@ -24,7 +25,8 @@ fun FavBasketAppScaffold(
             TopAppBar(
                 title = { Text(topBarTitle) },
                 navigationIcon = topBarNavigationIcon,
-                actions = topBarActions
+                actions = topBarActions,
+                elevation = 0.dp
             )
         },
         floatingActionButton = floatingActionButton
