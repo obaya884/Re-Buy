@@ -52,6 +52,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemStatus
+import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 import kotlinx.coroutines.launch
@@ -151,61 +152,31 @@ fun HomeScreen(navController: NavController) {
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier
-                            .fillMaxSize()
+                            .fillMaxWidth()
                             .padding(innerPadding)
                     ) { pagerIndex ->
-                        when (val tab = tabs.getOrNull(pagerIndex)) {
-                            HomeTab.AllTab -> {
-                                Column {
-                                    LazyColumn(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                    ) {
-                                        items(
-                                            uiState.preparedItems,
-                                            key = { item -> item.item.id }
-                                        ) { item ->
-                                            PreparedItemRow(item.item) { isInBasket ->
-                                                if (isInBasket) {
-                                                    viewModel.removeFromBasket(item.item)
-                                                } else {
-                                                    viewModel.addToBasket(item.item)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                        val tab = tabs.getOrNull(pagerIndex)
+                        val itemsForTab = when (tab) {
+                            HomeTab.AllTab -> uiState.preparedItems
+                            is HomeTab.CategoryTab -> uiState.preparedItems.filter { item ->
+                                item.item.categoryId == tab.category.id
                             }
 
-                            is HomeTab.CategoryTab -> {
-                                Column {
-                                    LazyColumn(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                    ) {
-                                        items(
-                                            uiState.preparedItems.filter { item ->
-                                                item.item.categoryId == tab.category.id
-                                            },
-                                            key = { item -> item.item.id }
-                                        ) { item ->
-                                            PreparedItemRow(item.item) { isInBasket ->
-                                                if (isInBasket) {
-                                                    viewModel.removeFromBasket(item.item)
-                                                } else {
-                                                    viewModel.addToBasket(item.item)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                            null -> {
-
-                            }
+                            null -> emptyList()
                         }
 
+                        MainTabItemList(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                            itemsForTab
+                        ) { isInBasket, item ->
+                            if (isInBasket) {
+                                viewModel.removeFromBasket(item)
+                            } else {
+                                viewModel.addToBasket(item)
+                            }
+                        }
                     }
                 }
             } else {
@@ -215,6 +186,25 @@ fun HomeScreen(navController: NavController) {
                 ) {
                     // TODO: ローディング→追加してください系画面
                     CircularProgressIndicator()
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun MainTabItemList(
+    modifier: Modifier,
+    items: List<ItemWithCategory>,
+    onItemAction: (Boolean, Item) -> Unit
+) {
+    Column {
+        LazyColumn(
+            modifier = modifier
+        ) {
+            items(items, key = { it.item.id }) { item ->
+                PreparedItemRow(item.item) { isInBasket ->
+                    onItemAction(isInBasket, item.item)
                 }
             }
         }
@@ -316,7 +306,7 @@ fun PreparedItemRow(item: Item, onCheckedChange: (Boolean) -> Unit) {
                 }
             )
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
         Text(
             text = item.name,
