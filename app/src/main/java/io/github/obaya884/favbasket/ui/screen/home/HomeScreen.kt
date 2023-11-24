@@ -16,26 +16,26 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Checkbox
-import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.FloatingActionButton
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
-import androidx.compose.material.ScrollableTabRow
-import androidx.compose.material.Tab
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Close
-import androidx.compose.material.icons.twotone.KeyboardArrowDown
-import androidx.compose.material.icons.twotone.List
-import androidx.compose.material.icons.twotone.Send
-import androidx.compose.material.icons.twotone.Settings
-import androidx.compose.material.rememberModalBottomSheetState
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -57,7 +57,11 @@ import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
+@OptIn(
+    ExperimentalMaterial3Api::class,
+    ExperimentalMaterialApi::class,
+    ExperimentalFoundationApi::class
+)
 @Composable
 fun HomeScreen(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
@@ -65,7 +69,7 @@ fun HomeScreen(navController: NavController) {
     val tabs = homeTabs(uiState.categories)
 
     val bottomSheetState =
-        rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+        androidx.compose.material.rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -77,7 +81,7 @@ fun HomeScreen(navController: NavController) {
                     navController.navigate(Screen.Setting.route)
                 }
             ) {
-                Icon(Icons.TwoTone.Settings, contentDescription = "Setting")
+                Icon(Icons.Default.Settings, contentDescription = "Setting")
             }
         },
         floatingActionButton = {
@@ -96,13 +100,13 @@ fun HomeScreen(navController: NavController) {
                 // TODO: シートが開ききらないとアイコンが切り替わらない。押した直後に切り替えたい
                 if (bottomSheetState.isVisible) {
                     Icon(
-                        imageVector = Icons.TwoTone.KeyboardArrowDown,
+                        imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "hide shopping cart",
                         modifier = Modifier.size(32.dp)
                     )
                 } else {
                     Icon(
-                        imageVector = Icons.TwoTone.List,
+                        imageVector = Icons.Default.List,
                         contentDescription = "show shopping cart",
                         modifier = Modifier.size(32.dp)
                     )
@@ -115,7 +119,6 @@ fun HomeScreen(navController: NavController) {
             sheetShape = RoundedCornerShape(topEnd = 12.dp, topStart = 12.dp),
             sheetContent = {
                 MainScreenBottomSheetContent(
-                    modifier = Modifier.padding(innerPadding),
                     uiState = uiState,
                     bottomSheetState = bottomSheetState,
                     onClickGoShopping = {
@@ -125,7 +128,11 @@ fun HomeScreen(navController: NavController) {
             }
         ) {
             if (tabs.isNotEmpty()) {
-                Column {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                ) {
                     ScrollableTabRow(
                         selectedTabIndex = pagerState.currentPage,
                         edgePadding = 0.dp
@@ -153,7 +160,6 @@ fun HomeScreen(navController: NavController) {
                         state = pagerState,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(innerPadding)
                     ) { pagerIndex ->
                         val tab = tabs.getOrNull(pagerIndex)
                         val itemsForTab = when (tab) {
@@ -229,7 +235,7 @@ fun MainScreenBottomSheetContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colors.primary)
+                .background(MaterialTheme.colorScheme.primary)
         ) {
             IconButton(
                 onClick = {
@@ -239,7 +245,7 @@ fun MainScreenBottomSheetContent(
                 Icon(
                     modifier = Modifier
                         .padding(horizontal = 12.dp, vertical = 12.dp),
-                    imageVector = Icons.TwoTone.Close,
+                    imageVector = Icons.Default.Close,
                     contentDescription = "close the bottom sheet",
                     tint = Color.White
                 )
@@ -262,7 +268,7 @@ fun MainScreenBottomSheetContent(
                 Icon(
                     modifier = Modifier
                         .padding(horizontal = 12.dp, vertical = 12.dp),
-                    imageVector = Icons.TwoTone.Send,
+                    imageVector = Icons.Default.Send,
                     contentDescription = "出発",
                     tint = if (uiState.inBasketItems.isNotEmpty()) Color.White else Color.Gray
                 )
