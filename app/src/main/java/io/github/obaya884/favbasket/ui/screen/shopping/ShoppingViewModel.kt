@@ -6,11 +6,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.domain.ItemRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,16 +20,26 @@ import javax.inject.Inject
 class ShoppingViewModel @Inject constructor(
     private val itemRepository: ItemRepository
 ) : ViewModel() {
+    private val _isLoading = MutableStateFlow(false)
     private val _inBasketItems = MutableStateFlow<List<Item>>(listOf())
     private val _scheduledBoughtItemIds = MutableStateFlow<List<Int>>(listOf())
 
     val uiState: StateFlow<ShoppingUiState> =
-        combine(_inBasketItems, _scheduledBoughtItemIds) { inBasketItems, boughtItemIds ->
+        combine(
+            _isLoading,
+            _inBasketItems,
+            _scheduledBoughtItemIds
+        ) { isLoading, inBasketItems, boughtItemIds ->
             ShoppingUiState(
+                isLoading = isLoading,
                 inBasketItems = inBasketItems,
                 scheduledBoughtItemIds = boughtItemIds
             )
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, ShoppingUiState(listOf(), listOf()))
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            ShoppingUiState(false, listOf(), listOf())
+        )
 
     init {
         viewModelScope.launch {
@@ -46,9 +58,18 @@ class ShoppingViewModel @Inject constructor(
         _scheduledBoughtItemIds.value = _scheduledBoughtItemIds.value - itemId
     }
 
-    fun changeBoughtConfirm() = viewModelScope.launch {
-        _scheduledBoughtItemIds.value.forEach { id ->
-            itemRepository.updateStatusAsBought(id)
+    fun changeBoughtConfirm(onFinished: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            val jobs = _scheduledBoughtItemIds.value.map { id ->
+                launch {
+                    itemRepository.updateStatusAsBought(id)
+                }
+            }
+            jobs.joinAll()
+            delay(1000)
+            _isLoading.value = false
+            onFinished()
         }
     }
 }
