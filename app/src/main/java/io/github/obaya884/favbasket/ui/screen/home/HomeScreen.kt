@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -22,12 +21,11 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -121,33 +119,39 @@ fun HomeScreen(navController: NavController) {
             }
         },
         floatingActionButton = {
-            FloatingActionButton(
-                modifier = Modifier.size(68.dp),
-                onClick = {
-                    coroutineScope.launch {
-                        if (bottomSheetState.isVisible) {
-                            // TODO: シート開いてる時はタップでショッピング画面に遷移させる。extended FABを使いたい。
-                            bottomSheetState.hide()
-                        } else {
+            if (!bottomSheetState.isVisible) {
+                FloatingActionButton(
+                    onClick = {
+                        coroutineScope.launch {
                             bottomSheetState.show()
                         }
                     }
-                }
-            ) {
-                // TODO: シートが開ききらないとアイコンが切り替わらない。押した直後に切り替えたい
-                if (bottomSheetState.isVisible) {
+                ) {
                     Icon(
-                        imageVector = Icons.Default.KeyboardArrowDown,
-                        contentDescription = "hide shopping cart",
-                        modifier = Modifier.size(32.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Default.List,
-                        contentDescription = "show shopping cart",
-                        modifier = Modifier.size(32.dp)
+                        painterResource(id = R.drawable.icon_check_list),
+                        contentDescription = "show shopping cart"
                     )
                 }
+            } else {
+                ExtendedFloatingActionButton(
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.ShoppingCart,
+                            contentDescription = "show shopping cart"
+                        )
+                    },
+                    text = { Text(text = "買い物に行く") },
+                    onClick = {
+                        if (uiState.inBasketItems.isNotEmpty()) {
+                            navController.navigate(Screen.Shopping.route)
+                        } else {
+                            coroutineScope.launch {
+                                // TODO: フィードバックのSnack bar表示
+                                bottomSheetState.hide()
+                            }
+                        }
+                    }
+                )
             }
         },
         floatingActionButtonPosition = FabPosition.Center
