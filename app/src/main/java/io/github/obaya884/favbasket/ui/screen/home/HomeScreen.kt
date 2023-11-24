@@ -61,7 +61,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen(navController: NavController) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
-    val tabs = uiState.categories
+    val tabs = homeTabs(uiState.categories)
 
     val bottomSheetState =
         rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
@@ -133,7 +133,7 @@ fun HomeScreen(navController: NavController) {
                             Tab(
                                 text = {
                                     Text(
-                                        tab.name,
+                                        tab.title,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis
                                     )
@@ -154,27 +154,58 @@ fun HomeScreen(navController: NavController) {
                             .fillMaxSize()
                             .padding(innerPadding)
                     ) { pagerIndex ->
-                        Column {
-                            LazyColumn(
-                                modifier = Modifier
-                                    .weight(1f)
-                            ) {
-                                items(
-                                    uiState.preparedItems.filter { item ->
-                                        item.item.categoryId == tabs[pagerIndex].id
-                                    },
-                                    key = { item -> item.item.id }
-                                ) { item ->
-                                    PreparedItemRow(item.item) { isInBasket ->
-                                        if (isInBasket) {
-                                            viewModel.removeFromBasket(item.item)
-                                        } else {
-                                            viewModel.addToBasket(item.item)
+                        when (val tab = tabs.getOrNull(pagerIndex)) {
+                            HomeTab.AllTab -> {
+                                Column {
+                                    LazyColumn(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                    ) {
+                                        items(
+                                            uiState.preparedItems,
+                                            key = { item -> item.item.id }
+                                        ) { item ->
+                                            PreparedItemRow(item.item) { isInBasket ->
+                                                if (isInBasket) {
+                                                    viewModel.removeFromBasket(item.item)
+                                                } else {
+                                                    viewModel.addToBasket(item.item)
+                                                }
+                                            }
                                         }
                                     }
                                 }
                             }
+
+                            is HomeTab.CategoryTab -> {
+                                Column {
+                                    LazyColumn(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                    ) {
+                                        items(
+                                            uiState.preparedItems.filter { item ->
+                                                item.item.categoryId == tab.category.id
+                                            },
+                                            key = { item -> item.item.id }
+                                        ) { item ->
+                                            PreparedItemRow(item.item) { isInBasket ->
+                                                if (isInBasket) {
+                                                    viewModel.removeFromBasket(item.item)
+                                                } else {
+                                                    viewModel.addToBasket(item.item)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            null -> {
+
+                            }
                         }
+
                     }
                 }
             } else {
