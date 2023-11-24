@@ -55,6 +55,7 @@ fun ItemEditScreen(
             items(items, key = { item -> item.id }) { item ->
                 EditScreenItem(
                     name = item.name,
+                    onTapEdit = {},
                     onTapDelete = {
                         // TODO: with AlertDialog
                         viewModel.deleteItem(item)

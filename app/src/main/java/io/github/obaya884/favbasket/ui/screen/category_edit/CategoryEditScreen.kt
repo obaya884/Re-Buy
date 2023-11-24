@@ -54,6 +54,7 @@ fun CategoryEditScreen(
             items(categories, key = { category -> category.id }) { category ->
                 EditScreenItem(
                     name = category.name,
+                    onTapEdit = {},
                     onTapDelete = {
                         // TODO: with AlertDialog
                         viewModel.deleteCategory(category)

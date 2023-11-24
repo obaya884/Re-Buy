@@ -14,6 +14,7 @@ import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun EditScreenItem(
     name: String,
+    onTapEdit: () -> Unit,
     onTapDelete: () -> Unit
 ) {
     Column {
@@ -41,7 +43,14 @@ fun EditScreenItem(
             IconButton(
                 modifier = Modifier.align(Alignment.Bottom),
                 onClick = {
-                    // TODO: add confirmation UX like a dialog.
+                    onTapEdit()
+                }
+            ) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit Item")
+            }
+            IconButton(
+                modifier = Modifier.align(Alignment.Bottom),
+                onClick = {
                     onTapDelete()
                 }
             ) {
