@@ -1,6 +1,7 @@
 package io.github.obaya884.favbasket.ui.screen.category_edit
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -57,7 +58,9 @@ fun CategoryEditScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                modifier = Modifier.size(68.dp),
+                modifier = Modifier
+                    .size(68.dp)
+                    .offset(y = (-48).dp),
                 onClick = {
                     showCategoryAddDialog = true
                 }
@@ -75,7 +78,10 @@ fun CategoryEditScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(categories, key = { category -> category.id }) { category ->
+            items(
+                categories,
+                key = { category -> category.id }
+            ) { category ->
                 EditScreenItem(
                     name = category.name,
                     onTapEdit = {

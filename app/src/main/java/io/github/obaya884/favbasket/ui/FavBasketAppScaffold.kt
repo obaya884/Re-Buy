@@ -3,6 +3,7 @@ package io.github.obaya884.favbasket.ui
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -15,6 +16,7 @@ fun FavBasketAppScaffold(
     topBarNavigationIcon: @Composable (() -> Unit) = {},
     topBarActions: @Composable RowScope.() -> Unit = {},
     floatingActionButton: @Composable () -> Unit = { },
+    floatingActionButtonPosition: FabPosition = FabPosition.End,
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
@@ -25,7 +27,8 @@ fun FavBasketAppScaffold(
                 actions = topBarActions
             )
         },
-        floatingActionButton = floatingActionButton
+        floatingActionButton = floatingActionButton,
+        floatingActionButtonPosition = floatingActionButtonPosition
     ) { innerPadding ->
         content(innerPadding)
     }

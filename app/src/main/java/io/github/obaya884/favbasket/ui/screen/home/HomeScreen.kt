@@ -28,7 +28,7 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,7 +60,6 @@ import io.github.obaya884.favbasket.ui.Screen
 import kotlinx.coroutines.launch
 
 @OptIn(
-    ExperimentalMaterial3Api::class,
     ExperimentalMaterialApi::class,
     ExperimentalFoundationApi::class
 )
@@ -114,7 +113,8 @@ fun HomeScreen(navController: NavController) {
                     )
                 }
             }
-        }
+        },
+        floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
         ModalBottomSheetLayout(
             sheetState = bottomSheetState,
@@ -227,6 +227,7 @@ fun MainScreenBottomSheetContent(
     bottomSheetState: ModalBottomSheetState,
     onClickGoShopping: () -> Unit
 ) {
+    // TODO: 高さが大きくなった場合にAppBarまで突き抜けてしまう
     val coroutineScope = rememberCoroutineScope()
 
     Column(
