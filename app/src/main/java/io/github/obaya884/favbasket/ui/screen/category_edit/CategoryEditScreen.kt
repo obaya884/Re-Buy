@@ -5,9 +5,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -36,13 +39,17 @@ fun CategoryEditScreen(
 
     var showCategoryAddDialog by remember { mutableStateOf(false) }
     var showCategoryEditDialog by remember { mutableStateOf(false) }
+    var showItemDeleteDialog by remember { mutableStateOf(false) }
     var editCategory by remember { mutableStateOf(Category(0, "")) }
 
     FavBasketAppScaffold(
         topBarTitle = "Category Edit",
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Localized description")
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = "Localized description"
+                )
             }
         },
         floatingActionButton = {
@@ -73,8 +80,8 @@ fun CategoryEditScreen(
                         editCategory = category
                     },
                     onTapDelete = {
-                        // TODO: with AlertDialog
-                        viewModel.deleteCategory(category)
+                        showItemDeleteDialog = true
+                        editCategory = category
                     }
                 )
             }
@@ -104,6 +111,36 @@ fun CategoryEditScreen(
                 },
                 onDismiss = {
                     showCategoryEditDialog = false
+                }
+            )
+        }
+
+        if (showItemDeleteDialog) {
+            AlertDialog(
+                // material3にするとiconも使える
+                onDismissRequest = {
+                    showItemDeleteDialog = false
+                },
+                title = { Text(text = "Delete Category") },
+                text = { /*TODO*/ },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteCategory(editCategory)
+                            showItemDeleteDialog = false
+                        }
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showItemDeleteDialog = false
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
                 }
             )
         }

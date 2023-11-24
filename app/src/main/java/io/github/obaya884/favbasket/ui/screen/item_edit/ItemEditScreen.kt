@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.AlertDialog
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+import androidx.compose.material.TextButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -55,6 +57,7 @@ fun ItemEditScreen(
 
     var showItemAddDialog by remember { mutableStateOf(false) }
     var showItemEditDialog by remember { mutableStateOf(false) }
+    var showItemDeleteDialog by remember { mutableStateOf(false) }
     // TODO: Data層が染み出しすぎてる。idとnameだけ保持できれば良いのでここでItemを使う必要はない。
     var editItem by remember { mutableStateOf(Item(0, "")) }
 
@@ -94,8 +97,8 @@ fun ItemEditScreen(
                         editItem = item.item
                     },
                     onTapDeleteIcon = {
-                        // TODO: with AlertDialog
-                        viewModel.deleteItem(item.item)
+                        showItemDeleteDialog = true
+                        editItem = item.item
                     },
                     onSelectCategory = { categoryId ->
                         viewModel.editItemCategory(item.item.id, categoryId)
@@ -129,6 +132,36 @@ fun ItemEditScreen(
                 },
                 onDismiss = {
                     showItemEditDialog = false
+                }
+            )
+        }
+
+        if (showItemDeleteDialog) {
+            AlertDialog(
+                // material3にするとiconも使える
+                onDismissRequest = {
+                    showItemDeleteDialog = false
+                },
+                title = { Text(text = "Delete Item") },
+                text = { /*TODO*/ },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            viewModel.deleteItem(editItem)
+                            showItemDeleteDialog = false
+                        }
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showItemDeleteDialog = false
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
                 }
             )
         }
