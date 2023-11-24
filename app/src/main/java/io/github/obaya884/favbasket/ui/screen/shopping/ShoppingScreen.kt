@@ -52,6 +52,7 @@ fun ShoppingScreen(navController: NavController) {
                 .fillMaxWidth()
                 .padding(innerPadding)
         ) {
+            // TODO: make empry state UI
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {

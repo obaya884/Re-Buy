@@ -24,8 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.List
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FabPosition
@@ -43,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -70,7 +71,9 @@ fun HomeScreen(navController: NavController) {
     val tabs = homeTabs(uiState.categories)
 
     val bottomSheetState =
-        androidx.compose.material.rememberModalBottomSheetState(initialValue = ModalBottomSheetValue.Hidden)
+        androidx.compose.material.rememberModalBottomSheetState(
+            initialValue = ModalBottomSheetValue.Hidden
+        )
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
@@ -82,7 +85,39 @@ fun HomeScreen(navController: NavController) {
                     navController.navigate(Screen.Setting.route)
                 }
             ) {
-                Icon(Icons.Default.Settings, contentDescription = "Setting")
+                Icon(
+                    Icons.Default.Settings,
+                    contentDescription = "Setting"
+                )
+            }
+        },
+        topBarActions = {
+            IconButton(
+                onClick = {
+                    navController.navigate(Screen.ItemEdit.route)
+                }
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.icon_shopping_bug),
+                    contentDescription = "Item edit"
+                )
+            }
+            IconButton(
+                onClick = {
+                    navController.navigate(Screen.CategoryEdit.route)
+                }
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.icon_category),
+                    contentDescription = "Category edit"
+                )
+            }
+            IconButton(
+                onClick = {
+                    navController.navigate(Screen.Shopping.route)
+                }
+            ) {
+                Icon(Icons.Default.ShoppingCart, contentDescription = "Setting")
             }
         },
         floatingActionButton = {
@@ -91,6 +126,7 @@ fun HomeScreen(navController: NavController) {
                 onClick = {
                     coroutineScope.launch {
                         if (bottomSheetState.isVisible) {
+                            // TODO: シート開いてる時はタップでショッピング画面に遷移させる。extended FABを使いたい。
                             bottomSheetState.hide()
                         } else {
                             bottomSheetState.show()
@@ -121,11 +157,8 @@ fun HomeScreen(navController: NavController) {
             sheetShape = RoundedCornerShape(topEnd = 12.dp, topStart = 12.dp),
             sheetContent = {
                 MainScreenBottomSheetContent(
-                    uiState = uiState,
-                    bottomSheetState = bottomSheetState,
-                    onClickGoShopping = {
-                        navController.navigate(Screen.Shopping.route)
-                    }
+                    inBasketItems = uiState.inBasketItems,
+                    bottomSheetState = bottomSheetState
                 )
             }
         ) {
@@ -222,18 +255,16 @@ fun MainTabItemList(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun MainScreenBottomSheetContent(
-    modifier: Modifier = Modifier,
-    uiState: HomeUiState,
-    bottomSheetState: ModalBottomSheetState,
-    onClickGoShopping: () -> Unit
+    inBasketItems: List<ItemWithCategory>,
+    bottomSheetState: ModalBottomSheetState
 ) {
     // TODO: 高さが大きくなった場合にAppBarまで突き抜けてしまう
     val coroutineScope = rememberCoroutineScope()
 
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 320.dp)
+            .heightIn(min = 380.dp)
     ) {
         Row(
             modifier = Modifier
@@ -246,8 +277,6 @@ fun MainScreenBottomSheetContent(
                 }
             ) {
                 Icon(
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp, vertical = 12.dp),
                     imageVector = Icons.Default.Close,
                     contentDescription = "close the bottom sheet",
                     tint = Color.White
@@ -262,34 +291,19 @@ fun MainScreenBottomSheetContent(
                     .weight(1f)
                     .padding(horizontal = 12.dp, vertical = 12.dp)
             )
-            IconButton(
-                enabled = uiState.inBasketItems.isNotEmpty(),
-                onClick = {
-                    onClickGoShopping()
-                }
-            ) {
-                Icon(
-                    modifier = Modifier
-                        .padding(horizontal = 12.dp, vertical = 12.dp),
-                    imageVector = Icons.Default.Send,
-                    contentDescription = "出発",
-                    tint = if (uiState.inBasketItems.isNotEmpty()) Color.White else Color.Gray
-                )
-            }
         }
         LazyColumn(
             modifier = Modifier
         ) {
-            if (uiState.inBasketItems.isEmpty()) {
+            if (inBasketItems.isEmpty()) {
                 item("empty_message") {
                     Text(
                         text = stringResource(id = R.string.home_bottom_sheet_empty_message)
                     )
                 }
             } else {
-
                 items(
-                    uiState.inBasketItems,
+                    inBasketItems,
                     key = { item -> item.item.id }
                 ) { item ->
                     InBasketItemRow(item.item)

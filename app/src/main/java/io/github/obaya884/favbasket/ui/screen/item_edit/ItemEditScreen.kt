@@ -99,7 +99,7 @@ fun ItemEditScreen(
                 items,
                 key = { item -> item.item.id }
             ) { item ->
-                ItemScreenRow(
+                ItemEditListRow(
                     item = item,
                     categories = categories,
                     onTapEditIcon = {
@@ -188,7 +188,7 @@ fun ItemEditScreen(
 }
 
 @Composable
-fun ItemScreenRow(
+fun ItemEditListRow(
     item: ItemWithCategory,
     categories: List<Category>,
     onTapEditIcon: () -> Unit,
@@ -221,7 +221,7 @@ fun ItemScreenRow(
                 }
             ) {
                 Icon(
-                    painterResource(id = R.drawable.icon_folder),
+                    painterResource(id = R.drawable.icon_category),
                     contentDescription = "Edit Category"
                 )
                 DropdownMenu(
