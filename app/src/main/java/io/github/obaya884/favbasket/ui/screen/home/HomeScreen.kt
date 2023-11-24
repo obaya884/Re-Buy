@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.main
+package io.github.obaya884.favbasket.ui.screen.home
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -58,8 +58,8 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(navController: NavController) {
-    val viewModel = hiltViewModel<MainViewModel>()
+fun HomeScreen(navController: NavController) {
+    val viewModel = hiltViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val tabs = uiState.categories
 
@@ -153,7 +153,7 @@ fun MainScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(innerPadding)
-                    ) { page ->
+                    ) { pagerIndex ->
                         Column {
                             LazyColumn(
                                 modifier = Modifier
@@ -161,7 +161,7 @@ fun MainScreen(navController: NavController) {
                             ) {
                                 items(
                                     uiState.preparedItems.filter { item ->
-                                        item.item.categoryId == tabs[page].id
+                                        item.item.categoryId == tabs[pagerIndex].id
                                     },
                                     key = { item -> item.item.id }
                                 ) { item ->
@@ -194,7 +194,7 @@ fun MainScreen(navController: NavController) {
 @Composable
 fun MainScreenBottomSheetContent(
     modifier: Modifier = Modifier,
-    uiState: MainUiState,
+    uiState: HomeUiState,
     bottomSheetState: ModalBottomSheetState,
     onClickGoShopping: () -> Unit
 ) {

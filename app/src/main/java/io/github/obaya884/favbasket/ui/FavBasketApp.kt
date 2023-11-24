@@ -7,8 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.obaya884.favbasket.ui.screen.category_edit.CategoryEditScreen
+import io.github.obaya884.favbasket.ui.screen.home.HomeScreen
 import io.github.obaya884.favbasket.ui.screen.item_edit.ItemEditScreen
-import io.github.obaya884.favbasket.ui.screen.main.MainScreen
 import io.github.obaya884.favbasket.ui.screen.setting.SettingScreen
 import io.github.obaya884.favbasket.ui.screen.shopping.ShoppingScreen
 import io.github.obaya884.favbasket.ui.theme.FavBasketTheme
@@ -19,7 +19,7 @@ fun FavBasketApp() {
     FavBasketTheme {
         NavHost(
             navController = navController,
-            startDestination = Screen.Main.route,
+            startDestination = Screen.Home.route,
             enterTransition = {
                 EnterTransition.None
             },
@@ -27,8 +27,8 @@ fun FavBasketApp() {
                 ExitTransition.None
             }
         ) {
-            composable(Screen.Main.route) {
-                MainScreen(navController)
+            composable(Screen.Home.route) {
+                HomeScreen(navController)
             }
             composable(Screen.Setting.route) {
                 SettingScreen(navController)
@@ -47,7 +47,7 @@ fun FavBasketApp() {
 }
 
 sealed class Screen(val route: String) {
-    data object Main : Screen("main")
+    data object Home : Screen("home")
     data object Setting : Screen("setting")
     data object CategoryEdit : Screen("category_edit")
     data object ItemEdit : Screen("item_edit")

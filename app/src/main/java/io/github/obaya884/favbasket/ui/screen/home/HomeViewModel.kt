@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.main
+package io.github.obaya884.favbasket.ui.screen.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MainViewModel @Inject constructor(
+class HomeViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
@@ -27,18 +27,18 @@ class MainViewModel @Inject constructor(
     private val _preparedItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
     private val _inBasketItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
 
-    val uiState: StateFlow<MainUiState> =
+    val uiState: StateFlow<HomeUiState> =
         combine(
             _categories,
             _preparedItems,
             _inBasketItems
         ) { categories, preparedItems, inBasketItems ->
-            MainUiState(
+            HomeUiState(
                 categories = categories,
                 preparedItems = preparedItems,
                 inBasketItems = inBasketItems
             )
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, MainUiState(listOf(), listOf(), listOf()))
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, HomeUiState(listOf(), listOf(), listOf()))
 
     // TODO: この画面の時にBOUGHT状態のアイテムが存在しないはず。というのを実装で保証したい。
     init {
