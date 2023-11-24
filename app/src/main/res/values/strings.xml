@@ -5,6 +5,9 @@
     <string name="home_bottom_sheet_title">買い物リスト</string>
     <string name="home_bottom_sheet_empty_message">アイテムを追加してください</string>
 
+    <string name="shopping_title">買い物</string>
+    <string name="shopping_bottom_button">買い物を終わる</string>
+
     <string name="item_edit_title">アイテム編集</string>
     <string name="item_edit_add_dialog_title">アイテム追加</string>
     <string name="item_edit_edit_dialog_title">アイテム名変更</string>

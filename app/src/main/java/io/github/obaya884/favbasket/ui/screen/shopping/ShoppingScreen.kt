@@ -22,10 +22,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 
@@ -35,7 +37,7 @@ fun ShoppingScreen(navController: NavController) {
     val uiState by viewModel.uiState.collectAsState()
 
     FavBasketAppScaffold(
-        topBarTitle = "Shopping",
+        topBarTitle = stringResource(id = R.string.shopping_title),
         topBarNavigationIcon = {
             IconButton(
                 onClick = {
@@ -52,7 +54,7 @@ fun ShoppingScreen(navController: NavController) {
                 .fillMaxWidth()
                 .padding(innerPadding)
         ) {
-            // TODO: make empry state UI
+            // TODO: make empty state UI
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {
@@ -86,7 +88,7 @@ fun ShoppingScreen(navController: NavController) {
                 }
             ) {
                 Text(
-                    text = "買い物を終わる"
+                    text = stringResource(id = R.string.shopping_bottom_button)
                 )
             }
         }
