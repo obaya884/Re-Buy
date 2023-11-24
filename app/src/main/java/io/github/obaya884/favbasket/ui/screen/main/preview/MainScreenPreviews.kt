@@ -3,14 +3,14 @@ package io.github.obaya884.favbasket.ui.screen.main.preview
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.ui.screen.main.InBasketItemCard
-import io.github.obaya884.favbasket.ui.screen.main.PreparedItemCard
+import io.github.obaya884.favbasket.ui.screen.main.InBasketItemRow
+import io.github.obaya884.favbasket.ui.screen.main.PreparedItemRow
 
 
 @Preview(showBackground = true, widthDp = 240)
 @Composable
 fun InBasketItemCardPreview() {
-    InBasketItemCard(
+    InBasketItemRow(
         item = Item(name = "Sample")
     )
 }
@@ -18,7 +18,7 @@ fun InBasketItemCardPreview() {
 @Preview(showBackground = true, widthDp = 240)
 @Composable
 fun PreparedItemCardPreview() {
-    PreparedItemCard(
+    PreparedItemRow(
         item = Item(name = "Sample"),
         onCheckedChange = { }
     )
