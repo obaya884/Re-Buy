@@ -22,8 +22,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import io.github.obaya884.favbasket.R
 
 @Composable
 fun TextFieldEditDialog(
@@ -61,7 +63,6 @@ fun TextFieldEditDialog(
                 TextField(
                     value = inputString,
                     onValueChange = { inputString = it },
-                    label = { Text("Item Name") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -76,7 +77,9 @@ fun TextFieldEditDialog(
                             onDismiss()
                         }
                     ) {
-                        Text("Cancel")
+                        Text(
+                            stringResource(id = R.string.text_field_edit_dialog_negative_button)
+                        )
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(
@@ -84,7 +87,9 @@ fun TextFieldEditDialog(
                             onConfirm(editId, inputString)
                         }
                     ) {
-                        Text("Add")
+                        Text(
+                            stringResource(id = R.string.text_field_edit_dialog_positive_button)
+                        )
                     }
                 }
             }

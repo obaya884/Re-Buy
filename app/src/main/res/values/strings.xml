@@ -1,8 +1,34 @@
 <resources>
-    <string name="app_name">FavBasket</string>
+    <string name="app_name">くりかえし使える買い物リスト</string>
 
-    <!-- Drawer Item -->
-    <string name="drawer_home">ホーム</string>
-    <string name="drawer_item_edit">アイテム編集</string>
-    <string name="drawer_category_edit">カテゴリー編集</string>
+    <string name="home_title">ホーム</string>
+    <string name="home_bottom_sheet_title">買い物リスト</string>
+    <string name="home_bottom_sheet_empty_message">アイテムを追加してください</string>
+
+    <string name="item_edit_title">アイテム編集</string>
+    <string name="item_edit_add_dialog_title">アイテム追加</string>
+    <string name="item_edit_edit_dialog_title">アイテム名変更</string>
+    <string name="item_edit_delete_dialog_title">アイテムの削除</string>
+    <string name="item_edit_delete_dialog_message">%1$sを削除しますか？</string>
+    <string name="item_edit_delete_dialog_positive_button">削除</string>
+    <string name="item_edit_delete_dialog_negative_button">キャンセル</string>
+
+
+    <string name="category_edit_title">カテゴリー編集</string>
+    <string name="category_edit_add_dialog_title">カテゴリー追加</string>
+    <string name="category_edit_edit_dialog_title">カテゴリー名変更</string>
+    <string name="category_edit_delete_dialog_title">カテゴリの削除</string>
+    <string name="category_edit_delete_dialog_message">%1$sを削除しますか？\nこのカテゴリに設定されたアイテムのカテゴリは未設定になります。</string>
+    <string name="category_edit_delete_dialog_positive_button">削除</string>
+    <string name="category_edit_delete_dialog_negative_button">キャンセル</string>
+
+    <string name="setting_title">設定</string>
+    <string name="setting_row_item_edit">アイテム編集</string>
+    <string name="setting_row_category_edit">カテゴリー編集</string>
+
+    <string name="text_field_add_dialog_positive_button">追加</string>
+    <string name="text_field_add_dialog_negative_button">キャンセル</string>
+
+    <string name="text_field_edit_dialog_positive_button">変更</string>
+    <string name="text_field_edit_dialog_negative_button">キャンセル</string>
 </resources>

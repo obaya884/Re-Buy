@@ -43,6 +43,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
@@ -74,7 +76,7 @@ fun HomeScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
 
     FavBasketAppScaffold(
-        topBarTitle = "Home",
+        topBarTitle = stringResource(R.string.home_title),
         topBarNavigationIcon = {
             IconButton(
                 onClick = {
@@ -251,7 +253,7 @@ fun MainScreenBottomSheetContent(
                 )
             }
             Text(
-                text = "買い物リスト",
+                text = stringResource(id = R.string.home_bottom_sheet_title),
                 color = Color.White,
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
@@ -279,11 +281,16 @@ fun MainScreenBottomSheetContent(
         ) {
             if (uiState.inBasketItems.isEmpty()) {
                 item("empty_message") {
-                    Text(text = "アイテムを追加してください")
+                    Text(
+                        text = stringResource(id = R.string.home_bottom_sheet_empty_message)
+                    )
                 }
             } else {
 
-                items(uiState.inBasketItems, key = { item -> item.item.id }) { item ->
+                items(
+                    uiState.inBasketItems,
+                    key = { item -> item.item.id }
+                ) { item ->
                     InBasketItemRow(item.item)
                 }
             }

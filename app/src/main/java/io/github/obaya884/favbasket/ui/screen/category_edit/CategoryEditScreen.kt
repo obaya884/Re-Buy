@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -21,9 +22,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.category.Category
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.shared.EditScreenItem
@@ -43,7 +46,7 @@ fun CategoryEditScreen(
     var editCategory by remember { mutableStateOf(Category(0, "")) }
 
     FavBasketAppScaffold(
-        topBarTitle = "Category Edit",
+        topBarTitle = stringResource(id = R.string.category_edit_title),
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(
@@ -89,7 +92,7 @@ fun CategoryEditScreen(
 
         if (showCategoryAddDialog) {
             TextFieldAddDialog(
-                title = "Add Category",
+                title = stringResource(id = R.string.category_edit_add_dialog_title),
                 onConfirm = {
                     viewModel.addCategory(it)
                     showCategoryAddDialog = false
@@ -102,7 +105,7 @@ fun CategoryEditScreen(
 
         if (showCategoryEditDialog) {
             TextFieldEditDialog(
-                title = "Edit Category",
+                title = stringResource(id = R.string.category_edit_edit_dialog_title),
                 editId = editCategory.id,
                 editName = editCategory.name,
                 onConfirm = { id, name ->
@@ -117,12 +120,26 @@ fun CategoryEditScreen(
 
         if (showItemDeleteDialog) {
             AlertDialog(
-                // material3にするとiconも使える
+                icon = {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = ""
+                    )
+                },
                 onDismissRequest = {
                     showItemDeleteDialog = false
                 },
-                title = { Text(text = "Delete Category") },
-                text = { /*TODO*/ },
+                title = {
+                    Text(text = stringResource(id = R.string.category_edit_delete_dialog_title))
+                },
+                text = {
+                    Text(
+                        text = stringResource(
+                            id = R.string.category_edit_delete_dialog_message,
+                            editCategory.name
+                        )
+                    )
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -130,7 +147,7 @@ fun CategoryEditScreen(
                             showItemDeleteDialog = false
                         }
                     ) {
-                        Text("Delete")
+                        Text(stringResource(id = R.string.category_edit_delete_dialog_positive_button))
                     }
                 },
                 dismissButton = {
@@ -139,7 +156,7 @@ fun CategoryEditScreen(
                             showItemDeleteDialog = false
                         }
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.category_edit_delete_dialog_negative_button))
                     }
                 }
             )

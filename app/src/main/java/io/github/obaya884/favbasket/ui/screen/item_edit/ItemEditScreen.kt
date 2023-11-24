@@ -35,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -62,10 +63,13 @@ fun ItemEditScreen(
     var editItem by remember { mutableStateOf(Item(0, "")) }
 
     FavBasketAppScaffold(
-        topBarTitle = "Item Edit",
+        topBarTitle = stringResource(id = R.string.item_edit_title),
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Localized description")
+                Icon(
+                    Icons.Default.ArrowBack,
+                    contentDescription = "Localized description"
+                )
             }
         },
         floatingActionButton = {
@@ -110,7 +114,7 @@ fun ItemEditScreen(
         if (showItemAddDialog) {
             // TODO: try to use ModalBottomSheet composable for aiming a more current UX.
             TextFieldAddDialog(
-                title = "Add Item",
+                title = stringResource(id = R.string.item_edit_add_dialog_title),
                 onConfirm = {
                     viewModel.addItem(it)
                     showItemAddDialog = false
@@ -123,7 +127,7 @@ fun ItemEditScreen(
 
         if (showItemEditDialog) {
             TextFieldEditDialog(
-                title = "Edit Item",
+                title = stringResource(id = R.string.item_edit_edit_dialog_title),
                 editId = editItem.id,
                 editName = editItem.name,
                 onConfirm = { id, name ->
@@ -138,12 +142,21 @@ fun ItemEditScreen(
 
         if (showItemDeleteDialog) {
             AlertDialog(
-                // material3にするとiconも使える
+                icon = {
+                    Icon(Icons.Default.Delete, contentDescription = "")
+                },
                 onDismissRequest = {
                     showItemDeleteDialog = false
                 },
-                title = { Text(text = "Delete Item") },
-                text = { /*TODO*/ },
+                title = { Text(text = stringResource(id = R.string.item_edit_delete_dialog_title)) },
+                text = {
+                    Text(
+                        text = stringResource(
+                            R.string.item_edit_delete_dialog_message,
+                            editItem.name
+                        )
+                    )
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -151,7 +164,7 @@ fun ItemEditScreen(
                             showItemDeleteDialog = false
                         }
                     ) {
-                        Text("Delete")
+                        Text(stringResource(id = R.string.item_edit_delete_dialog_positive_button))
                     }
                 },
                 dismissButton = {
@@ -160,7 +173,7 @@ fun ItemEditScreen(
                             showItemDeleteDialog = false
                         }
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(id = R.string.item_edit_delete_dialog_negative_button))
                     }
                 }
             )
@@ -226,7 +239,10 @@ fun ItemScreenRow(
                     onTapEditIcon()
                 }
             ) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Item")
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit Item"
+                )
             }
             IconButton(
                 modifier = Modifier.align(Alignment.Bottom),
@@ -234,7 +250,10 @@ fun ItemScreenRow(
                     onTapDeleteIcon()
                 }
             ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Item")
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete Item"
+                )
             }
         }
         Box(

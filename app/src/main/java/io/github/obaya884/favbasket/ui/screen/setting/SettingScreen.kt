@@ -19,9 +19,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 
@@ -30,7 +32,7 @@ fun SettingScreen(
     navController: NavController
 ) {
     FavBasketAppScaffold(
-        topBarTitle = "設定",
+        topBarTitle = stringResource(id = R.string.setting_title),
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Localized description")
@@ -43,10 +45,14 @@ fun SettingScreen(
                 .padding(innerPadding)
         ) {
             // アプリについて、利用規約、プライバシーポリシー、ライセンス、バージョン、お問い合わせ、レビュー、アプリをシェア
-            SettingScreenItem(text = "アイテム編集") {
+            SettingScreenItem(
+                text = stringResource(id = R.string.setting_row_item_edit)
+            ) {
                 navController.navigate(Screen.ItemEdit.route)
             }
-            SettingScreenItem(text = "カテゴリ編集") {
+            SettingScreenItem(
+                text = stringResource(id = R.string.setting_row_category_edit)
+            ) {
                 navController.navigate(Screen.CategoryEdit.route)
             }
         }

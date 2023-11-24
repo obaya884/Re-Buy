@@ -21,9 +21,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import io.github.obaya884.favbasket.R
 
 @Composable
 fun TextFieldAddDialog(
@@ -55,7 +57,6 @@ fun TextFieldAddDialog(
                 TextField(
                     value = inputString,
                     onValueChange = { inputString = it },
-                    label = { Text("Item Name") },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -70,7 +71,9 @@ fun TextFieldAddDialog(
                             onDismiss()
                         }
                     ) {
-                        Text("Cancel")
+                        Text(
+                            stringResource(id = R.string.text_field_add_dialog_negative_button)
+                        )
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(
@@ -78,7 +81,9 @@ fun TextFieldAddDialog(
                             onConfirm(inputString)
                         }
                     ) {
-                        Text("Add")
+                        Text(
+                            stringResource(id = R.string.text_field_add_dialog_positive_button)
+                        )
                     }
                 }
             }
