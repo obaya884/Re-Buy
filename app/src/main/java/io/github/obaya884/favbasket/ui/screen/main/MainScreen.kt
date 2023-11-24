@@ -190,7 +190,6 @@ fun MainScreenBottomSheetContent(
             modifier = Modifier
         ) {
             if (uiState.inBasketItems.isEmpty()) {
-                // TODO: implement Empty State
                 item("empty_message") {
                     Text(text = "アイテムを追加してください")
                 }

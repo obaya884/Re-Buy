@@ -19,12 +19,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.obaya884.favbasket.R
 
 @Composable
 fun EditScreenItem(
     name: String,
+    onTapCategory: (() -> Unit)? = null,
     onTapEdit: () -> Unit,
     onTapDelete: () -> Unit
 ) {
@@ -40,6 +43,18 @@ fun EditScreenItem(
                 text = name,
                 textAlign = TextAlign.Start
             )
+            if (onTapCategory != null)
+                IconButton(
+                    modifier = Modifier.align(Alignment.Bottom),
+                    onClick = {
+                        onTapCategory()
+                    }
+                ) {
+                    Icon(
+                        painterResource(id = R.drawable.icon_folder),
+                        contentDescription = "Edit Category"
+                    )
+                }
             IconButton(
                 modifier = Modifier.align(Alignment.Bottom),
                 onClick = {

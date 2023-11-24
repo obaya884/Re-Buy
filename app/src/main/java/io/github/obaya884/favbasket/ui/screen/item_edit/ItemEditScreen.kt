@@ -69,6 +69,9 @@ fun ItemEditScreen(
             items(items, key = { item -> item.id }) { item ->
                 EditScreenItem(
                     name = item.name,
+                    onTapCategory = {
+                        // TODO: implement the category edit feature
+                    },
                     onTapEdit = {
                         showItemEditDialog = true
                         editItem = item
