@@ -40,6 +40,7 @@ import androidx.navigation.NavController
 import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.category.Category
 import io.github.obaya884.favbasket.data.item.Item
+import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.shared.TextFieldAddDialog
 import io.github.obaya884.favbasket.ui.shared.TextFieldEditDialog
@@ -54,7 +55,6 @@ fun ItemEditScreen(
 
     var showItemAddDialog by remember { mutableStateOf(false) }
     var showItemEditDialog by remember { mutableStateOf(false) }
-    var showDropdownMenu by remember { mutableStateOf(false) }
     // TODO: Data層が染み出しすぎてる。idとnameだけ保持できれば良いのでここでItemを使う必要はない。
     var editItem by remember { mutableStateOf(Item(0, "")) }
 
@@ -85,28 +85,20 @@ fun ItemEditScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            items(items, key = { item -> item.id }) { item ->
+            items(items, key = { item -> item.item.id }) { item ->
                 ItemScreenRow(
-                    name = item.name,
+                    item = item,
                     categories = categories,
-                    showDropdownMenu = showDropdownMenu,
-                    onTapCategoryIcon = {
-                        showDropdownMenu = true
-                    },
                     onTapEditIcon = {
                         showItemEditDialog = true
-                        editItem = item
+                        editItem = item.item
                     },
                     onTapDeleteIcon = {
                         // TODO: with AlertDialog
-                        viewModel.deleteItem(item)
+                        viewModel.deleteItem(item.item)
                     },
                     onSelectCategory = { categoryId ->
-                        viewModel.editItemCategory(item.id, categoryId)
-                        showDropdownMenu = false
-                    },
-                    dismissDropdownMenu = {
-                        showDropdownMenu = false
+                        viewModel.editItemCategory(item.item.id, categoryId)
                     }
                 )
             }
@@ -145,15 +137,14 @@ fun ItemEditScreen(
 
 @Composable
 fun ItemScreenRow(
-    name: String,
+    item: ItemWithCategory,
     categories: List<Category>,
-    showDropdownMenu: Boolean,
-    onTapCategoryIcon: (() -> Unit)? = null,
     onTapEditIcon: () -> Unit,
     onTapDeleteIcon: () -> Unit,
-    onSelectCategory: (Int) -> Unit,
-    dismissDropdownMenu: () -> Unit,
+    onSelectCategory: (Int) -> Unit
 ) {
+    var showDropdownMenu by remember { mutableStateOf(false) }
+
     Column {
         Row(
             modifier = Modifier
@@ -163,40 +154,40 @@ fun ItemScreenRow(
         ) {
             Text(
                 modifier = Modifier.weight(1f),
-                text = name,
+                text = item.item.name,
                 textAlign = TextAlign.Start
             )
             Text(
                 modifier = Modifier.weight(1f),
-                text = "Category",
+                text = item.category?.name ?: "",
                 textAlign = TextAlign.Start
             )
-            if (onTapCategoryIcon != null)
-                IconButton(
-                    modifier = Modifier.align(Alignment.Bottom),
-                    onClick = {
-                        onTapCategoryIcon()
-                    }
+            IconButton(
+                modifier = Modifier.align(Alignment.Bottom),
+                onClick = {
+                    showDropdownMenu = true
+                }
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.icon_folder),
+                    contentDescription = "Edit Category"
+                )
+                DropdownMenu(
+                    expanded = showDropdownMenu,
+                    onDismissRequest = { showDropdownMenu = false }
                 ) {
-                    Icon(
-                        painterResource(id = R.drawable.icon_folder),
-                        contentDescription = "Edit Category"
-                    )
-                    DropdownMenu(
-                        expanded = showDropdownMenu,
-                        onDismissRequest = { dismissDropdownMenu() }
-                    ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                onClick = {
-                                    onSelectCategory(category.id)
-                                }
-                            ) {
-                                Text(text = category.name)
+                    categories.forEach { category ->
+                        DropdownMenuItem(
+                            onClick = {
+                                onSelectCategory(category.id)
+                                showDropdownMenu = false
                             }
+                        ) {
+                            Text(text = category.name)
                         }
                     }
                 }
+            }
             IconButton(
                 modifier = Modifier.align(Alignment.Bottom),
                 onClick = {

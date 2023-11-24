@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.favbasket.data.category.Category
 import io.github.obaya884.favbasket.data.item.Item
+import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.domain.CategoryRepository
 import io.github.obaya884.favbasket.domain.ItemRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,8 +18,8 @@ class ItemEditViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
-    private val _items = MutableStateFlow<List<Item>>(listOf())
-    val items: StateFlow<List<Item>> = _items
+    private val _items = MutableStateFlow<List<ItemWithCategory>>(listOf())
+    val items: StateFlow<List<ItemWithCategory>> = _items
 
     private val _categories = MutableStateFlow<List<Category>>(listOf())
     val categories: StateFlow<List<Category>> = _categories
@@ -26,7 +27,7 @@ class ItemEditViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             launch {
-                itemRepository.getAll()
+                itemRepository.getAllWithCategory()
                     .collect { items ->
                         _items.value = items
                     }

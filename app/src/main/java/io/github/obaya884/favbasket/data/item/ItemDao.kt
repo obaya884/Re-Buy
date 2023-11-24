@@ -27,5 +27,8 @@ interface ItemDao {
     @Query("UPDATE items SET categoryId = :newCategoryId, updatedAt = :updatedAt WHERE id = :itemId")
     suspend fun updateItemCategoryId(itemId: Int, newCategoryId: Int?, updatedAt: Date)
 
+    @Transaction
+    @Query("SELECT * FROM items")
+    fun getAllItemsWithCategory(): Flow<List<ItemWithCategory>>
 }
 

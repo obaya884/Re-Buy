@@ -3,11 +3,14 @@ package io.github.obaya884.favbasket.domain
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemDao
 import io.github.obaya884.favbasket.data.item.ItemStatus
+import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import kotlinx.coroutines.flow.Flow
 import java.util.Date
 
 class ItemRepository(private val itemDao: ItemDao) {
     fun getAll(): Flow<List<Item>> = itemDao.getAllItems()
+
+    fun getAllWithCategory(): Flow<List<ItemWithCategory>> = itemDao.getAllItemsWithCategory()
 
     suspend fun insert(item: Item) {
         itemDao.insertItem(item)
