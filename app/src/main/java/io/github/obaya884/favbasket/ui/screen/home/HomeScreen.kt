@@ -200,8 +200,7 @@ fun HomeScreen(navController: NavController) {
                         modifier = Modifier
                             .fillMaxWidth()
                     ) { pagerIndex ->
-                        val tab = tabs.getOrNull(pagerIndex)
-                        val itemsForTab = when (tab) {
+                        val itemsForTab = when (val tab = tabs.getOrNull(pagerIndex)) {
                             HomeTab.AllTab -> uiState.preparedItems
                             is HomeTab.CategoryTab -> uiState.preparedItems.filter { item ->
                                 item.item.categoryId == tab.category.id
@@ -248,7 +247,7 @@ fun MainTabItemList(
             modifier = modifier
         ) {
             items(items, key = { it.item.id }) { item ->
-                PreparedItemRow(item.item) { isInBasket ->
+                HomeListItemRow(item.item) { isInBasket ->
                     onItemAction(isInBasket, item.item)
                 }
             }
@@ -273,7 +272,8 @@ fun MainScreenBottomSheetContent(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.primary)
+                .background(MaterialTheme.colorScheme.primary),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
                 onClick = {
@@ -296,6 +296,7 @@ fun MainScreenBottomSheetContent(
                     .padding(horizontal = 12.dp, vertical = 12.dp)
             )
         }
+
         LazyColumn(
             modifier = Modifier
         ) {
@@ -310,7 +311,7 @@ fun MainScreenBottomSheetContent(
                     inBasketItems,
                     key = { item -> item.item.id }
                 ) { item ->
-                    InBasketItemRow(item.item)
+                    BottomSheetListItemRow(item)
                 }
             }
         }
@@ -318,17 +319,22 @@ fun MainScreenBottomSheetContent(
 }
 
 @Composable
-fun InBasketItemRow(item: Item) {
-    Text(
-        text = item.name,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 12.dp)
-    )
+fun BottomSheetListItemRow(item: ItemWithCategory) {
+    Row(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+    ) {
+        Text(
+            text = item.item.name,
+            modifier = Modifier.padding(end = 16.dp)
+        )
+        item.category?.name?.let {
+            Text(text = it)
+        }
+    }
 }
 
 @Composable
-fun PreparedItemRow(item: Item, onCheckedChange: (Boolean) -> Unit) {
+fun HomeListItemRow(item: Item, onCheckedChange: (Boolean) -> Unit) {
     Row(
         modifier = Modifier
             .clickable(
@@ -340,14 +346,15 @@ fun PreparedItemRow(item: Item, onCheckedChange: (Boolean) -> Unit) {
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
+        Checkbox(
+            modifier = Modifier.padding(end = 16.dp),
+            checked = item.status == ItemStatus.IN_BASKET,
+            onCheckedChange = null
+        )
         Text(
             text = item.name,
             modifier = Modifier.weight(1f)
         )
 
-        Checkbox(
-            checked = item.status == ItemStatus.IN_BASKET,
-            onCheckedChange = null
-        )
     }
 }
