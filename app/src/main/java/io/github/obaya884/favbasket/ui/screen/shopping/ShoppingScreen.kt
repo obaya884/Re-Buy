@@ -1,5 +1,6 @@
 package io.github.obaya884.favbasket.ui.screen.shopping
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,10 @@ fun ShoppingScreen(
     val uiState by viewModel.uiState.collectAsState()
     var showNavigateBackAlertDialog by remember { mutableStateOf(false) }
     var showFinishShoppingAlertDialog by remember { mutableStateOf(false) }
+
+    BackHandler {
+        showNavigateBackAlertDialog = true
+    }
 
     FavBasketAppScaffold(
         topBarTitle = stringResource(id = R.string.shopping_title),
