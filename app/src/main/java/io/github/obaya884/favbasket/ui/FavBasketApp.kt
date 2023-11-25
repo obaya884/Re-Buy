@@ -2,7 +2,9 @@ package io.github.obaya884.favbasket.ui
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -16,6 +18,8 @@ import io.github.obaya884.favbasket.ui.theme.FavBasketTheme
 @Composable
 fun FavBasketApp() {
     val navController = rememberNavController()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     FavBasketTheme {
         NavHost(
             navController = navController,
@@ -28,19 +32,19 @@ fun FavBasketApp() {
             }
         ) {
             composable(Screen.Home.route) {
-                HomeScreen(navController)
+                HomeScreen(navController, snackbarHostState)
             }
             composable(Screen.Setting.route) {
-                SettingScreen(navController)
+                SettingScreen(navController, snackbarHostState)
             }
             composable(Screen.CategoryEdit.route) {
-                CategoryEditScreen(navController)
+                CategoryEditScreen(navController, snackbarHostState)
             }
             composable(Screen.ItemEdit.route) {
-                ItemEditScreen(navController)
+                ItemEditScreen(navController, snackbarHostState)
             }
             composable(Screen.Shopping.route) {
-                ShoppingScreen(navController)
+                ShoppingScreen(navController, snackbarHostState)
             }
         }
     }

@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -32,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,7 +65,10 @@ import kotlinx.coroutines.launch
     ExperimentalFoundationApi::class
 )
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    navController: NavController,
+    snackbarHostState: SnackbarHostState
+) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val tabs = homeTabs(uiState.categories)
@@ -74,6 +79,8 @@ fun HomeScreen(navController: NavController) {
         )
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
+
+    val needItemSnackbarMessage = stringResource(id = R.string.home_need_item_add_snack_bar)
 
     FavBasketAppScaffold(
         topBarTitle = stringResource(R.string.home_title),
@@ -112,12 +119,22 @@ fun HomeScreen(navController: NavController) {
             }
             IconButton(
                 onClick = {
-                    navController.navigate(Screen.Shopping.route)
+                    if (uiState.inBasketItems.isNotEmpty()) {
+                        navController.navigate(Screen.Shopping.route)
+                    } else {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar(
+                                message = needItemSnackbarMessage,
+                                withDismissAction = true
+                            )
+                        }
+                    }
                 }
             ) {
-                Icon(Icons.Default.ShoppingCart, contentDescription = "Setting")
+                Icon(Icons.Outlined.ShoppingCart, contentDescription = "Setting")
             }
         },
+        snackbarHostState = snackbarHostState,
         floatingActionButton = {
             if (!bottomSheetState.isVisible) {
                 FloatingActionButton(
@@ -140,14 +157,21 @@ fun HomeScreen(navController: NavController) {
                             contentDescription = "show shopping cart"
                         )
                     },
-                    text = { Text(text = "買い物に行く") },
+                    text = {
+                        Text(
+                            text = stringResource(id = R.string.home_extend_floating_action_button)
+                        )
+                    },
                     onClick = {
                         if (uiState.inBasketItems.isNotEmpty()) {
                             navController.navigate(Screen.Shopping.route)
                         } else {
                             coroutineScope.launch {
-                                // TODO: フィードバックのSnack bar表示
                                 bottomSheetState.hide()
+                                snackbarHostState.showSnackbar(
+                                    message = needItemSnackbarMessage,
+                                    withDismissAction = true
+                                )
                             }
                         }
                     }

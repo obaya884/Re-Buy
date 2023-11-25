@@ -16,6 +16,7 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -32,7 +33,10 @@ import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 
 @Composable
-fun ShoppingScreen(navController: NavController) {
+fun ShoppingScreen(
+    navController: NavController,
+    snackbarHostState: SnackbarHostState
+) {
     val viewModel = hiltViewModel<ShoppingViewModel>()
     val uiState by viewModel.uiState.collectAsState()
 
@@ -47,7 +51,8 @@ fun ShoppingScreen(navController: NavController) {
             ) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Localized description")
             }
-        }
+        },
+        snackbarHostState = snackbarHostState
     ) { innerPadding ->
         Column(
             modifier = Modifier

@@ -23,6 +23,7 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -50,7 +51,8 @@ import io.github.obaya884.favbasket.ui.shared.TextFieldEditDialog
 
 @Composable
 fun ItemEditScreen(
-    navController: NavController
+    navController: NavController,
+    snackbarHostState: SnackbarHostState
 ) {
     val viewModel = hiltViewModel<ItemEditViewModel>()
     val items by viewModel.items.collectAsState()
@@ -72,6 +74,7 @@ fun ItemEditScreen(
                 )
             }
         },
+        snackbarHostState = snackbarHostState,
         floatingActionButton = {
             FloatingActionButton(
                 modifier = Modifier

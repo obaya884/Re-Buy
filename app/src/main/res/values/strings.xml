@@ -4,6 +4,8 @@
     <string name="home_title">ホーム</string>
     <string name="home_bottom_sheet_title">買い物リスト</string>
     <string name="home_bottom_sheet_empty_message">アイテムを追加してください</string>
+    <string name="home_extend_floating_action_button">買い物に行く</string>
+    <string name="home_need_item_add_snack_bar">買い物リストにアイテムを追加してください</string>
 
     <string name="shopping_title">買い物</string>
     <string name="shopping_bottom_button">買い物を終わる</string>
