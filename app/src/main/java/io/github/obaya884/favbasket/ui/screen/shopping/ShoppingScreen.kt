@@ -11,6 +11,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -18,9 +20,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -41,14 +47,15 @@ fun ShoppingScreen(
 ) {
     val viewModel = hiltViewModel<ShoppingViewModel>()
     val uiState by viewModel.uiState.collectAsState()
+    var showNavigateBackAlertDialog by remember { mutableStateOf(false) }
+    var showFinishShoppingAlertDialog by remember { mutableStateOf(false) }
 
     FavBasketAppScaffold(
         topBarTitle = stringResource(id = R.string.shopping_title),
         topBarNavigationIcon = {
             IconButton(
                 onClick = {
-                    // TODO: implement the confirmation UX with AlertDialog to prevent the screen is back immediately and the item status isn't changed.
-                    navController.navigateUp()
+                    showNavigateBackAlertDialog = true
                 }
             ) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Localized description")
@@ -86,11 +93,7 @@ fun ShoppingScreen(
                         .fillMaxWidth()
                         .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
                     onClick = {
-                        // TODO: 確認UIはさむ
-                        viewModel.changeBoughtConfirm {
-                            // TODO: 単純に戻るとボトムシートが表示されたままなのでpopBackRootみたいな拡張をNavControllerに作る
-                            navController.navigateAsRoot(Screen.Home)
-                        }
+                        showFinishShoppingAlertDialog = true
                     }
                 ) {
                     Text(
@@ -109,7 +112,150 @@ fun ShoppingScreen(
                 CircularProgressIndicator()
             }
         }
+
+        if (showNavigateBackAlertDialog) {
+            TapBackNavigationAlertDialog(
+                onDismiss = {
+                    showNavigateBackAlertDialog = false
+                },
+                onTapConfirm = {
+                    showNavigateBackAlertDialog = false
+                },
+                onTapCancel = {
+                    navController.navigateUp()
+                }
+            )
+        }
+
+        if (showFinishShoppingAlertDialog) {
+            FinishShoppingAlertDialog(
+                onDismiss = {
+                    showFinishShoppingAlertDialog = false
+                },
+                onTapConfirm = {
+                    showFinishShoppingAlertDialog = false
+                    viewModel.changeBoughtConfirm {
+                        navController.navigateAsRoot(Screen.Home)
+                    }
+                },
+                onTapCancel = {
+                    showFinishShoppingAlertDialog = false
+                }
+            )
+        }
     }
+}
+
+@Composable
+fun TapBackNavigationAlertDialog(
+    onDismiss: () -> Unit,
+    onTapConfirm: () -> Unit,
+    onTapCancel: () -> Unit
+) {
+    AlertDialog(
+        icon = {
+            Icon(Icons.Default.Info, contentDescription = "")
+        },
+        onDismissRequest = {
+            onDismiss()
+        },
+        title = {
+            Text(
+                text = stringResource(
+                    id = R.string.shopping_navigate_back_alert_dialog_title
+                )
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(
+                    R.string.shopping_navigate_back_alert_dialog_message
+                )
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onTapConfirm()
+                }
+            ) {
+                Text(
+                    stringResource(
+                        id = R.string.shopping_navigate_back_alert_dialog_positive_button
+                    )
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onTapCancel()
+                }
+            ) {
+                Text(
+                    stringResource(
+                        id = R.string.shopping_navigate_back_alert_dialog_negative_button
+                    )
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun FinishShoppingAlertDialog(
+    onDismiss: () -> Unit,
+    onTapConfirm: () -> Unit,
+    onTapCancel: () -> Unit
+) {
+    AlertDialog(
+        icon = {
+            Icon(Icons.Default.Info, contentDescription = "")
+        },
+        onDismissRequest = {
+            onDismiss()
+        },
+        title = {
+            Text(
+                text = stringResource(
+                    id = R.string.shopping_finish_alert_dialog_title
+                )
+            )
+        },
+        text = {
+            Text(
+                text = stringResource(
+                    R.string.shopping_finish_alert_dialog_message
+                )
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    onTapConfirm()
+                }
+            ) {
+                Text(
+                    stringResource(
+                        id = R.string.shopping_finish_alert_dialog_positive_button
+                    )
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    onTapCancel()
+                }
+            ) {
+                Text(
+                    stringResource(
+                        id = R.string.shopping_finish_alert_dialog_negative_button
+                    )
+                )
+            }
+        }
+    )
 }
 
 @Composable
