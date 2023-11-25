@@ -37,8 +37,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -71,7 +74,9 @@ fun HomeScreen(
 ) {
     val viewModel = hiltViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
+
     val tabs = homeTabs(uiState.categories)
+    val needItemSnackbarMessage = stringResource(id = R.string.home_need_item_add_snack_bar)
 
     val bottomSheetState =
         androidx.compose.material.rememberModalBottomSheetState(
@@ -80,7 +85,14 @@ fun HomeScreen(
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
-    val needItemSnackbarMessage = stringResource(id = R.string.home_need_item_add_snack_bar)
+    val shouldHideSheetWithRecomposition by remember { mutableStateOf(false) }
+
+    // TODO: navigationの引数でフラグを受け取って、trueならシートを閉じるように変更
+    LaunchedEffect(Unit) {
+        if (shouldHideSheetWithRecomposition) {
+            bottomSheetState.hide()
+        }
+    }
 
     FavBasketAppScaffold(
         topBarTitle = stringResource(R.string.home_title),
