@@ -1,17 +1,14 @@
 package io.github.obaya884.favbasket.ui.screen.setting
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
@@ -67,12 +64,17 @@ fun SettingScreenItem(
     text: String,
     onTap: () -> Unit
 ) {
-    Column {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onTap() }
+            .padding(16.dp, 8.dp)
+    ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { onTap() }
-                .padding(16.dp, 20.dp),
+                .padding(0.dp, 8.dp)
+                .clickable { onTap() },
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -86,17 +88,9 @@ fun SettingScreenItem(
                 contentDescription = "Localized description"
             )
         }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        ) {
-            Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(1.dp)
-                    .border(1.dp, Color.LightGray)
-            )
-        }
+        Divider(
+            color = Color.LightGray,
+            thickness = 1.dp
+        )
     }
 }
