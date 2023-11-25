@@ -59,7 +59,6 @@ fun ShoppingScreen(
                 .fillMaxWidth()
                 .padding(innerPadding)
         ) {
-            // TODO: make empty state UI
             LazyColumn(
                 modifier = Modifier.weight(1f)
             ) {
@@ -79,22 +78,24 @@ fun ShoppingScreen(
                     }
                 }
             }
-            Button(
-                // TODO: 良い感じに浮いてる見た目にする
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                onClick = {
-                    // TODO: 確認UIはさむ
-                    viewModel.changeBoughtConfirm {
-                        // TODO: 単純に戻るとボトムシートが表示されたままなのでpopBackRootみたいな拡張をNavControllerに作る
-                        navController.navigateUp()
+            if (uiState.scheduledBoughtItemIds.isNotEmpty()) {
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+                    onClick = {
+                        // TODO: 確認UIはさむ
+                        viewModel.changeBoughtConfirm {
+                            // TODO: 単純に戻るとボトムシートが表示されたままなのでpopBackRootみたいな拡張をNavControllerに作る
+                            navController.navigateUp()
+                        }
                     }
+                ) {
+                    Text(
+                        modifier = Modifier.padding(8.dp),
+                        text = stringResource(id = R.string.shopping_bottom_button)
+                    )
                 }
-            ) {
-                Text(
-                    text = stringResource(id = R.string.shopping_bottom_button)
-                )
             }
         }
 
@@ -124,16 +125,16 @@ fun ShoppingItem(
                 }
             )
             .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 16.dp)
     ) {
+        Checkbox(
+            modifier = Modifier.padding(end = 16.dp),
+            checked = scheduledBoughtItemIds.contains(item.id),
+            onCheckedChange = null
+        )
         Text(
             text = item.name,
             modifier = Modifier.weight(1f)
-        )
-
-        Checkbox(
-            checked = scheduledBoughtItemIds.contains(item.id),
-            onCheckedChange = null
         )
     }
 }
