@@ -21,8 +21,8 @@ import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
@@ -103,7 +103,7 @@ fun HomeScreen(
                 }
             ) {
                 Icon(
-                    Icons.Default.Settings,
+                    Icons.Outlined.Settings,
                     contentDescription = "Setting"
                 )
             }

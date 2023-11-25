@@ -91,9 +91,8 @@ fun ItemEditScreen(
         }
     ) { innerPadding ->
         LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+            contentPadding = innerPadding,
+            modifier = Modifier.fillMaxSize()
         ) {
             items(
                 items,

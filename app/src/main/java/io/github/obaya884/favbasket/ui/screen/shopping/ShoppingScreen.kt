@@ -127,6 +127,7 @@ fun ShoppingScreen(
                     showNavigateBackAlertDialog = false
                 },
                 onTapCancel = {
+                    showNavigateBackAlertDialog = false
                     navController.navigateUp()
                 }
             )
