@@ -31,6 +31,8 @@ import androidx.navigation.NavController
 import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
+import io.github.obaya884.favbasket.ui.Screen
+import io.github.obaya884.favbasket.ui.navigateAsRoot
 
 @Composable
 fun ShoppingScreen(
@@ -87,7 +89,7 @@ fun ShoppingScreen(
                         // TODO: 確認UIはさむ
                         viewModel.changeBoughtConfirm {
                             // TODO: 単純に戻るとボトムシートが表示されたままなのでpopBackRootみたいな拡張をNavControllerに作る
-                            navController.navigateUp()
+                            navController.navigateAsRoot(Screen.Home)
                         }
                     }
                 ) {

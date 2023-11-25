@@ -122,6 +122,7 @@ fun HomeScreen(
                     if (uiState.inBasketItems.isNotEmpty()) {
                         navController.navigate(Screen.Shopping.route)
                     } else {
+                        // TODO: LaunchedEffectに移動できるかも
                         coroutineScope.launch {
                             snackbarHostState.showSnackbar(
                                 message = needItemSnackbarMessage,

@@ -5,6 +5,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -56,4 +57,20 @@ sealed class Screen(val route: String) {
     data object CategoryEdit : Screen("category_edit")
     data object ItemEdit : Screen("item_edit")
     data object Shopping : Screen("shopping")
+}
+
+fun NavController.navigateAsRoot(screen: Screen) {
+    // 現在のナビゲーションスタックをクリア
+    popBackStack(graph.startDestinationId, inclusive = false)
+
+    // 指定したルートに新しいインスタンスを生成して移動
+    navigate(screen.route) {
+        // スタックをリセットするための設定
+        launchSingleTop = true
+        restoreState = true
+        popUpTo(graph.startDestinationId) {
+            saveState = true
+        }
+        graph.setStartDestination(screen.route)
+    }
 }
