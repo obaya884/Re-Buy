@@ -19,6 +19,7 @@ import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.ModalBottomSheetValue
+import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -214,13 +215,29 @@ fun HomeScreen(
                         edgePadding = 0.dp
                     ) {
                         tabs.forEachIndexed { index, tab ->
+                            val backgroundColor =
+                                if (index == pagerState.currentPage) MaterialTheme.colorScheme.primaryContainer
+                                else MaterialTheme.colorScheme.background
                             Tab(
                                 text = {
-                                    Text(
-                                        tab.title,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+                                    Surface(
+                                        modifier = Modifier
+                                            .background(
+                                                color = backgroundColor,
+                                                shape = RoundedCornerShape(12.dp)
+                                            )
+                                            .padding(8.dp)
+                                    ) {
+                                        Text(
+                                            tab.title,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            color = if (index == pagerState.currentPage) MaterialTheme.colorScheme.primary
+                                            else MaterialTheme.colorScheme.outline,
+                                            modifier = Modifier.background(color = backgroundColor)
+                                        )
+                                    }
+
                                 },
                                 selected = pagerState.currentPage == index,
                                 onClick = {
