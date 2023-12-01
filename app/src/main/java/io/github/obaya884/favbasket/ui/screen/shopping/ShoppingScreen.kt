@@ -51,7 +51,7 @@ fun ShoppingScreen(
     var showNavigateBackAlertDialog by remember { mutableStateOf(false) }
     var showFinishShoppingAlertDialog by remember { mutableStateOf(false) }
 
-    BackHandler {
+    BackHandler(enabled = uiState.scheduledBoughtItemIds.isNotEmpty()) {
         showNavigateBackAlertDialog = true
     }
 
@@ -60,7 +60,11 @@ fun ShoppingScreen(
         topBarNavigationIcon = {
             IconButton(
                 onClick = {
-                    showNavigateBackAlertDialog = true
+                    if (uiState.scheduledBoughtItemIds.isNotEmpty()) {
+                        showNavigateBackAlertDialog = true
+                    } else {
+                        navController.navigateUp()
+                    }
                 }
             ) {
                 Icon(Icons.Default.ArrowBack, contentDescription = "Localized description")
