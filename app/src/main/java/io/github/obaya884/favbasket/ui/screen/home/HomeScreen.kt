@@ -1,8 +1,8 @@
 package io.github.obaya884.favbasket.ui.screen.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,14 +25,16 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Tab
@@ -49,7 +51,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -267,14 +268,14 @@ fun HomeScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .weight(1f),
-                            itemsForTab
-                        ) { isInBasket, item ->
-                            if (isInBasket) {
-                                viewModel.removeFromBasket(item)
-                            } else {
+                            items = itemsForTab,
+                            onTapToAdd = { item ->
                                 viewModel.addToBasket(item)
+                            },
+                            onTapToRemove = { item ->
+                                viewModel.removeFromBasket(item)
                             }
-                        }
+                        )
                     }
                 }
             } else {
@@ -294,16 +295,23 @@ fun HomeScreen(
 fun MainTabItemList(
     modifier: Modifier,
     items: List<ItemWithCategory>,
-    onItemAction: (Boolean, Item) -> Unit
+    onTapToAdd: (Item) -> Unit,
+    onTapToRemove: (Item) -> Unit
 ) {
     Column {
         LazyColumn(
             modifier = modifier
         ) {
             items(items, key = { it.item.id }) { item ->
-                HomeListItemRow(item.item) { isInBasket ->
-                    onItemAction(isInBasket, item.item)
-                }
+                HomeListItemRow(
+                    item = item,
+                    onTapToAdd = {
+                        onTapToAdd(item.item)
+                    },
+                    onTapToRemove = {
+                        onTapToRemove(item.item)
+                    }
+                )
             }
         }
     }
@@ -388,27 +396,53 @@ fun BottomSheetListItemRow(item: ItemWithCategory) {
 }
 
 @Composable
-fun HomeListItemRow(item: Item, onCheckedChange: (Boolean) -> Unit) {
+fun HomeListItemRow(
+    item: ItemWithCategory,
+    onTapToAdd: () -> Unit,
+    onTapToRemove: () -> Unit
+) {
     Row(
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .clickable(
-                role = Role.Checkbox,
-                onClick = {
-                    onCheckedChange(item.status == ItemStatus.IN_BASKET)
-                }
-            )
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 16.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp)
     ) {
-        Checkbox(
-            modifier = Modifier.padding(end = 16.dp),
-            checked = item.status == ItemStatus.IN_BASKET,
-            onCheckedChange = null
-        )
-        Text(
-            text = item.name,
+        Column(
             modifier = Modifier.weight(1f)
-        )
-
+        ) {
+            item.category?.name?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.outline,
+                )
+            }
+            Text(
+                text = item.item.name,
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+        if (item.item.status != ItemStatus.IN_BASKET) {
+            FilledTonalButton(
+                onClick = {
+                    onTapToAdd()
+                }
+            ) {
+                Text(text = stringResource(id = R.string.home_add_item_button))
+            }
+        } else {
+            OutlinedButton(
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+                onClick = {
+                    onTapToRemove()
+                }
+            ) {
+                Text(text = stringResource(id = R.string.home_remove_item_button))
+            }
+        }
     }
+    Divider(
+        modifier = Modifier.padding(horizontal = 8.dp),
+        color = MaterialTheme.colorScheme.outlineVariant
+    )
 }
