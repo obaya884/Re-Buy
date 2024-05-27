@@ -58,7 +58,6 @@ fun ItemEditScreen(
     var showItemAddDialog by remember { mutableStateOf(false) }
     var showItemEditDialog by remember { mutableStateOf(false) }
     var showItemDeleteDialog by remember { mutableStateOf(false) }
-    // TODO: Data層が染み出しすぎてる。idとnameだけ保持できれば良いのでここでItemを使う必要はない。
     var editItem by remember { mutableStateOf(Item(0, "")) }
 
     FavBasketAppScaffold(
@@ -114,7 +113,7 @@ fun ItemEditScreen(
         }
 
         if (showItemAddDialog) {
-            // TODO: try to use ModalBottomSheet composable for aiming a more current UX.
+            // TODO: ModalBottomSheetなどでUX改善したい
             TextFieldAddDialog(
                 title = stringResource(id = R.string.item_edit_add_dialog_title),
                 onConfirm = {

@@ -41,6 +41,7 @@ class HomeViewModel @Inject constructor(
         }.stateIn(viewModelScope, SharingStarted.Eagerly, HomeUiState(listOf(), listOf(), listOf()))
 
     // TODO: この画面の時にBOUGHT状態のアイテムが存在しないはず。というのを実装で保証したい。
+    // TODO: initでデータ取得するのはバッドパターンらしい。
     init {
         viewModelScope.launch {
             launch {
