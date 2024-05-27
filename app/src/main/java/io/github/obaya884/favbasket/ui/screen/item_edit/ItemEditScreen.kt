@@ -1,11 +1,12 @@
 package io.github.obaya884.favbasket.ui.screen.item_edit
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -17,9 +18,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -34,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -58,6 +60,7 @@ fun ItemEditScreen(
     var showItemAddDialog by remember { mutableStateOf(false) }
     var showItemEditDialog by remember { mutableStateOf(false) }
     var showItemDeleteDialog by remember { mutableStateOf(false) }
+    //TODO: ここ最初はnullにしておくべき
     var editItem by remember { mutableStateOf(Item(0, "")) }
 
     FavBasketAppScaffold(
@@ -73,8 +76,6 @@ fun ItemEditScreen(
         snackbarHostState = snackbarHostState,
         floatingActionButton = {
             FloatingActionButton(
-                modifier = Modifier
-                    .offset(y = (-48).dp),
                 onClick = {
                     showItemAddDialog = true
                 }
@@ -84,7 +85,8 @@ fun ItemEditScreen(
                     contentDescription = "Add Item"
                 )
             }
-        }
+        },
+        floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
         LazyColumn(
             contentPadding = innerPadding,
@@ -113,7 +115,6 @@ fun ItemEditScreen(
         }
 
         if (showItemAddDialog) {
-            // TODO: ModalBottomSheetなどでUX改善したい
             TextFieldAddDialog(
                 title = stringResource(id = R.string.item_edit_add_dialog_title),
                 onConfirm = {
@@ -200,65 +201,75 @@ fun ItemEditListRow(
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                modifier = Modifier.weight(1f),
-                text = item.item.name,
-                textAlign = TextAlign.Start
-            )
-            Text(
-                modifier = Modifier.weight(1f),
-                text = item.category?.name ?: "",
-                textAlign = TextAlign.Start
-            )
-            IconButton(
-                modifier = Modifier.align(Alignment.Bottom),
-                onClick = {
-                    showDropdownMenu = true
-                }
+            Column(
+                modifier = Modifier.weight(1f)
             ) {
-                Icon(
-                    painterResource(id = R.drawable.icon_category),
-                    contentDescription = "Edit Category"
+                item.category?.name?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+                Text(
+                    text = item.item.name,
+                    style = MaterialTheme.typography.titleMedium,
                 )
-                DropdownMenu(
-                    expanded = showDropdownMenu,
-                    onDismissRequest = { showDropdownMenu = false }
+            }
+            Row(
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(
+                    modifier = Modifier.size(36.dp),
+                    onClick = {
+                        showDropdownMenu = true
+                    }
                 ) {
-                    categories.forEach { category ->
-                        DropdownMenuItem(
-                            text = { Text(text = category.name) },
-                            onClick = {
-                                onSelectCategory(category.id)
-                                showDropdownMenu = false
-                            }
-                        )
+                    Icon(
+                        painterResource(id = R.drawable.icon_category),
+                        contentDescription = "Edit Category"
+                    )
+                    DropdownMenu(
+                        expanded = showDropdownMenu,
+                        onDismissRequest = { showDropdownMenu = false }
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = { Text(text = category.name) },
+                                onClick = {
+                                    onSelectCategory(category.id)
+                                    showDropdownMenu = false
+                                }
+                            )
+                        }
                     }
                 }
-            }
-            IconButton(
-                modifier = Modifier.align(Alignment.Bottom),
-                onClick = {
-                    onTapEditIcon()
+                IconButton(
+                    modifier = Modifier.size(36.dp),
+                    onClick = {
+                        onTapEditIcon()
+                    }
+                ) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = "Edit Item"
+                    )
                 }
-            ) {
-                Icon(
-                    Icons.Default.Edit,
-                    contentDescription = "Edit Item"
-                )
-            }
-            IconButton(
-                modifier = Modifier.align(Alignment.Bottom),
-                onClick = {
-                    onTapDeleteIcon()
+                IconButton(
+                    modifier = Modifier.size(36.dp),
+                    onClick = {
+                        onTapDeleteIcon()
+                    }
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = "Delete Item"
+                    )
                 }
-            ) {
-                Icon(
-                    Icons.Default.Delete,
-                    contentDescription = "Delete Item"
-                )
             }
         }
         Divider(
+            modifier = Modifier.padding(top = 4.dp),
             color = Color.LightGray,
             thickness = 1.dp
         )
