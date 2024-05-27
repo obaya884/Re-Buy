@@ -31,6 +31,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +58,7 @@ fun HomeScreen(
     val viewModel = hiltViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
 
-    val tabs = HomeTab.homeTabs(uiState.categories)
+    val tabs = remember(uiState.categories) { HomeTab.homeTabs(uiState.categories) }
     val needItemSnackbarMessage = stringResource(id = R.string.home_need_item_add_snack_bar)
 
     val pagerState =
@@ -167,14 +168,16 @@ fun HomeScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) { pagerIndex ->
-                val itemsForTab = when (val tab = tabs.getOrNull(pagerIndex)) {
-                    HomeTab.InBasket -> uiState.inBasketItems
-                    HomeTab.All -> uiState.preparedItems
-                    is HomeTab.CategoryTab -> uiState.preparedItems.filter { item ->
-                        item.item.categoryId == tab.category.id
-                    }
+                val itemsForTab = remember(pagerIndex, tabs, uiState) {
+                    when (val tab = tabs.getOrNull(pagerIndex)) {
+                        HomeTab.InBasket -> uiState.inBasketItems
+                        HomeTab.All -> uiState.preparedItems
+                        is HomeTab.CategoryTab -> uiState.preparedItems.filter { item ->
+                            item.item.categoryId == tab.category.id
+                        }
 
-                    null -> emptyList()
+                        null -> emptyList()
+                    }
                 }
 
                 MainTabItemList(
