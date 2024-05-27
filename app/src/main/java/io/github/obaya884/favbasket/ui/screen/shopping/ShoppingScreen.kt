@@ -96,20 +96,19 @@ fun ShoppingScreen(
                     }
                 }
             }
-            if (uiState.scheduledBoughtItemIds.isNotEmpty()) {
-                Button(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-                    onClick = {
-                        showFinishShoppingAlertDialog = true
-                    }
-                ) {
-                    Text(
-                        modifier = Modifier.padding(8.dp),
-                        text = stringResource(id = R.string.shopping_bottom_button)
-                    )
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
+                enabled = uiState.scheduledBoughtItemIds.isNotEmpty(),
+                onClick = {
+                    showFinishShoppingAlertDialog = true
                 }
+            ) {
+                Text(
+                    modifier = Modifier.padding(8.dp),
+                    text = stringResource(id = R.string.shopping_bottom_button)
+                )
             }
         }
 
