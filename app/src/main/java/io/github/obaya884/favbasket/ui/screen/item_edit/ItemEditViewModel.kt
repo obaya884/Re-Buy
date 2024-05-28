@@ -29,7 +29,7 @@ class ItemEditViewModel @Inject constructor(
             launch {
                 itemRepository.getAllWithCategory()
                     .collect { items ->
-                        _items.value = items
+                        _items.value = items.reversed()
                     }
             }
             launch {
@@ -41,9 +41,10 @@ class ItemEditViewModel @Inject constructor(
         }
     }
 
-    fun addItem(newItemName: String) {
+    fun addItem(newItemName: String, categoryId: Int? = null) {
         val newItem = Item(
             name = newItemName,
+            categoryId = categoryId
         )
         viewModelScope.launch {
             itemRepository.insert(newItem)
