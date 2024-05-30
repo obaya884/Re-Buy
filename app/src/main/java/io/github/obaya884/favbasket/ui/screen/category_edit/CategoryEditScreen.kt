@@ -1,11 +1,7 @@
 package io.github.obaya884.favbasket.ui.screen.category_edit
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -13,14 +9,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Divider
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -67,8 +56,6 @@ fun CategoryEditScreen(
         snackbarHostState = snackbarHostState,
         floatingActionButton = {
             FloatingActionButton(
-                modifier = Modifier
-                    .offset(y = (-48).dp),
                 onClick = {
                     showCategoryAddDialog = true
                 }
@@ -78,27 +65,39 @@ fun CategoryEditScreen(
                     contentDescription = "Add Item"
                 )
             }
-        }
+        },
+        floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
-        LazyColumn(
-            contentPadding = innerPadding,
-            modifier = Modifier.fillMaxSize()
+        Column(
+            modifier = Modifier.padding(innerPadding)
         ) {
-            items(
-                categories,
-                key = { category -> category.id }
-            ) { category ->
-                CategoryEditListRow(
-                    name = category.name,
-                    onTapEdit = {
-                        showCategoryEditDialog = true
-                        editCategory = category
-                    },
-                    onTapDelete = {
-                        showItemDeleteDialog = true
-                        editCategory = category
-                    }
-                )
+            Text(
+                text = "合計カテゴリ数：${categories.size}",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(
+                    categories,
+                    key = { category -> category.id }
+                ) { category ->
+                    CategoryEditListRow(
+                        name = category.name,
+                        onTapEdit = {
+                            showCategoryEditDialog = true
+                            editCategory = category
+                        },
+                        onTapDelete = {
+                            showItemDeleteDialog = true
+                            editCategory = category
+                        }
+                    )
+                }
             }
         }
 
