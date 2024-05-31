@@ -9,11 +9,7 @@ import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.domain.CategoryRepository
 import io.github.obaya884.favbasket.domain.ItemRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -27,18 +23,22 @@ class HomeViewModel @Inject constructor(
     private val _preparedItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
     private val _inBasketItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
 
-    val uiState: StateFlow<HomeUiState> =
+    val uiState: StateFlow<HomeScreenUiState> =
         combine(
             _categories,
             _preparedItems,
             _inBasketItems
         ) { categories, preparedItems, inBasketItems ->
-            HomeUiState(
+            HomeScreenUiState(
                 categories = categories,
                 preparedItems = preparedItems,
                 inBasketItems = inBasketItems
             )
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, HomeUiState(listOf(), listOf(), listOf()))
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            HomeScreenUiState(listOf(), listOf(), listOf())
+        )
 
     // TODO: この画面の時にBOUGHT状態のアイテムが存在しないはず。というのを実装で保証したい。
     // TODO: initでデータ取得するのはバッドパターンらしい。

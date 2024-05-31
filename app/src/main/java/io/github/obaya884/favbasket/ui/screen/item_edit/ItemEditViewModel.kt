@@ -3,13 +3,16 @@ package io.github.obaya884.favbasket.ui.screen.item_edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.github.obaya884.favbasket.combine
 import io.github.obaya884.favbasket.data.category.Category
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.domain.CategoryRepository
 import io.github.obaya884.favbasket.domain.ItemRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -18,11 +21,43 @@ class ItemEditViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
+    // nullにするべき？
     private val _items = MutableStateFlow<List<ItemWithCategory>>(listOf())
-    val items: StateFlow<List<ItemWithCategory>> = _items
-
     private val _categories = MutableStateFlow<List<Category>>(listOf())
-    val categories: StateFlow<List<Category>> = _categories
+    private val _isShowItemAddDialog = MutableStateFlow(false)
+    private val _isShowItemEditDialog = MutableStateFlow(false)
+    private val _isShowItemDeleteDialog = MutableStateFlow(false)
+    private val _editingItem = MutableStateFlow<Item?>(null)
+
+    val uiState: StateFlow<ItemEditScreenUiState> =
+        combine(
+            _items,
+            _categories,
+            _isShowItemAddDialog,
+            _isShowItemEditDialog,
+            _isShowItemDeleteDialog,
+            _editingItem
+        ) { items, categories, isShowItemAddDialog, isShowItemEditDialog, isShowItemDeleteDialog, editingItem ->
+            ItemEditScreenUiState(
+                items = items,
+                categories = categories,
+                isShowItemAddDialog = isShowItemAddDialog,
+                isShowItemEditDialog = isShowItemEditDialog,
+                isShowItemDeleteDialog = isShowItemDeleteDialog,
+                editingItem = editingItem
+            )
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            ItemEditScreenUiState(
+                items = listOf(),
+                categories = listOf(),
+                isShowItemAddDialog = false,
+                isShowItemEditDialog = false,
+                isShowItemDeleteDialog = false,
+                editingItem = null
+            )
+        )
 
     init {
         viewModelScope.launch {
@@ -38,6 +73,12 @@ class ItemEditViewModel @Inject constructor(
                         _categories.value = categories
                     }
             }
+        }
+    }
+
+    fun setEditingItem(item: Item) {
+        viewModelScope.launch {
+            _editingItem.emit(item)
         }
     }
 
@@ -63,9 +104,48 @@ class ItemEditViewModel @Inject constructor(
         }
     }
 
-    fun deleteItem(item: Item) {
-        viewModelScope.launch {
-            itemRepository.delete(item)
+    fun deleteItem() {
+        uiState.value.editingItem?.let {
+            viewModelScope.launch {
+                itemRepository.delete(it)
+            }
         }
     }
+
+    fun showItemAddDialog() {
+        viewModelScope.launch {
+            _isShowItemAddDialog.emit(true)
+        }
+    }
+
+    fun hideItemAddDialog() {
+        viewModelScope.launch {
+            _isShowItemAddDialog.emit(false)
+        }
+    }
+
+    fun showItemEditDialog() {
+        viewModelScope.launch {
+            _isShowItemEditDialog.emit(true)
+        }
+    }
+
+    fun hideItemEditDialog() {
+        viewModelScope.launch {
+            _isShowItemEditDialog.emit(false)
+        }
+    }
+
+    fun showItemDeleteDialog() {
+        viewModelScope.launch {
+            _isShowItemDeleteDialog.emit(true)
+        }
+    }
+
+    fun hideItemDeleteDialog() {
+        viewModelScope.launch {
+            _isShowItemDeleteDialog.emit(false)
+        }
+    }
+
 }

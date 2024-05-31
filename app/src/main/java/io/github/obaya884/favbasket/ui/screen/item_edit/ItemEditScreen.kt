@@ -13,13 +13,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,7 +26,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.category.Category
-import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.shared.TextFieldEditDialog
@@ -43,17 +36,10 @@ fun ItemEditScreen(
     snackbarHostState: SnackbarHostState
 ) {
     val viewModel = hiltViewModel<ItemEditViewModel>()
-    val listState = rememberLazyListState()
-    val coroutineScope = rememberCoroutineScope()
+    val uiState by viewModel.uiState.collectAsState()
+    val editingItem = uiState.editingItem
 
-    // TODO: UiModelに入れる
-    val items by viewModel.items.collectAsState()
-    val categories by viewModel.categories.collectAsState()
-    var showItemAddDialog by remember { mutableStateOf(false) }
-    var showItemEditDialog by remember { mutableStateOf(false) }
-    var showItemDeleteDialog by remember { mutableStateOf(false) }
-    //TODO: ここ最初はnullにしておくべき
-    var editItem by remember { mutableStateOf(Item(0, "")) }
+    val listState = rememberLazyListState()
 
     FavBasketAppScaffold(
         topBarTitle = stringResource(id = R.string.item_edit_title),
@@ -69,7 +55,7 @@ fun ItemEditScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    showItemAddDialog = true
+                    viewModel.showItemAddDialog()
                 }
             ) {
                 Icon(
@@ -84,7 +70,7 @@ fun ItemEditScreen(
             modifier = Modifier.padding(innerPadding)
         ) {
             Text(
-                text = "合計アイテム数：${items.size}",
+                text = "合計アイテム数：${uiState.items.size}",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -96,19 +82,19 @@ fun ItemEditScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(
-                    items,
+                    uiState.items,
                     key = { item -> item.item.id }
                 ) { item ->
                     ItemEditListRow(
                         item = item,
-                        categories = categories,
+                        categories = uiState.categories,
                         onTapEditIcon = {
-                            showItemEditDialog = true
-                            editItem = item.item
+                            viewModel.showItemEditDialog()
+                            viewModel.setEditingItem(item.item)
                         },
                         onTapDeleteIcon = {
-                            showItemDeleteDialog = true
-                            editItem = item.item
+                            viewModel.showItemDeleteDialog()
+                            viewModel.setEditingItem(item.item)
                         },
                         onSelectCategory = { categoryId ->
                             viewModel.editItemCategory(item.item.id, categoryId)
@@ -118,61 +104,61 @@ fun ItemEditScreen(
             }
         }
 
-        if (showItemAddDialog) {
+        if (uiState.isShowItemAddDialog) {
             ItemAddDialog(
                 title = stringResource(id = R.string.item_edit_add_dialog_title),
-                categories = categories,
+                categories = uiState.categories,
                 onConfirm = { name, category ->
                     viewModel.addItem(name, category.id)
-                    showItemAddDialog = false
+                    viewModel.hideItemAddDialog()
                     // TODO: 追加したら最上部にスクロールしたい
 //                    coroutineScope.launch {
 //                        listState.animateScrollToItem(0)
 //                    }
                 },
                 onDismiss = {
-                    showItemAddDialog = false
+                    viewModel.hideItemAddDialog()
                 }
             )
         }
 
-        if (showItemEditDialog) {
+        if (uiState.isShowItemEditDialog && editingItem != null) {
             TextFieldEditDialog(
                 title = stringResource(id = R.string.item_edit_edit_dialog_title),
-                editId = editItem.id,
-                editName = editItem.name,
+                editId = editingItem.id,
+                editName = editingItem.name,
                 onConfirm = { id, name ->
                     viewModel.editItemName(id, name)
-                    showItemEditDialog = false
+                    viewModel.hideItemEditDialog()
                 },
                 onDismiss = {
-                    showItemEditDialog = false
+                    viewModel.hideItemEditDialog()
                 }
             )
         }
 
-        if (showItemDeleteDialog) {
+        if (uiState.isShowItemDeleteDialog && editingItem != null) {
             AlertDialog(
                 icon = {
                     Icon(Icons.Default.Delete, contentDescription = "")
                 },
                 onDismissRequest = {
-                    showItemDeleteDialog = false
+                    viewModel.hideItemDeleteDialog()
                 },
                 title = { Text(text = stringResource(id = R.string.item_edit_delete_dialog_title)) },
                 text = {
                     Text(
                         text = stringResource(
                             R.string.item_edit_delete_dialog_message,
-                            editItem.name
+                            editingItem.name
                         )
                     )
                 },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            viewModel.deleteItem(editItem)
-                            showItemDeleteDialog = false
+                            viewModel.deleteItem()
+                            viewModel.hideItemDeleteDialog()
                         }
                     ) {
                         Text(stringResource(id = R.string.item_edit_delete_dialog_positive_button))
@@ -181,7 +167,7 @@ fun ItemEditScreen(
                 dismissButton = {
                     TextButton(
                         onClick = {
-                            showItemDeleteDialog = false
+                            viewModel.hideItemDeleteDialog()
                         }
                     ) {
                         Text(stringResource(id = R.string.item_edit_delete_dialog_negative_button))
