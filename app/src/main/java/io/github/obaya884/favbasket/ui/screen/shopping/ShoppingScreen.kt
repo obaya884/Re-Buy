@@ -2,32 +2,16 @@ package io.github.obaya884.favbasket.ui.screen.shopping
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -48,11 +32,9 @@ fun ShoppingScreen(
 ) {
     val viewModel = hiltViewModel<ShoppingViewModel>()
     val uiState by viewModel.uiState.collectAsState()
-    var showNavigateBackAlertDialog by remember { mutableStateOf(false) }
-    var showFinishShoppingAlertDialog by remember { mutableStateOf(false) }
 
     BackHandler(enabled = uiState.scheduledBoughtItemIds.isNotEmpty()) {
-        showNavigateBackAlertDialog = true
+        viewModel.showNavigateBackAlertDialog()
     }
 
     FavBasketAppScaffold(
@@ -61,7 +43,7 @@ fun ShoppingScreen(
             IconButton(
                 onClick = {
                     if (uiState.scheduledBoughtItemIds.isNotEmpty()) {
-                        showNavigateBackAlertDialog = true
+                        viewModel.showNavigateBackAlertDialog()
                     } else {
                         navController.navigateUp()
                     }
@@ -102,7 +84,7 @@ fun ShoppingScreen(
                     .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
                 enabled = uiState.scheduledBoughtItemIds.isNotEmpty(),
                 onClick = {
-                    showFinishShoppingAlertDialog = true
+                    viewModel.showFinishShoppingAlertDialog()
                 }
             ) {
                 Text(
@@ -121,34 +103,34 @@ fun ShoppingScreen(
             }
         }
 
-        if (showNavigateBackAlertDialog) {
+        if (uiState.isShowNavigateBackAlertDialog) {
             TapBackNavigationAlertDialog(
                 onDismiss = {
-                    showNavigateBackAlertDialog = false
+                    viewModel.hideNavigateBackAlertDialog()
                 },
                 onTapConfirm = {
-                    showNavigateBackAlertDialog = false
+                    viewModel.hideNavigateBackAlertDialog()
                 },
                 onTapCancel = {
-                    showNavigateBackAlertDialog = false
+                    viewModel.hideNavigateBackAlertDialog()
                     navController.navigateUp()
                 }
             )
         }
 
-        if (showFinishShoppingAlertDialog) {
+        if (uiState.isShowFinishShoppingAlertDialog) {
             FinishShoppingAlertDialog(
                 onDismiss = {
-                    showFinishShoppingAlertDialog = false
+                    viewModel.hideFinishShoppingAlertDialog()
                 },
                 onTapConfirm = {
-                    showFinishShoppingAlertDialog = false
+                    viewModel.hideFinishShoppingAlertDialog()
                     viewModel.changeBoughtConfirm {
                         navController.navigateAsRoot(Screen.Home)
                     }
                 },
                 onTapCancel = {
-                    showFinishShoppingAlertDialog = false
+                    viewModel.hideFinishShoppingAlertDialog()
                 }
             )
         }

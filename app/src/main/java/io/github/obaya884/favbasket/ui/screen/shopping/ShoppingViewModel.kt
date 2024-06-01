@@ -7,11 +7,7 @@ import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.domain.ItemRepository
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,22 +19,34 @@ class ShoppingViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     private val _inBasketItems = MutableStateFlow<List<Item>>(listOf())
     private val _scheduledBoughtItemIds = MutableStateFlow<List<Int>>(listOf())
+    private val _isShowNavigateBackAlertDialog = MutableStateFlow(false)
+    private val _isShowFinishShoppingAlertDialog = MutableStateFlow(false)
 
-    val uiState: StateFlow<ShoppingUiState> =
+    val uiState: StateFlow<ShoppingScreenUiState> =
         combine(
             _isLoading,
             _inBasketItems,
-            _scheduledBoughtItemIds
-        ) { isLoading, inBasketItems, boughtItemIds ->
-            ShoppingUiState(
+            _scheduledBoughtItemIds,
+            _isShowNavigateBackAlertDialog,
+            _isShowFinishShoppingAlertDialog
+        ) { isLoading, inBasketItems, boughtItemIds, isShowNavigateBackAlertDialog, isShowFinishShoppingAlertDialog ->
+            ShoppingScreenUiState(
                 isLoading = isLoading,
                 inBasketItems = inBasketItems,
-                scheduledBoughtItemIds = boughtItemIds
+                scheduledBoughtItemIds = boughtItemIds,
+                isShowNavigateBackAlertDialog = isShowNavigateBackAlertDialog,
+                isShowFinishShoppingAlertDialog = isShowFinishShoppingAlertDialog
             )
         }.stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
-            ShoppingUiState(false, listOf(), listOf())
+            ShoppingScreenUiState(
+                isLoading = false,
+                inBasketItems = listOf(),
+                scheduledBoughtItemIds = listOf(),
+                isShowNavigateBackAlertDialog = false,
+                isShowFinishShoppingAlertDialog = false
+            )
         )
 
     init {
@@ -51,25 +59,53 @@ class ShoppingViewModel @Inject constructor(
     }
 
     fun markScheduledBought(itemId: Int) {
-        _scheduledBoughtItemIds.value = _scheduledBoughtItemIds.value + itemId
+        viewModelScope.launch {
+            _scheduledBoughtItemIds.update { it + itemId }
+        }
     }
 
     fun unMarkScheduledBought(itemId: Int) {
-        _scheduledBoughtItemIds.value = _scheduledBoughtItemIds.value - itemId
+        viewModelScope.launch {
+            _scheduledBoughtItemIds.update { it - itemId }
+        }
     }
 
     fun changeBoughtConfirm(onFinished: () -> Unit) {
         viewModelScope.launch {
-            _isLoading.value = true
+            _isLoading.emit(true)
             val jobs = _scheduledBoughtItemIds.value.map { id ->
                 launch {
                     itemRepository.updateStatusAsBought(id)
                 }
             }
+            delay(500)
             jobs.joinAll()
-            delay(1000)
-            _isLoading.value = false
+            _isLoading.emit(false)
             onFinished()
+        }
+    }
+
+    fun showNavigateBackAlertDialog() {
+        viewModelScope.launch {
+            _isShowNavigateBackAlertDialog.emit(true)
+        }
+    }
+
+    fun hideNavigateBackAlertDialog() {
+        viewModelScope.launch {
+            _isShowNavigateBackAlertDialog.emit(false)
+        }
+    }
+
+    fun showFinishShoppingAlertDialog() {
+        viewModelScope.launch {
+            _isShowFinishShoppingAlertDialog.emit(true)
+        }
+    }
+
+    fun hideFinishShoppingAlertDialog() {
+        viewModelScope.launch {
+            _isShowFinishShoppingAlertDialog.emit(false)
         }
     }
 }
