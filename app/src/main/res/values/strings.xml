@@ -8,7 +8,12 @@
     <string name="home_need_item_add_snack_bar">買い物リストにアイテムを追加してください</string>
     <string name="home_add_item_button">買い物リストに追加</string>
     <string name="home_remove_item_button">追加済み</string>
-    <string name="home_no_item_message">アイテムがありません</string>
+    <string name="home_remove_item_button_from_shopping_list">買い物リストから削除</string>
+    <string name="home_no_item_message_category">このカテゴリーにアイテムが登録されていません。\nアイテム一覧画面からアイテムを登録してください。</string>
+    <string name="home_no_item_message_all">アイテムが登録されていません。\nアイテム一覧画面からアイテムを登録してください。</string>
+    <string name="home_no_item_message_in_basket">買い物リストにアイテムがありません。\nタブからアイテムを追加してください。</string>
+    <string name="home_no_item_button">アイテム一覧へ</string>
+    <string name="home_no_item_button_shopping_list">アイテムを追加する</string>
 
     <string name="shopping_title">買い物</string>
     <string name="shopping_bottom_button">買い物を終わる</string>
@@ -21,7 +26,7 @@
     <string name="shopping_finish_alert_dialog_positive_button">買い物を終わる</string>
     <string name="shopping_finish_alert_dialog_negative_button">続ける</string>
 
-    <string name="item_edit_title">アイテム編集</string>
+    <string name="item_edit_title">アイテム</string>
     <string name="item_edit_add_dialog_title">アイテム追加</string>
     <string name="item_edit_edit_dialog_title">アイテム名変更</string>
     <string name="item_edit_delete_dialog_title">アイテムの削除</string>
@@ -30,7 +35,7 @@
     <string name="item_edit_delete_dialog_negative_button">キャンセル</string>
 
 
-    <string name="category_edit_title">カテゴリー編集</string>
+    <string name="category_edit_title">カテゴリー</string>
     <string name="category_edit_add_dialog_title">カテゴリー追加</string>
     <string name="category_edit_edit_dialog_title">カテゴリー名変更</string>
     <string name="category_edit_delete_dialog_title">カテゴリの削除</string>
@@ -39,8 +44,8 @@
     <string name="category_edit_delete_dialog_negative_button">キャンセル</string>
 
     <string name="setting_title">設定</string>
-    <string name="setting_row_item_edit">アイテム編集</string>
-    <string name="setting_row_category_edit">カテゴリー編集</string>
+    <string name="setting_row_item_edit">アイテム一覧</string>
+    <string name="setting_row_category_edit">カテゴリ一覧</string>
 
     <string name="text_field_add_dialog_positive_button">追加</string>
     <string name="text_field_add_dialog_negative_button">キャンセル</string>

@@ -1,5 +1,8 @@
 package io.github.obaya884.favbasket.ui.screen.home
 
+import androidx.compose.animation.core.EaseInOutBack
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -8,20 +11,19 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -50,6 +52,12 @@ fun HomeScreen(
         rememberPagerState(initialPage = tabs.indexOf(HomeTab.All), pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
+    val scale by animateFloatAsState(
+        targetValue = if (uiState.isAnimationPlaying) 1.2f else 1f,
+        animationSpec = tween(durationMillis = 400, easing = EaseInOutBack),
+        finishedListener = { viewModel.onFinishAnimation() },
+        label = "",
+    )
     FavBasketAppScaffold(
         topBarTitle = stringResource(R.string.home_title),
         topBarNavigationIcon = {
@@ -86,6 +94,18 @@ fun HomeScreen(
                 )
             }
             IconButton(
+                modifier = Modifier
+                    .scale(scale)
+                    .then(
+                        if (uiState.inBasketItems.isNotEmpty()) {
+                            Modifier.background(
+                                color = MaterialTheme.colorScheme.primaryContainer,
+                                shape = CircleShape
+                            )
+                        } else {
+                            Modifier
+                        },
+                    ),
                 onClick = {
                     if (uiState.inBasketItems.isNotEmpty()) {
                         navController.navigate(Screen.Shopping.route)
@@ -150,31 +170,39 @@ fun HomeScreen(
 
             HorizontalPager(
                 state = pagerState,
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) { pagerIndex ->
+                val tab =
+                    tabs.getOrElse(pagerIndex) {
+                        // index外でタブが存在しない場合はログを出力してAllを表示
+                        HomeTab.All
+                    }
                 val itemsForTab = remember(pagerIndex, tabs, uiState) {
-                    when (val tab = tabs.getOrNull(pagerIndex)) {
+                    when (tab) {
                         HomeTab.InBasket -> uiState.inBasketItems
                         HomeTab.All -> uiState.preparedItems
                         is HomeTab.CategoryTab -> uiState.preparedItems.filter { item ->
                             item.item.categoryId == tab.category.id
                         }
-
-                        null -> emptyList()
                     }
                 }
-
-                MainTabItemList(
+                HomePagerTabList(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
+                    navController = navController,
+                    tab = tab,
                     items = itemsForTab,
                     onTapToAdd = { item ->
                         viewModel.addToBasket(item)
                     },
                     onTapToRemove = { item ->
                         viewModel.removeFromBasket(item)
+                    },
+                    scrollToAllTab = {
+                        coroutineScope.launch {
+                            pagerState.scrollToPage(tabs.indexOf(HomeTab.All))
+                        }
                     }
                 )
             }
@@ -183,20 +211,26 @@ fun HomeScreen(
 }
 
 @Composable
-fun MainTabItemList(
+fun HomePagerTabList(
     modifier: Modifier,
+    navController: NavController,
+    tab: HomeTab,
     items: List<ItemWithCategory>,
     onTapToAdd: (Item) -> Unit,
-    onTapToRemove: (Item) -> Unit
+    onTapToRemove: (Item) -> Unit,
+    scrollToAllTab: () -> Unit
 ) {
     if (items.isNotEmpty()) {
-
         Column {
             LazyColumn(
                 modifier = modifier
             ) {
-                items(items, key = { it.item.id }) { item ->
+                items(
+                    items,
+                    key = { it.item.id }
+                ) { item ->
                     HomeListItemRow(
+                        tab = tab,
                         item = item,
                         onTapToAdd = {
                             onTapToAdd(item.item)
@@ -210,22 +244,59 @@ fun MainTabItemList(
         }
     } else {
         Column(
-            modifier = Modifier.fillMaxSize(),
+            modifier = modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = stringResource(id = R.string.home_no_item_message),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground
+                text = when (tab) {
+                    is HomeTab.All -> stringResource(id = R.string.home_no_item_message_all)
+                    is HomeTab.CategoryTab -> stringResource(id = R.string.home_no_item_message_category)
+                    is HomeTab.InBasket -> stringResource(id = R.string.home_no_item_message_in_basket)
+                },
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
             )
+            Spacer(modifier = Modifier.height(24.dp))
+            when (tab) {
+                is HomeTab.All, is HomeTab.CategoryTab -> {
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth(0.6f)
+                            .height(48.dp),
+                        onClick = {
+                            navController.navigate(Screen.ItemEdit.route)
+                        }
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.home_no_item_button)
+                        )
+                    }
+                }
+
+                is HomeTab.InBasket -> {
+                    Button(
+                        modifier = Modifier
+                            .fillMaxWidth(0.6f)
+                            .height(48.dp),
+                        onClick = {
+                            scrollToAllTab()
+                        }
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.home_no_item_button_shopping_list)
+                        )
+                    }
+                }
+            }
         }
-        // TODO: アイテム編集画面への遷移
     }
 }
 
 @Composable
 fun HomeListItemRow(
+    tab: HomeTab,
     item: ItemWithCategory,
     onTapToAdd: () -> Unit,
     onTapToRemove: () -> Unit
@@ -266,7 +337,13 @@ fun HomeListItemRow(
                     onTapToRemove()
                 }
             ) {
-                Text(text = stringResource(id = R.string.home_remove_item_button))
+                Text(
+                    text = if (tab is HomeTab.InBasket) {
+                        stringResource(id = R.string.home_remove_item_button_from_shopping_list)
+                    } else {
+                        stringResource(id = R.string.home_remove_item_button)
+                    }
+                )
             }
         }
     }
