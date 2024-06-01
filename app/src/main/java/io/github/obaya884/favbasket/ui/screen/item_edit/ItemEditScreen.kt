@@ -8,8 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -46,7 +46,7 @@ fun ItemEditScreen(
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Localized description"
                 )
             }
@@ -260,7 +260,7 @@ fun ItemEditListRow(
                 }
             }
         }
-        Divider(
+        HorizontalDivider(
             modifier = Modifier.padding(top = 4.dp),
             color = Color.LightGray,
             thickness = 1.dp

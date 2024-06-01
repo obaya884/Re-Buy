@@ -5,8 +5,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
@@ -40,7 +40,7 @@ fun CategoryEditScreen(
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Localized description"
                 )
             }
@@ -203,7 +203,7 @@ fun CategoryEditListRow(
                 Icon(Icons.Default.Delete, contentDescription = "Delete Item")
             }
         }
-        Divider(
+        HorizontalDivider(
             color = Color.LightGray,
             thickness = 1.dp
         )
