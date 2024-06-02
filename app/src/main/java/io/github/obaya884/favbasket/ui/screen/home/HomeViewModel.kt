@@ -49,15 +49,16 @@ class HomeViewModel @Inject constructor(
             launch {
                 itemRepository.getAllWithCategory()
                     .collect { items ->
-                        _preparedItems.value = items
-                        _inBasketItems.value =
+                        _preparedItems.update { items }
+                        _inBasketItems.update {
                             items.filter { it.item.status == ItemStatus.IN_BASKET }
+                        }
                     }
             }
             launch {
                 categoryRepository.getAll()
                     .collect { categories ->
-                        _categories.value = categories
+                        _categories.update { categories }
                     }
             }
         }
@@ -67,7 +68,7 @@ class HomeViewModel @Inject constructor(
         // Ripple effect のために遅延を入れる
         delay(200)
         itemRepository.updateStatusAsInBasket(item)
-        _isAnimationPlaying.value = true
+        _isAnimationPlaying.emit(true)
     }
 
     fun removeFromBasket(item: Item) = viewModelScope.launch {

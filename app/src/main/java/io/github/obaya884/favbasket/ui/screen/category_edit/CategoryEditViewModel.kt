@@ -50,7 +50,7 @@ class CategoryEditViewModel @Inject constructor(
         viewModelScope.launch {
             categoryRepository.getAll()
                 .collect { categories ->
-                    _categories.value = categories.reversed()
+                    _categories.update { categories }
                 }
         }
     }

@@ -53,7 +53,7 @@ class ShoppingViewModel @Inject constructor(
         viewModelScope.launch {
             itemRepository.getAll()
                 .collect { items ->
-                    _inBasketItems.value = items.filter { it.status == ItemStatus.IN_BASKET }
+                    _inBasketItems.update { items.filter { it.status == ItemStatus.IN_BASKET } }
                 }
         }
     }

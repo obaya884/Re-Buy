@@ -9,10 +9,7 @@ import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.domain.CategoryRepository
 import io.github.obaya884.favbasket.domain.ItemRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -64,13 +61,13 @@ class ItemEditViewModel @Inject constructor(
             launch {
                 itemRepository.getAllWithCategory()
                     .collect { items ->
-                        _items.value = items.reversed()
+                        _items.update { items }
                     }
             }
             launch {
                 categoryRepository.getAll()
                     .collect { categories ->
-                        _categories.value = categories
+                        _categories.update { categories }
                     }
             }
         }
