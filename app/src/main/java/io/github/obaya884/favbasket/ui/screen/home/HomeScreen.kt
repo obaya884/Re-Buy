@@ -53,7 +53,7 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val scale by animateFloatAsState(
-        targetValue = if (uiState.isAnimationPlaying) 1.2f else 1f,
+        targetValue = if (uiState.isAnimationPlaying) 1.1f else 1f,
         animationSpec = tween(durationMillis = 400, easing = EaseInOutBack),
         finishedListener = { viewModel.onFinishAnimation() },
         label = "",
