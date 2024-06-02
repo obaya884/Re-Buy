@@ -67,13 +67,12 @@ fun SettingScreenItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onTap() }
-            .padding(16.dp, 8.dp)
+            .padding(horizontal = 16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 8.dp)
-                .clickable { onTap() },
+                .padding(0.dp, 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
