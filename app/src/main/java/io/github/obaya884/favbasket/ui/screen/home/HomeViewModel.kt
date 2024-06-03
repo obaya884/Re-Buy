@@ -22,25 +22,35 @@ class HomeViewModel @Inject constructor(
     private val _categories = MutableStateFlow<List<Category>>(listOf())
     private val _preparedItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
     private val _inBasketItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
-    private val _isAnimationPlaying = MutableStateFlow(false)
+    private val _isAddingAnimationPlaying = MutableStateFlow(false)
+    private val _isRemovingAnimationPlaying = MutableStateFlow(false)
 
     val uiState: StateFlow<HomeScreenUiState> =
         combine(
             _categories,
             _preparedItems,
             _inBasketItems,
-            _isAnimationPlaying
-        ) { categories, preparedItems, inBasketItems, isAnimationPlaying ->
+            _isAddingAnimationPlaying,
+            _isRemovingAnimationPlaying
+        ) { categories, preparedItems, inBasketItems,
+            isAddingAnimationPlaying, isRemovingAnimationPlaying ->
             HomeScreenUiState(
                 categories = categories,
                 preparedItems = preparedItems,
                 inBasketItems = inBasketItems,
-                isAnimationPlaying = isAnimationPlaying
+                isAddingAnimationPlaying = isAddingAnimationPlaying,
+                isRemovingAnimationPlaying = isRemovingAnimationPlaying
             )
         }.stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
-            HomeScreenUiState(listOf(), listOf(), listOf(), false)
+            HomeScreenUiState(
+                listOf(),
+                listOf(),
+                listOf(),
+                isAddingAnimationPlaying = false,
+                isRemovingAnimationPlaying = false
+            )
         )
 
     // TODO: この画面の時にBOUGHT状態のアイテムが存在しないはず。というのを実装で保証したい。
@@ -68,16 +78,21 @@ class HomeViewModel @Inject constructor(
         // Ripple effect のために遅延を入れる
         delay(200)
         itemRepository.updateStatusAsInBasket(item)
-        _isAnimationPlaying.emit(true)
+        _isAddingAnimationPlaying.emit(true)
     }
 
     fun removeFromBasket(item: Item) = viewModelScope.launch {
         // Ripple effect のために遅延を入れる
         delay(200)
         itemRepository.updateStatusAsNoDeal(item)
+        _isRemovingAnimationPlaying.emit(true)
     }
 
-    fun onFinishAnimation() = viewModelScope.launch {
-        _isAnimationPlaying.emit(false)
+    fun onFinishAddingAnimation() = viewModelScope.launch {
+        _isAddingAnimationPlaying.emit(false)
+    }
+
+    fun onFinishRemovingAnimation() = viewModelScope.launch {
+        _isRemovingAnimationPlaying.emit(false)
     }
 }

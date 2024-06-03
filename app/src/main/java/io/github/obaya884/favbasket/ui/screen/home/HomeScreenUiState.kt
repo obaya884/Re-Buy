@@ -7,5 +7,6 @@ data class HomeScreenUiState(
     val categories: List<Category>,
     val inBasketItems: List<ItemWithCategory>,
     val preparedItems: List<ItemWithCategory>,
-    val isAnimationPlaying: Boolean
+    val isAddingAnimationPlaying: Boolean,
+    val isRemovingAnimationPlaying: Boolean
 )

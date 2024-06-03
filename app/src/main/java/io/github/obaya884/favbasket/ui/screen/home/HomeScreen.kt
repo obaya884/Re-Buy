@@ -34,6 +34,7 @@ import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -52,12 +53,20 @@ fun HomeScreen(
         rememberPagerState(initialPage = tabs.indexOf(HomeTab.All), pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
-    val scale by animateFloatAsState(
-        targetValue = if (uiState.isAnimationPlaying) 1.1f else 1f,
+    val itemAddingAnimate by animateFloatAsState(
+        targetValue = if (uiState.isAddingAnimationPlaying) 1.2f else 1f,
         animationSpec = tween(durationMillis = 400, easing = EaseInOutBack),
-        finishedListener = { viewModel.onFinishAnimation() },
+        finishedListener = { viewModel.onFinishAddingAnimation() },
         label = "",
     )
+
+    val itemRemovingAnimate by animateFloatAsState(
+        targetValue = if (uiState.isRemovingAnimationPlaying) 0.8f else 1f,
+        animationSpec = tween(durationMillis = 400, easing = EaseInOutBack),
+        finishedListener = { viewModel.onFinishRemovingAnimation() },
+        label = "",
+    )
+
     FavBasketAppScaffold(
         topBarTitle = stringResource(R.string.home_title),
         topBarNavigationIcon = {
@@ -95,11 +104,12 @@ fun HomeScreen(
             }
             IconButton(
                 modifier = Modifier
-                    .scale(scale)
+                    .scale(itemAddingAnimate)
+                    .scale(itemRemovingAnimate)
                     .then(
-                        if (uiState.inBasketItems.isNotEmpty()) {
+                        if (uiState.inBasketItems.isNotEmpty() || uiState.isAddingAnimationPlaying || uiState.isRemovingAnimationPlaying) {
                             Modifier.background(
-                                color = MaterialTheme.colorScheme.primaryContainer,
+                                color = MaterialTheme.colorScheme.inversePrimary,
                                 shape = CircleShape
                             )
                         } else {
@@ -201,6 +211,8 @@ fun HomeScreen(
                     },
                     scrollToAllTab = {
                         coroutineScope.launch {
+                            // Ripple effect のために遅延を入れる
+                            delay(200)
                             pagerState.scrollToPage(tabs.indexOf(HomeTab.All))
                         }
                     }
