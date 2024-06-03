@@ -1,5 +1,6 @@
 package io.github.obaya884.favbasket.ui.screen.item_edit
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -66,39 +68,83 @@ fun ItemEditScreen(
         },
         floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            Text(
-                text = "合計アイテム数：${uiState.items.size}",
-                style = MaterialTheme.typography.titleMedium,
+        if (uiState.items.isNotEmpty()) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-            LazyColumn(
-                state = listState,
-                modifier = Modifier.fillMaxSize()
+                    .padding(innerPadding)
+                    .fillMaxSize()
             ) {
-                items(
-                    uiState.items,
-                    key = { item -> item.item.id }
-                ) { item ->
-                    ItemEditListRow(
-                        item = item,
-                        categories = uiState.categories,
-                        onTapEditIcon = {
-                            viewModel.showItemEditDialog()
-                            viewModel.setEditingItem(item.item)
-                        },
-                        onTapDeleteIcon = {
-                            viewModel.showItemDeleteDialog()
-                            viewModel.setEditingItem(item.item)
-                        },
-                        onSelectCategory = { categoryId ->
-                            viewModel.editItemCategory(item.item.id, categoryId)
-                        }
+                Text(
+                    text = "合計アイテム数：${uiState.items.size}",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(
+                        uiState.items,
+                        key = { item -> item.item.id }
+                    ) { item ->
+                        ItemEditListRow(
+                            item = item,
+                            categories = uiState.categories,
+                            onTapEditIcon = {
+                                viewModel.showItemEditDialog()
+                                viewModel.setEditingItem(item.item)
+                            },
+                            onTapDeleteIcon = {
+                                viewModel.showItemDeleteDialog()
+                                viewModel.setEditingItem(item.item)
+                            },
+                            onSelectCategory = { categoryId ->
+                                viewModel.editItemCategory(item.item.id, categoryId)
+                            }
+                        )
+                    }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = stringResource(id = R.string.item_edit_empty_message),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                val infiniteTransition = rememberInfiniteTransition(label = "")
+                val offset by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = -10f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = ""
+                )
+                Box(
+                    contentAlignment = Alignment.BottomCenter,
+                    modifier = Modifier
+                        .offset(y = (offset - 90).dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.inversePrimary,
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        text = stringResource(R.string.item_edit_add_item_suggestion)
                     )
                 }
             }
@@ -111,10 +157,6 @@ fun ItemEditScreen(
                 onConfirm = { name, category ->
                     viewModel.addItem(name, category.id)
                     viewModel.hideItemAddDialog()
-                    // TODO: 追加したら最上部にスクロールしたい
-//                    coroutineScope.launch {
-//                        listState.animateScrollToItem(0)
-//                    }
                 },
                 onDismiss = {
                     viewModel.hideItemAddDialog()

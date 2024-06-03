@@ -1,9 +1,11 @@
 package io.github.obaya884.favbasket.ui.screen.category_edit
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -60,34 +62,76 @@ fun CategoryEditScreen(
         },
         floatingActionButtonPosition = FabPosition.Center
     ) { innerPadding ->
-        Column(
-            modifier = Modifier.padding(innerPadding)
-        ) {
-            Text(
-                text = "合計カテゴリ数：${uiState.categories.size}",
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(MaterialTheme.colorScheme.primaryContainer)
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            )
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
+        if (uiState.categories.isNotEmpty()) {
+            Column(
+                modifier = Modifier.padding(innerPadding)
             ) {
-                items(
-                    uiState.categories,
-                    key = { category -> category.id }
-                ) { category ->
-                    CategoryEditListRow(
-                        name = category.name,
-                        onTapEdit = {
-                            viewModel.showCategoryEditDialog()
-                            viewModel.setEditingCategory(category)
-                        },
-                        onTapDelete = {
-                            viewModel.showCategoryDeleteDialog()
-                            viewModel.setEditingCategory(category)
-                        }
+                Text(
+                    text = "合計カテゴリ数：${uiState.categories.size}",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    items(
+                        uiState.categories,
+                        key = { category -> category.id }
+                    ) { category ->
+                        CategoryEditListRow(
+                            name = category.name,
+                            onTapEdit = {
+                                viewModel.showCategoryEditDialog()
+                                viewModel.setEditingCategory(category)
+                            },
+                            onTapDelete = {
+                                viewModel.showCategoryDeleteDialog()
+                                viewModel.setEditingCategory(category)
+                            }
+                        )
+                    }
+                }
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .padding(innerPadding)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = stringResource(id = R.string.category_edit_empty_message),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                val infiniteTransition = rememberInfiniteTransition(label = "")
+                val offset by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = -10f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1000, easing = LinearEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = ""
+                )
+                Box(
+                    contentAlignment = Alignment.BottomCenter,
+                    modifier = Modifier
+                        .offset(y = (offset - 90).dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.inversePrimary,
+                            shape = RoundedCornerShape(16.dp)
+                        )
+                ) {
+                    Text(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        text = stringResource(R.string.category_edit_add_item_suggestion)
                     )
                 }
             }

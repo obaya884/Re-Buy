@@ -33,6 +33,8 @@
     <string name="item_edit_delete_dialog_message">%1$sを削除しますか？</string>
     <string name="item_edit_delete_dialog_positive_button">削除</string>
     <string name="item_edit_delete_dialog_negative_button">キャンセル</string>
+    <string name="item_edit_empty_message">アイテムがありません</string>
+    <string name="item_edit_add_item_suggestion">アイテムを追加しましょう</string>
 
 
     <string name="category_edit_title">カテゴリー</string>
@@ -42,6 +44,8 @@
     <string name="category_edit_delete_dialog_message">%1$sを削除しますか？\nこのカテゴリに設定されたアイテムのカテゴリは未設定になります。</string>
     <string name="category_edit_delete_dialog_positive_button">削除</string>
     <string name="category_edit_delete_dialog_negative_button">キャンセル</string>
+    <string name="category_edit_empty_message">カテゴリーがありません</string>
+    <string name="category_edit_add_item_suggestion">カテゴリーを追加しましょう</string>
 
     <string name="setting_title">設定</string>
     <string name="setting_row_item_edit">アイテム一覧</string>
