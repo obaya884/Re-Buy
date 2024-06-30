@@ -5,7 +5,7 @@ import io.github.obaya884.favbasket.data.item.ItemDao
 import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import kotlinx.coroutines.flow.Flow
-import java.util.Date
+import java.time.Instant
 
 class ItemRepository(private val itemDao: ItemDao) {
     fun getAll(): Flow<List<Item>> = itemDao.getAllItems()
@@ -24,7 +24,7 @@ class ItemRepository(private val itemDao: ItemDao) {
         itemDao.updateItemName(
             itemId = id,
             newName = newName,
-            updatedAt = Date()
+            updatedAt = Instant.now()
         )
     }
 
@@ -32,7 +32,7 @@ class ItemRepository(private val itemDao: ItemDao) {
         itemDao.updateItemCategoryId(
             itemId = id,
             newCategoryId = newCategoryId,
-            updatedAt = Date()
+            updatedAt = Instant.now()
         )
     }
 
@@ -42,7 +42,7 @@ class ItemRepository(private val itemDao: ItemDao) {
         itemDao.updateItemStatus(
             itemId = item.id,
             newStatus = ItemStatus.NO_DEAL,
-            updatedAt = Date()
+            updatedAt = Instant.now()
         )
     }
 
@@ -52,7 +52,7 @@ class ItemRepository(private val itemDao: ItemDao) {
         itemDao.updateItemStatus(
             itemId = item.id,
             newStatus = ItemStatus.IN_BASKET,
-            updatedAt = Date()
+            updatedAt = Instant.now()
         )
     }
 
@@ -62,7 +62,7 @@ class ItemRepository(private val itemDao: ItemDao) {
         itemDao.updateItemStatus(
             itemId = item.id,
             newStatus = ItemStatus.BOUGHT,
-            updatedAt = Date()
+            updatedAt = Instant.now()
         )
     }
 }

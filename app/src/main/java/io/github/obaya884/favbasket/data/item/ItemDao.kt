@@ -2,7 +2,7 @@ package io.github.obaya884.favbasket.data.item
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
-import java.util.*
+import java.time.Instant
 
 @Dao
 interface ItemDao {
@@ -19,13 +19,13 @@ interface ItemDao {
     suspend fun deleteItem(item: Item)
 
     @Query("UPDATE items SET name = :newName, updatedAt = :updatedAt WHERE id = :itemId")
-    suspend fun updateItemName(itemId: Int, newName: String, updatedAt: Date)
+    suspend fun updateItemName(itemId: Int, newName: String, updatedAt: Instant)
 
     @Query("UPDATE items SET status = :newStatus, updatedAt = :updatedAt WHERE id = :itemId")
-    suspend fun updateItemStatus(itemId: Int, newStatus: ItemStatus, updatedAt: Date)
+    suspend fun updateItemStatus(itemId: Int, newStatus: ItemStatus, updatedAt: Instant)
 
     @Query("UPDATE items SET categoryId = :newCategoryId, updatedAt = :updatedAt WHERE id = :itemId")
-    suspend fun updateItemCategoryId(itemId: Int, newCategoryId: Int?, updatedAt: Date)
+    suspend fun updateItemCategoryId(itemId: Int, newCategoryId: Int?, updatedAt: Instant)
 
     @Transaction
     @Query("SELECT * FROM items")

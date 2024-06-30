@@ -1,12 +1,8 @@
 package io.github.obaya884.favbasket.data.category
 
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
 import kotlinx.coroutines.flow.Flow
-import java.util.*
+import java.time.Instant
 
 @Dao
 interface CategoryDao {
@@ -21,5 +17,5 @@ interface CategoryDao {
 
 
     @Query("UPDATE categories SET name = :newName, updatedAt = :updatedAt WHERE id = :id")
-    suspend fun updateCategoryName(id: Int, newName: String, updatedAt: Date)
+    suspend fun updateCategoryName(id: Int, newName: String, updatedAt: Instant)
 }

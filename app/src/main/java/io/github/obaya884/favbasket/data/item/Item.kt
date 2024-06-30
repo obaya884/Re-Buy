@@ -5,7 +5,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import io.github.obaya884.favbasket.data.category.Category
-import java.util.Date
+import java.time.Instant
 
 @Entity(
     tableName = "items",
@@ -24,11 +24,11 @@ data class Item(
     val name: String,
     val status: ItemStatus = ItemStatus.NO_DEAL,
     val categoryId: Int? = null,
-    // TODO: 日付の扱い見直し
-    val createdAt: Date = Date(),
-    val updatedAt: Date = Date()
+    val createdAt: Instant = Instant.now(),
+    val updatedAt: Instant = Instant.now()
 )
 
+// TODO: DBでの実体はIntにしたい（RoomはデフォルトだとenumをTEXTに扱う）
 enum class ItemStatus {
     NO_DEAL,
     IN_BASKET,
