@@ -22,13 +22,7 @@ fun FavBasketApp() {
     FavBasketTheme {
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
-//            enterTransition = {
-//                EnterTransition.None
-//            },
-//            exitTransition = {
-//                ExitTransition.None
-//            }
+            startDestination = Screen.Home.route
         ) {
             composable(Screen.Home.route) {
                 HomeScreen(navController, snackbarHostState)
