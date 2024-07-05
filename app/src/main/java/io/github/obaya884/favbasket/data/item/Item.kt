@@ -24,6 +24,7 @@ data class Item(
     val name: String,
     val status: ItemStatus = ItemStatus.NO_DEAL,
     val categoryId: Int? = null,
+    val lastBoughtAt: Instant? = null,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now()
 )
