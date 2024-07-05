@@ -19,13 +19,28 @@ interface ItemDao {
     suspend fun deleteItem(item: Item)
 
     @Query("UPDATE items SET name = :newName, updatedAt = :updatedAt WHERE id = :itemId")
-    suspend fun updateItemName(itemId: Int, newName: String, updatedAt: Instant)
+    suspend fun updateItemName(itemId: Int, newName: String, updatedAt: Instant = Instant.now())
 
     @Query("UPDATE items SET status = :newStatus, updatedAt = :updatedAt WHERE id = :itemId")
-    suspend fun updateItemStatus(itemId: Int, newStatus: ItemStatus, updatedAt: Instant)
+    suspend fun updateItemStatus(
+        itemId: Int,
+        newStatus: ItemStatus,
+        updatedAt: Instant = Instant.now()
+    )
+
+    @Query("UPDATE items SET status = :newStatus, updatedAt = :updatedAt, lastBoughtAt = :updatedAt WHERE id = :itemId")
+    suspend fun updateItemStatusWithLastBoughtAt(
+        itemId: Int,
+        newStatus: ItemStatus,
+        updatedAt: Instant = Instant.now()
+    )
 
     @Query("UPDATE items SET categoryId = :newCategoryId, updatedAt = :updatedAt WHERE id = :itemId")
-    suspend fun updateItemCategoryId(itemId: Int, newCategoryId: Int?, updatedAt: Instant)
+    suspend fun updateItemCategoryId(
+        itemId: Int,
+        newCategoryId: Int?,
+        updatedAt: Instant = Instant.now()
+    )
 
     @Transaction
     @Query("SELECT * FROM items")

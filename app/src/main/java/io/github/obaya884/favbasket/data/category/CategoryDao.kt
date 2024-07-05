@@ -17,5 +17,5 @@ interface CategoryDao {
 
 
     @Query("UPDATE categories SET name = :newName, updatedAt = :updatedAt WHERE id = :id")
-    suspend fun updateCategoryName(id: Int, newName: String, updatedAt: Instant)
+    suspend fun updateCategoryName(id: Int, newName: String, updatedAt: Instant = Instant.now())
 }
