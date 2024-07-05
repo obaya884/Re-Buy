@@ -36,6 +36,9 @@ import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -329,10 +332,27 @@ fun HomeListItemRow(
                     color = MaterialTheme.colorScheme.outline,
                 )
             }
-            Text(
-                text = item.item.name,
-                style = MaterialTheme.typography.titleMedium,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = item.item.name,
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                if (item.item.lastBoughtAt != null) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(
+                            id = R.string.home_last_bought_at,
+                            item.item.lastBoughtAt.atZone(ZoneId.systemDefault()).format(
+                                DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+                            )
+                        ),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.outline,
+                    )
+                }
+            }
         }
         if (item.item.status != ItemStatus.IN_BASKET) {
             FilledTonalButton(

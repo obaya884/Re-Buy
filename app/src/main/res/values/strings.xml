@@ -14,6 +14,7 @@
     <string name="home_no_item_message_in_basket">買い物リストにアイテムがありません。\nタブからアイテムを追加してください。</string>
     <string name="home_no_item_button">アイテム一覧へ</string>
     <string name="home_no_item_button_shopping_list">アイテムを追加する</string>
+    <string name="home_last_bought_at">最終購入：%1$s</string>
 
     <string name="shopping_title">買い物</string>
     <string name="shopping_bottom_button">買い物を終わる</string>
