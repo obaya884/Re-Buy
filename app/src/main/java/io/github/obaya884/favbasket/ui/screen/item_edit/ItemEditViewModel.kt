@@ -20,7 +20,7 @@ class ItemEditViewModel @Inject constructor(
 ) : ViewModel() {
     // nullにするべき？
     private val _items = MutableStateFlow<List<ItemWithCategory>>(listOf())
-    private val _categories = MutableStateFlow<List<Category>>(listOf())
+    private val _categories = MutableStateFlow<List<Category?>>(listOf())
     private val _isShowItemAddDialog = MutableStateFlow(false)
     private val _isShowItemEditDialog = MutableStateFlow(false)
     private val _isShowItemDeleteDialog = MutableStateFlow(false)
@@ -67,7 +67,7 @@ class ItemEditViewModel @Inject constructor(
             launch {
                 categoryRepository.getAll()
                     .collect { categories ->
-                        _categories.update { categories }
+                        _categories.update { listOf(null) + categories }
                     }
             }
         }
@@ -95,7 +95,7 @@ class ItemEditViewModel @Inject constructor(
         }
     }
 
-    fun editItemCategory(itemId: Int, newCategoryId: Int) {
+    fun editItemCategory(itemId: Int, newCategoryId: Int?) {
         viewModelScope.launch {
             itemRepository.updateCategory(itemId, newCategoryId)
         }

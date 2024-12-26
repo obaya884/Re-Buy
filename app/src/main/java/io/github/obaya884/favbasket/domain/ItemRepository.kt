@@ -26,7 +26,7 @@ class ItemRepository(private val itemDao: ItemDao) {
         )
     }
 
-    suspend fun updateCategory(id: Int, newCategoryId: Int) {
+    suspend fun updateCategory(id: Int, newCategoryId: Int?) {
         itemDao.updateItemCategoryId(
             itemId = id,
             newCategoryId = newCategoryId

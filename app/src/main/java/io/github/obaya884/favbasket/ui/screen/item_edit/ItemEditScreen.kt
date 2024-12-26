@@ -39,7 +39,6 @@ fun ItemEditScreen(
 ) {
     val viewModel = hiltViewModel<ItemEditViewModel>()
     val uiState by viewModel.uiState.collectAsState()
-    val editingItem = uiState.editingItem
 
     val listState = rememberLazyListState()
 
@@ -155,7 +154,7 @@ fun ItemEditScreen(
                 title = stringResource(id = R.string.item_edit_add_dialog_title),
                 categories = uiState.categories,
                 onConfirm = { name, category ->
-                    viewModel.addItem(name, category.id)
+                    viewModel.addItem(name, category?.id)
                     viewModel.hideItemAddDialog()
                 },
                 onDismiss = {
@@ -164,11 +163,11 @@ fun ItemEditScreen(
             )
         }
 
-        if (uiState.isShowItemEditDialog && editingItem != null) {
+        if (uiState.isShowItemEditDialog && uiState.editingItem != null) {
             TextFieldEditDialog(
                 title = stringResource(id = R.string.item_edit_edit_dialog_title),
-                editId = editingItem.id,
-                editName = editingItem.name,
+                editId = uiState.editingItem!!.id,
+                editName = uiState.editingItem!!.name,
                 onConfirm = { id, name ->
                     viewModel.editItemName(id, name)
                     viewModel.hideItemEditDialog()
@@ -179,7 +178,7 @@ fun ItemEditScreen(
             )
         }
 
-        if (uiState.isShowItemDeleteDialog && editingItem != null) {
+        if (uiState.isShowItemDeleteDialog && uiState.editingItem != null) {
             AlertDialog(
                 icon = {
                     Icon(Icons.Default.Delete, contentDescription = "")
@@ -192,7 +191,7 @@ fun ItemEditScreen(
                     Text(
                         text = stringResource(
                             R.string.item_edit_delete_dialog_message,
-                            editingItem.name
+                            uiState.editingItem!!.name
                         )
                     )
                 },
@@ -223,10 +222,10 @@ fun ItemEditScreen(
 @Composable
 fun ItemEditListRow(
     item: ItemWithCategory,
-    categories: List<Category>,
+    categories: List<Category?>,
     onTapEditIcon: () -> Unit,
     onTapDeleteIcon: () -> Unit,
-    onSelectCategory: (Int) -> Unit
+    onSelectCategory: (Int?) -> Unit
 ) {
     var showDropdownMenu by remember { mutableStateOf(false) }
 
@@ -271,9 +270,9 @@ fun ItemEditListRow(
                     ) {
                         categories.forEach { category ->
                             DropdownMenuItem(
-                                text = { Text(text = category.name) },
+                                text = { Text(text = category?.name ?: "未設定") },
                                 onClick = {
-                                    onSelectCategory(category.id)
+                                    onSelectCategory(category?.id)
                                     showDropdownMenu = false
                                 }
                             )
@@ -313,12 +312,12 @@ fun ItemEditListRow(
 @Composable
 fun ItemAddDialog(
     title: String,
-    categories: List<Category>,
-    onConfirm: (String, Category) -> Unit,
+    categories: List<Category?>,
+    onConfirm: (String, Category?) -> Unit,
     onDismiss: () -> Unit
 ) {
     var inputString by remember { mutableStateOf("") }
-    val selectedCategory = remember { mutableStateOf(Category(0, "未設定")) }
+    val selectedCategory = remember { mutableStateOf<Category?>(null) }
     var showDropdownMenu by remember { mutableStateOf(false) }
 
     Dialog(
@@ -347,7 +346,7 @@ fun ItemAddDialog(
                 )
                 Box {
                     Text(
-                        text = selectedCategory.value.name,
+                        text = selectedCategory.value?.name ?: "未設定",
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier
                             .padding(bottom = 16.dp)
@@ -359,7 +358,7 @@ fun ItemAddDialog(
                     ) {
                         categories.forEach { category ->
                             DropdownMenuItem(
-                                text = { Text(text = category.name) },
+                                text = { Text(text = category?.name ?: "未設定") },
                                 onClick = {
                                     selectedCategory.value = category
                                     showDropdownMenu = false
