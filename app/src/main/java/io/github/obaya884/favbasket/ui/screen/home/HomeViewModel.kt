@@ -61,7 +61,7 @@ class HomeViewModel @Inject constructor(
                     .collect { items ->
                         _preparedItems.update { items }
                         _inBasketItems.update {
-                            items.filter { it.item.status == ItemStatus.IN_BASKET }
+                            items.filter { it.item.status == ItemStatus.IN_SHOPPING_LIST }
                         }
                     }
             }

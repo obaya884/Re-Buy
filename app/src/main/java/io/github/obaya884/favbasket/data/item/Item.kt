@@ -29,9 +29,7 @@ data class Item(
     val updatedAt: Instant = Instant.now()
 )
 
-// TODO: DBでの実体はIntにしたい（RoomはデフォルトだとenumをTEXTに扱う）
 enum class ItemStatus {
     NO_DEAL,
-    IN_BASKET,
-    BOUGHT
+    IN_SHOPPING_LIST
 }

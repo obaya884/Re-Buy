@@ -17,22 +17,24 @@ class ShoppingViewModel @Inject constructor(
     private val itemRepository: ItemRepository
 ) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
-    private val _inBasketItems = MutableStateFlow<List<Item>>(listOf())
+
+    private val _inShoppingListItems = MutableStateFlow<List<Item>>(listOf())
     private val _scheduledBoughtItemIds = MutableStateFlow<List<Int>>(listOf())
+
     private val _isShowNavigateBackAlertDialog = MutableStateFlow(false)
     private val _isShowFinishShoppingAlertDialog = MutableStateFlow(false)
 
     val uiState: StateFlow<ShoppingScreenUiState> =
         combine(
             _isLoading,
-            _inBasketItems,
+            _inShoppingListItems,
             _scheduledBoughtItemIds,
             _isShowNavigateBackAlertDialog,
             _isShowFinishShoppingAlertDialog
-        ) { isLoading, inBasketItems, boughtItemIds, isShowNavigateBackAlertDialog, isShowFinishShoppingAlertDialog ->
+        ) { isLoading, inShoppingListItems, boughtItemIds, isShowNavigateBackAlertDialog, isShowFinishShoppingAlertDialog ->
             ShoppingScreenUiState(
                 isLoading = isLoading,
-                inBasketItems = inBasketItems,
+                inShoppingListItems = inShoppingListItems,
                 scheduledBoughtItemIds = boughtItemIds,
                 isShowNavigateBackAlertDialog = isShowNavigateBackAlertDialog,
                 isShowFinishShoppingAlertDialog = isShowFinishShoppingAlertDialog
@@ -42,7 +44,7 @@ class ShoppingViewModel @Inject constructor(
             SharingStarted.Eagerly,
             ShoppingScreenUiState(
                 isLoading = false,
-                inBasketItems = listOf(),
+                inShoppingListItems = listOf(),
                 scheduledBoughtItemIds = listOf(),
                 isShowNavigateBackAlertDialog = false,
                 isShowFinishShoppingAlertDialog = false
@@ -53,7 +55,7 @@ class ShoppingViewModel @Inject constructor(
         viewModelScope.launch {
             itemRepository.getAll()
                 .collect { items ->
-                    _inBasketItems.update { items.filter { it.status == ItemStatus.IN_BASKET } }
+                    _inShoppingListItems.update { items.filter { it.status == ItemStatus.IN_SHOPPING_LIST } }
                 }
         }
     }

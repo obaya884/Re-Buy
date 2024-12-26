@@ -349,7 +349,7 @@ fun HomeListItemRow(
                 )
             }
         }
-        if (item.item.status != ItemStatus.IN_BASKET) {
+        if (item.item.status != ItemStatus.IN_SHOPPING_LIST) {
             FilledTonalButton(
                 onClick = {
                     onTapToAdd()

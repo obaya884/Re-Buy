@@ -43,11 +43,11 @@ class ItemRepository(private val itemDao: ItemDao) {
     }
 
     suspend fun updateStatusAsInBasket(item: Item) {
-        if (item.status == ItemStatus.IN_BASKET) return
+        if (item.status == ItemStatus.IN_SHOPPING_LIST) return
 
         itemDao.updateItemStatus(
             itemId = item.id,
-            newStatus = ItemStatus.IN_BASKET
+            newStatus = ItemStatus.IN_SHOPPING_LIST
         )
     }
 
@@ -56,7 +56,7 @@ class ItemRepository(private val itemDao: ItemDao) {
 
         itemDao.updateItemStatusWithLastBoughtAt(
             itemId = item.id,
-            newStatus = ItemStatus.BOUGHT
+            newStatus = ItemStatus.NO_DEAL
         )
     }
 }

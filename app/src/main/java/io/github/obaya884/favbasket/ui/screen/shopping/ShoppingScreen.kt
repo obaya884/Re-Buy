@@ -66,7 +66,7 @@ fun ShoppingScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 items(
-                    uiState.inBasketItems,
+                    uiState.inShoppingListItems,
                     key = { item -> item.id }
                 ) { item ->
                     ShoppingItem(
