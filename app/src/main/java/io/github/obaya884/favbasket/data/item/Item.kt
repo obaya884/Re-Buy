@@ -31,5 +31,6 @@ data class Item(
 
 enum class ItemStatus {
     NO_DEAL,
-    IN_SHOPPING_LIST
+    IN_SHOPPING_LIST,
+    CHECKED_IN_SHOPPING_LIST
 }

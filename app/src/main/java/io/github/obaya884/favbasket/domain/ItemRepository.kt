@@ -51,6 +51,15 @@ class ItemRepository(private val itemDao: ItemDao) {
         )
     }
 
+    suspend fun updateStatusAsCheckedInBasket(item: Item) {
+        if (item.status == ItemStatus.CHECKED_IN_SHOPPING_LIST) return
+
+        itemDao.updateItemStatus(
+            itemId = item.id,
+            newStatus = ItemStatus.CHECKED_IN_SHOPPING_LIST
+        )
+    }
+
     suspend fun updateStatusAsBought(id: Int) {
         val item = itemDao.getItemById(id)
 

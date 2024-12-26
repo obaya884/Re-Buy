@@ -19,7 +19,6 @@ class ShoppingViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
 
     private val _inShoppingListItems = MutableStateFlow<List<Item>>(listOf())
-    private val _scheduledBoughtItemIds = MutableStateFlow<List<Int>>(listOf())
 
     private val _isShowNavigateBackAlertDialog = MutableStateFlow(false)
     private val _isShowFinishShoppingAlertDialog = MutableStateFlow(false)
@@ -28,14 +27,12 @@ class ShoppingViewModel @Inject constructor(
         combine(
             _isLoading,
             _inShoppingListItems,
-            _scheduledBoughtItemIds,
             _isShowNavigateBackAlertDialog,
             _isShowFinishShoppingAlertDialog
-        ) { isLoading, inShoppingListItems, boughtItemIds, isShowNavigateBackAlertDialog, isShowFinishShoppingAlertDialog ->
+        ) { isLoading, inShoppingListItems, isShowNavigateBackAlertDialog, isShowFinishShoppingAlertDialog ->
             ShoppingScreenUiState(
                 isLoading = isLoading,
                 inShoppingListItems = inShoppingListItems,
-                scheduledBoughtItemIds = boughtItemIds,
                 isShowNavigateBackAlertDialog = isShowNavigateBackAlertDialog,
                 isShowFinishShoppingAlertDialog = isShowFinishShoppingAlertDialog
             )
@@ -45,7 +42,6 @@ class ShoppingViewModel @Inject constructor(
             ShoppingScreenUiState(
                 isLoading = false,
                 inShoppingListItems = listOf(),
-                scheduledBoughtItemIds = listOf(),
                 isShowNavigateBackAlertDialog = false,
                 isShowFinishShoppingAlertDialog = false
             )
@@ -55,29 +51,34 @@ class ShoppingViewModel @Inject constructor(
         viewModelScope.launch {
             itemRepository.getAll()
                 .collect { items ->
-                    _inShoppingListItems.update { items.filter { it.status == ItemStatus.IN_SHOPPING_LIST } }
+                    _inShoppingListItems.update {
+                        items.filter {
+                            it.status == ItemStatus.IN_SHOPPING_LIST
+                                    || it.status == ItemStatus.CHECKED_IN_SHOPPING_LIST
+                        }
+                    }
                 }
         }
     }
 
-    fun markScheduledBought(itemId: Int) {
+    fun markScheduledBought(item: Item) {
         viewModelScope.launch {
-            _scheduledBoughtItemIds.update { it + itemId }
+            itemRepository.updateStatusAsCheckedInBasket(item)
         }
     }
 
-    fun unMarkScheduledBought(itemId: Int) {
+    fun unMarkScheduledBought(item: Item) {
         viewModelScope.launch {
-            _scheduledBoughtItemIds.update { it - itemId }
+            itemRepository.updateStatusAsInBasket(item)
         }
     }
 
     fun changeBoughtConfirm(onFinished: () -> Unit) {
         viewModelScope.launch {
             _isLoading.emit(true)
-            val jobs = _scheduledBoughtItemIds.value.map { id ->
+            val jobs = uiState.value.checkedInShoppingListItems.map { item ->
                 launch {
-                    itemRepository.updateStatusAsBought(id)
+                    itemRepository.updateStatusAsBought(item.id)
                 }
             }
             delay(500)

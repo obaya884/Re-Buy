@@ -21,6 +21,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.item.Item
+import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 import io.github.obaya884.favbasket.ui.navigateAsRoot
@@ -33,7 +34,7 @@ fun ShoppingScreen(
     val viewModel = hiltViewModel<ShoppingViewModel>()
     val uiState by viewModel.uiState.collectAsState()
 
-    BackHandler(enabled = uiState.scheduledBoughtItemIds.isNotEmpty()) {
+    BackHandler(enabled = uiState.isExistCheckedInShoppingListItems) {
         viewModel.showNavigateBackAlertDialog()
     }
 
@@ -42,7 +43,7 @@ fun ShoppingScreen(
         topBarNavigationIcon = {
             IconButton(
                 onClick = {
-                    if (uiState.scheduledBoughtItemIds.isNotEmpty()) {
+                    if (uiState.isExistCheckedInShoppingListItems) {
                         viewModel.showNavigateBackAlertDialog()
                     } else {
                         navController.navigateUp()
@@ -71,12 +72,11 @@ fun ShoppingScreen(
                 ) { item ->
                     ShoppingItem(
                         item,
-                        uiState.scheduledBoughtItemIds,
-                    ) { isBought ->
-                        if (isBought) {
-                            viewModel.unMarkScheduledBought(item.id)
+                    ) {
+                        if (it.status == ItemStatus.CHECKED_IN_SHOPPING_LIST) {
+                            viewModel.unMarkScheduledBought(item)
                         } else {
-                            viewModel.markScheduledBought(item.id)
+                            viewModel.markScheduledBought(item)
                         }
                     }
                 }
@@ -85,7 +85,7 @@ fun ShoppingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 24.dp, end = 24.dp, bottom = 24.dp),
-                enabled = uiState.scheduledBoughtItemIds.isNotEmpty(),
+                enabled = uiState.isExistCheckedInShoppingListItems,
                 onClick = {
                     viewModel.showFinishShoppingAlertDialog()
                 }
@@ -255,15 +255,14 @@ fun FinishShoppingAlertDialog(
 @Composable
 fun ShoppingItem(
     item: Item,
-    scheduledBoughtItemIds: List<Int>,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Item) -> Unit
 ) {
     Row(
         modifier = Modifier
             .clickable(
                 role = Role.Checkbox,
                 onClick = {
-                    onCheckedChange(scheduledBoughtItemIds.contains(item.id))
+                    onCheckedChange(item)
                 }
             )
             .fillMaxWidth()
@@ -271,7 +270,7 @@ fun ShoppingItem(
     ) {
         Checkbox(
             modifier = Modifier.padding(end = 16.dp),
-            checked = scheduledBoughtItemIds.contains(item.id),
+            checked = item.status == ItemStatus.CHECKED_IN_SHOPPING_LIST,
             onCheckedChange = null
         )
         Text(
