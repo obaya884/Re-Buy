@@ -18,7 +18,6 @@ class ItemEditViewModel @Inject constructor(
     private val itemRepository: ItemRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
-    // nullにするべき？
     private val _items = MutableStateFlow<List<ItemWithCategory>>(listOf())
     private val _categories = MutableStateFlow<List<Category?>>(listOf())
     private val _isShowItemAddDialog = MutableStateFlow(false)
