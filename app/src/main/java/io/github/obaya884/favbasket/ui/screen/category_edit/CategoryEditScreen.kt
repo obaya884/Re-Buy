@@ -1,11 +1,9 @@
 package io.github.obaya884.favbasket.ui.screen.category_edit
 
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
@@ -110,30 +108,6 @@ fun CategoryEditScreen(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.weight(1f))
-                val infiniteTransition = rememberInfiniteTransition(label = "")
-                val offset by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = -10f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(1000, easing = LinearEasing),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = ""
-                )
-                Box(
-                    contentAlignment = Alignment.BottomCenter,
-                    modifier = Modifier
-                        .offset(y = (offset - 90).dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.inversePrimary,
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                ) {
-                    Text(
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                        text = stringResource(R.string.category_edit_add_item_suggestion)
-                    )
-                }
             }
         }
 
