@@ -53,7 +53,6 @@ class HomeViewModel @Inject constructor(
             )
         )
 
-    // TODO: この画面の時にBOUGHT状態のアイテムが存在しないはず。というのを実装で保証したい。
     init {
         viewModelScope.launch {
             launch {
@@ -61,7 +60,7 @@ class HomeViewModel @Inject constructor(
                     .collect { items ->
                         _preparedItems.update { items }
                         _inBasketItems.update {
-                            items.filter { it.item.status == ItemStatus.IN_SHOPPING_LIST }
+                            items.filter { it.item.status != ItemStatus.NO_DEAL }
                         }
                     }
             }
