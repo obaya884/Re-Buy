@@ -327,31 +327,28 @@ fun HomeListItemRow(
         ) {
             item.category?.name?.let {
                 Text(
+                    modifier = Modifier.padding(bottom = 4.dp),
                     text = it,
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                 )
             }
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            Text(
+                text = item.item.name,
+                style = MaterialTheme.typography.titleMedium,
+            )
+            if (item.item.lastBoughtAt != null) {
                 Text(
-                    text = item.item.name,
-                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 4.dp),
+                    text = stringResource(
+                        id = R.string.home_last_bought_at,
+                        item.item.lastBoughtAt.atZone(ZoneId.systemDefault()).format(
+                            DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
+                        )
+                    ),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.outline,
                 )
-                if (item.item.lastBoughtAt != null) {
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(
-                            id = R.string.home_last_bought_at,
-                            item.item.lastBoughtAt.atZone(ZoneId.systemDefault()).format(
-                                DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-                            )
-                        ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.outline,
-                    )
-                }
             }
         }
         if (item.item.status != ItemStatus.IN_BASKET) {
