@@ -72,39 +72,7 @@ fun HomeScreen(
 
     FavBasketAppScaffold(
         topBarTitle = stringResource(R.string.home_title),
-        topBarNavigationIcon = {
-            IconButton(
-                onClick = {
-                    navController.navigate(Screen.Setting.route)
-                }
-            ) {
-                Icon(
-                    Icons.Outlined.Settings,
-                    contentDescription = "Setting"
-                )
-            }
-        },
         topBarActions = {
-            IconButton(
-                onClick = {
-                    navController.navigate(Screen.ItemEdit.route)
-                }
-            ) {
-                Icon(
-                    painterResource(id = R.drawable.icon_shopping_bug),
-                    contentDescription = "Item edit"
-                )
-            }
-            IconButton(
-                onClick = {
-                    navController.navigate(Screen.CategoryEdit.route)
-                }
-            ) {
-                Icon(
-                    painterResource(id = R.drawable.icon_category),
-                    contentDescription = "Category edit"
-                )
-            }
             IconButton(
                 modifier = Modifier
                     .scale(itemAddingAnimate)
@@ -133,6 +101,36 @@ fun HomeScreen(
                 }
             ) {
                 Icon(Icons.Outlined.ShoppingCart, contentDescription = "Setting")
+            }
+            IconButton(
+                onClick = {
+                    navController.navigate(Screen.ItemEdit.route)
+                }
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.icon_shopping_bug),
+                    contentDescription = "Item edit"
+                )
+            }
+            IconButton(
+                onClick = {
+                    navController.navigate(Screen.CategoryEdit.route)
+                }
+            ) {
+                Icon(
+                    painterResource(id = R.drawable.icon_category),
+                    contentDescription = "Category edit"
+                )
+            }
+            IconButton(
+                onClick = {
+                    navController.navigate(Screen.Setting.route)
+                }
+            ) {
+                Icon(
+                    Icons.Outlined.Settings,
+                    contentDescription = "Setting"
+                )
             }
         },
         snackbarHostState = snackbarHostState
