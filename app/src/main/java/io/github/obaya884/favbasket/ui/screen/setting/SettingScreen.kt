@@ -32,7 +32,7 @@ fun SettingScreen(
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
+                    contentDescription = null
                 )
             }
         },
@@ -83,7 +83,7 @@ fun SettingScreenItem(
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 modifier = Modifier.align(Alignment.Bottom),
-                contentDescription = "Localized description"
+                contentDescription = null
             )
         }
         HorizontalDivider(

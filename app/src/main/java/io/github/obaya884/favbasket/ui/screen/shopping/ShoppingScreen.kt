@@ -115,7 +115,7 @@ fun FinishShoppingAlertDialog(
 ) {
     AlertDialog(
         icon = {
-            Icon(Icons.Default.Info, contentDescription = "")
+            Icon(Icons.Default.Info, contentDescription = null)
         },
         onDismissRequest = {
             onDismiss()

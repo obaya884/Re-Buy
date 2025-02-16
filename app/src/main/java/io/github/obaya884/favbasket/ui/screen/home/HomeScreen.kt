@@ -60,7 +60,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     painterResource(id = R.drawable.icon_shopping_bug),
-                    contentDescription = "Item edit"
+                    contentDescription = null
                 )
             }
             IconButton(
@@ -70,7 +70,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     painterResource(id = R.drawable.icon_category),
-                    contentDescription = "Category edit"
+                    contentDescription = null
                 )
             }
             IconButton(
@@ -80,7 +80,7 @@ fun HomeScreen(
             ) {
                 Icon(
                     Icons.Outlined.Settings,
-                    contentDescription = "Setting"
+                    contentDescription = null
                 )
             }
         },

@@ -47,7 +47,7 @@ fun ItemEditScreen(
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
+                    contentDescription = null
                 )
             }
         },
@@ -60,7 +60,7 @@ fun ItemEditScreen(
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Add Item"
+                    contentDescription = null
                 )
             }
         },
@@ -156,7 +156,7 @@ fun ItemEditScreen(
         if (uiState.isShowItemDeleteDialog && uiState.editingItem != null) {
             AlertDialog(
                 icon = {
-                    Icon(Icons.Default.Delete, contentDescription = "")
+                    Icon(Icons.Default.Delete, contentDescription = null)
                 },
                 onDismissRequest = {
                     viewModel.hideItemDeleteDialog()
@@ -240,7 +240,7 @@ fun ItemEditListRow(
                 ) {
                     Icon(
                         painterResource(id = R.drawable.icon_category),
-                        contentDescription = "Edit Category"
+                        contentDescription = null
                     )
                     DropdownMenu(
                         expanded = showDropdownMenu,
@@ -264,7 +264,7 @@ fun ItemEditListRow(
                 ) {
                     Icon(
                         Icons.Default.Edit,
-                        contentDescription = "Edit Item"
+                        contentDescription = null
                     )
                 }
                 IconButton(
@@ -274,7 +274,7 @@ fun ItemEditListRow(
                 ) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Delete Item"
+                        contentDescription = null
                     )
                 }
             }

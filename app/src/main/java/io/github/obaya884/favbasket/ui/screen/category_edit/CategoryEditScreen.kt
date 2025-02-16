@@ -41,7 +41,7 @@ fun CategoryEditScreen(
             IconButton(onClick = { navController.navigateUp() }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
+                    contentDescription = null
                 )
             }
         },
@@ -54,7 +54,7 @@ fun CategoryEditScreen(
             ) {
                 Icon(
                     Icons.Default.Add,
-                    contentDescription = "Add Item"
+                    contentDescription = null
                 )
             }
         },
@@ -144,7 +144,7 @@ fun CategoryEditScreen(
                 icon = {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = ""
+                        contentDescription = null
                     )
                 },
                 onDismissRequest = {
@@ -213,7 +213,7 @@ fun CategoryEditListRow(
                     onTapEdit()
                 }
             ) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit Item")
+                Icon(Icons.Default.Edit, contentDescription = null)
             }
             IconButton(
                 modifier = Modifier.align(Alignment.Bottom),
@@ -221,7 +221,7 @@ fun CategoryEditListRow(
                     onTapDelete()
                 }
             ) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete Item")
+                Icon(Icons.Default.Delete, contentDescription = null)
             }
         }
         HorizontalDivider(
