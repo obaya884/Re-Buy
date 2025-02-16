@@ -1,8 +1,5 @@
 package io.github.obaya884.favbasket.ui.screen.home
 
-import androidx.compose.animation.core.EaseInOutBack
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -11,16 +8,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -50,58 +44,14 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     val tabs = remember(uiState.categories) { HomeTab.homeTabs(uiState.categories) }
-    val needItemSnackbarMessage = stringResource(id = R.string.home_need_item_add_snack_bar)
 
     val pagerState =
         rememberPagerState(initialPage = tabs.indexOf(HomeTab.All), pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
-    val itemAddingAnimate by animateFloatAsState(
-        targetValue = if (uiState.isAddingAnimationPlaying) 1.2f else 1f,
-        animationSpec = tween(durationMillis = 400, easing = EaseInOutBack),
-        finishedListener = { viewModel.onFinishAddingAnimation() },
-        label = "",
-    )
-
-    val itemRemovingAnimate by animateFloatAsState(
-        targetValue = if (uiState.isRemovingAnimationPlaying) 0.8f else 1f,
-        animationSpec = tween(durationMillis = 400, easing = EaseInOutBack),
-        finishedListener = { viewModel.onFinishRemovingAnimation() },
-        label = "",
-    )
-
     FavBasketAppScaffold(
         topBarTitle = stringResource(R.string.home_title),
         topBarActions = {
-            IconButton(
-                modifier = Modifier
-                    .scale(itemAddingAnimate)
-                    .scale(itemRemovingAnimate)
-                    .then(
-                        if (uiState.inBasketItems.isNotEmpty() || uiState.isAddingAnimationPlaying || uiState.isRemovingAnimationPlaying) {
-                            Modifier.background(
-                                color = MaterialTheme.colorScheme.inversePrimary,
-                                shape = CircleShape
-                            )
-                        } else {
-                            Modifier
-                        },
-                    ),
-                onClick = {
-                    if (uiState.inBasketItems.isNotEmpty()) {
-                        navController.navigate(Screen.Shopping.route)
-                    } else {
-                        coroutineScope.launch {
-                            snackbarHostState.showSnackbar(
-                                message = needItemSnackbarMessage,
-                                withDismissAction = true
-                            )
-                        }
-                    }
-                }
-            ) {
-                Icon(Icons.Outlined.ShoppingCart, contentDescription = "Setting")
-            }
             IconButton(
                 onClick = {
                     navController.navigate(Screen.ItemEdit.route)

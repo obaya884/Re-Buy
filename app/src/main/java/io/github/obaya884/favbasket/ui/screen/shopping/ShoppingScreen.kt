@@ -1,12 +1,10 @@
 package io.github.obaya884.favbasket.ui.screen.shopping
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -34,28 +32,8 @@ fun ShoppingScreen(
     val viewModel = hiltViewModel<ShoppingViewModel>()
     val uiState by viewModel.uiState.collectAsState()
 
-    BackHandler(enabled = uiState.isExistCheckedInShoppingListItems) {
-        viewModel.showNavigateBackAlertDialog()
-    }
-
     FavBasketAppScaffold(
         topBarTitle = stringResource(id = R.string.shopping_title),
-        topBarNavigationIcon = {
-            IconButton(
-                onClick = {
-                    if (uiState.isExistCheckedInShoppingListItems) {
-                        viewModel.showNavigateBackAlertDialog()
-                    } else {
-                        navController.navigateUp()
-                    }
-                }
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Localized description"
-                )
-            }
-        },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
         Column(
@@ -106,21 +84,6 @@ fun ShoppingScreen(
             }
         }
 
-        if (uiState.isShowNavigateBackAlertDialog) {
-            TapBackNavigationAlertDialog(
-                onDismiss = {
-                    viewModel.hideNavigateBackAlertDialog()
-                },
-                onTapConfirm = {
-                    viewModel.hideNavigateBackAlertDialog()
-                },
-                onTapCancel = {
-                    viewModel.hideNavigateBackAlertDialog()
-                    navController.navigateUp()
-                }
-            )
-        }
-
         if (uiState.isShowFinishShoppingAlertDialog) {
             FinishShoppingAlertDialog(
                 onDismiss = {
@@ -138,62 +101,6 @@ fun ShoppingScreen(
             )
         }
     }
-}
-
-@Composable
-fun TapBackNavigationAlertDialog(
-    onDismiss: () -> Unit,
-    onTapConfirm: () -> Unit,
-    onTapCancel: () -> Unit
-) {
-    AlertDialog(
-        icon = {
-            Icon(Icons.Default.Info, contentDescription = "")
-        },
-        onDismissRequest = {
-            onDismiss()
-        },
-        title = {
-            Text(
-                text = stringResource(
-                    id = R.string.shopping_navigate_back_alert_dialog_title
-                )
-            )
-        },
-        text = {
-            Text(
-                text = stringResource(
-                    R.string.shopping_navigate_back_alert_dialog_message
-                )
-            )
-        },
-        confirmButton = {
-            Button(
-                onClick = {
-                    onTapConfirm()
-                }
-            ) {
-                Text(
-                    stringResource(
-                        id = R.string.shopping_navigate_back_alert_dialog_positive_button
-                    )
-                )
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    onTapCancel()
-                }
-            ) {
-                Text(
-                    stringResource(
-                        id = R.string.shopping_navigate_back_alert_dialog_negative_button
-                    )
-                )
-            }
-        }
-    )
 }
 
 @Composable

@@ -6,7 +6,6 @@ import io.github.obaya884.favbasket.data.item.ItemStatus
 data class ShoppingScreenUiState(
     val isLoading: Boolean,
     val inShoppingListItems: List<Item>,
-    val isShowNavigateBackAlertDialog: Boolean,
     val isShowFinishShoppingAlertDialog: Boolean
 ) {
     val isExistCheckedInShoppingListItems: Boolean

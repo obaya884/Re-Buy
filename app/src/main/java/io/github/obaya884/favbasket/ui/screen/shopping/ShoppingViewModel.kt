@@ -27,13 +27,11 @@ class ShoppingViewModel @Inject constructor(
         combine(
             _isLoading,
             _inShoppingListItems,
-            _isShowNavigateBackAlertDialog,
             _isShowFinishShoppingAlertDialog
-        ) { isLoading, inShoppingListItems, isShowNavigateBackAlertDialog, isShowFinishShoppingAlertDialog ->
+        ) { isLoading, inShoppingListItems, isShowFinishShoppingAlertDialog ->
             ShoppingScreenUiState(
                 isLoading = isLoading,
                 inShoppingListItems = inShoppingListItems,
-                isShowNavigateBackAlertDialog = isShowNavigateBackAlertDialog,
                 isShowFinishShoppingAlertDialog = isShowFinishShoppingAlertDialog
             )
         }.stateIn(
@@ -42,7 +40,6 @@ class ShoppingViewModel @Inject constructor(
             ShoppingScreenUiState(
                 isLoading = false,
                 inShoppingListItems = listOf(),
-                isShowNavigateBackAlertDialog = false,
                 isShowFinishShoppingAlertDialog = false
             )
         )
@@ -85,18 +82,6 @@ class ShoppingViewModel @Inject constructor(
             jobs.joinAll()
             _isLoading.emit(false)
             onFinished()
-        }
-    }
-
-    fun showNavigateBackAlertDialog() {
-        viewModelScope.launch {
-            _isShowNavigateBackAlertDialog.emit(true)
-        }
-    }
-
-    fun hideNavigateBackAlertDialog() {
-        viewModelScope.launch {
-            _isShowNavigateBackAlertDialog.emit(false)
         }
     }
 
