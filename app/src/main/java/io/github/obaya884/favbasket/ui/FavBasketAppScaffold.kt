@@ -2,21 +2,16 @@ package io.github.obaya884.favbasket.ui
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FabPosition
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FavBasketAppScaffold(
     topBarTitle: String,
-    topBarNavigationIcon: @Composable (() -> Unit) = {},
+    topBarNavigationIcon: @Composable () -> Unit = {},
     topBarActions: @Composable RowScope.() -> Unit = {},
+    bottomBar: @Composable () -> Unit = {},
     snackbarHostState: SnackbarHostState,
     floatingActionButton: @Composable () -> Unit = { },
     floatingActionButtonPosition: FabPosition = FabPosition.End,
@@ -30,6 +25,7 @@ fun FavBasketAppScaffold(
                 actions = topBarActions
             )
         },
+        bottomBar = bottomBar,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = floatingActionButton,
         floatingActionButtonPosition = floatingActionButtonPosition

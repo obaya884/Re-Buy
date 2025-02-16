@@ -26,6 +26,7 @@ import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
+import io.github.obaya884.favbasket.ui.BottomNavigationBar
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 import kotlinx.coroutines.delay
@@ -82,6 +83,9 @@ fun HomeScreen(
                     contentDescription = "Setting"
                 )
             }
+        },
+        bottomBar = {
+            BottomNavigationBar(navController)
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->

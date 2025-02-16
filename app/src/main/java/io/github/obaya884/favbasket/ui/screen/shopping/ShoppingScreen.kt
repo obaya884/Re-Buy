@@ -20,6 +20,7 @@ import androidx.navigation.NavController
 import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemStatus
+import io.github.obaya884.favbasket.ui.BottomNavigationBar
 import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
 import io.github.obaya884.favbasket.ui.navigateAsRoot
@@ -34,6 +35,9 @@ fun ShoppingScreen(
 
     FavBasketAppScaffold(
         topBarTitle = stringResource(id = R.string.shopping_title),
+        bottomBar = {
+            BottomNavigationBar(navController)
+        },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
         Column(
