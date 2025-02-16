@@ -1,8 +1,11 @@
 package io.github.obaya884.favbasket.ui
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,24 +23,31 @@ fun FavBasketApp() {
     val snackbarHostState = remember { SnackbarHostState() }
 
     FavBasketTheme {
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route
-        ) {
-            composable(Screen.Home.route) {
-                HomeScreen(navController, snackbarHostState)
+        Scaffold(
+            bottomBar = {
+                BottomNavigationBar(navController)
             }
-            composable(Screen.Setting.route) {
-                SettingScreen(navController, snackbarHostState)
-            }
-            composable(Screen.CategoryEdit.route) {
-                CategoryEditScreen(navController, snackbarHostState)
-            }
-            composable(Screen.ItemEdit.route) {
-                ItemEditScreen(navController, snackbarHostState)
-            }
-            composable(Screen.Shopping.route) {
-                ShoppingScreen(navController, snackbarHostState)
+        ) { innerPadding ->
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Home.route,
+                modifier = Modifier.padding(innerPadding)
+            ) {
+                composable(Screen.Home.route) {
+                    HomeScreen(navController, snackbarHostState)
+                }
+                composable(Screen.Setting.route) {
+                    SettingScreen(navController, snackbarHostState)
+                }
+                composable(Screen.CategoryEdit.route) {
+                    CategoryEditScreen(navController, snackbarHostState)
+                }
+                composable(Screen.ItemEdit.route) {
+                    ItemEditScreen(navController, snackbarHostState)
+                }
+                composable(Screen.Shopping.route) {
+                    ShoppingScreen(navController, snackbarHostState)
+                }
             }
         }
     }
