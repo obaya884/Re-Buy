@@ -1,6 +1,5 @@
 package io.github.obaya884.favbasket.ui.screen.category_edit
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -65,12 +65,12 @@ fun CategoryEditScreen(
                 modifier = Modifier.padding(innerPadding)
             ) {
                 Text(
-                    text = "合計カテゴリ数：${uiState.categories.size}",
+                    text = "全${uiState.categories.size}件",
                     style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.primaryContainer)
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 16.dp)
                 )
                 LazyColumn(
                     modifier = Modifier.fillMaxSize()
