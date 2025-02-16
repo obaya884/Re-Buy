@@ -12,7 +12,7 @@ android {
 
     defaultConfig {
         applicationId "io.github.obaya884.favbasket"
-        minSdk 26
+        minSdk 31
         targetSdk 35
         versionCode 1
         versionName "1.0.0"
