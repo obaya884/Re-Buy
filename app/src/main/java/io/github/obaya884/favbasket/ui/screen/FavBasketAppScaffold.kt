@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui
+package io.github.obaya884.favbasket.ui.screen
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope

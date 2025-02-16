@@ -28,8 +28,8 @@ import androidx.navigation.NavController
 import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.category.Category
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
-import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
-import io.github.obaya884.favbasket.ui.shared.TextFieldEditDialog
+import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
+import io.github.obaya884.favbasket.ui.screen.TextFieldEditDialog
 
 @Composable
 fun ItemEditScreen(

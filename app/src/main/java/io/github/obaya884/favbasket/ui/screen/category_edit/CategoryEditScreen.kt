@@ -22,9 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
-import io.github.obaya884.favbasket.ui.shared.TextFieldAddDialog
-import io.github.obaya884.favbasket.ui.shared.TextFieldEditDialog
+import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
+import io.github.obaya884.favbasket.ui.screen.TextFieldAddDialog
+import io.github.obaya884.favbasket.ui.screen.TextFieldEditDialog
 
 @Composable
 fun CategoryEditScreen(

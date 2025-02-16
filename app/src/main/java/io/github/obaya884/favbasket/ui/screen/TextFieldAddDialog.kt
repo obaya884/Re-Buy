@@ -1,45 +1,23 @@
-package io.github.obaya884.favbasket.ui.shared
+package io.github.obaya884.favbasket.ui.screen
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.github.obaya884.favbasket.R
 
 @Composable
-fun TextFieldEditDialog(
+fun TextFieldAddDialog(
     title: String,
-    editId: Int,
-    editName: String,
-    onConfirm: (Int, String) -> Unit,
+    onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
     var inputString by remember { mutableStateOf("") }
-
-    SideEffect {
-        inputString = editName
-    }
 
     Dialog(
         onDismissRequest = {
@@ -78,21 +56,31 @@ fun TextFieldEditDialog(
                         }
                     ) {
                         Text(
-                            stringResource(id = R.string.text_field_edit_dialog_negative_button)
+                            stringResource(id = R.string.text_field_add_dialog_negative_button)
                         )
                     }
                     Spacer(Modifier.width(8.dp))
                     Button(
                         onClick = {
-                            onConfirm(editId, inputString)
+                            onConfirm(inputString)
                         }
                     ) {
                         Text(
-                            stringResource(id = R.string.text_field_edit_dialog_positive_button)
+                            stringResource(id = R.string.text_field_add_dialog_positive_button)
                         )
                     }
                 }
             }
         }
     }
+}
+
+@Preview
+@Composable
+fun TextFieldDialogPreview() {
+    TextFieldAddDialog(
+        title = "Add Item",
+        onConfirm = {},
+        onDismiss = {}
+    )
 }

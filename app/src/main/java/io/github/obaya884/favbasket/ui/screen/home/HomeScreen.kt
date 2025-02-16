@@ -26,9 +26,9 @@ import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.data.item.Item
 import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
-import io.github.obaya884.favbasket.ui.BottomNavigationBar
-import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
+import io.github.obaya884.favbasket.ui.screen.BottomNavigationBar
+import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.ZoneId

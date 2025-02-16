@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui
+package io.github.obaya884.favbasket.ui.screen
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List

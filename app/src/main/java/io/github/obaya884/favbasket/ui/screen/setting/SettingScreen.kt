@@ -18,8 +18,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.ui.FavBasketAppScaffold
 import io.github.obaya884.favbasket.ui.Screen
+import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
 
 @Composable
 fun SettingScreen(
