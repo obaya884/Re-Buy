@@ -17,10 +17,7 @@ class ShoppingViewModel @Inject constructor(
     private val itemRepository: ItemRepository
 ) : ViewModel() {
     private val _isLoading = MutableStateFlow(false)
-
     private val _inShoppingListItems = MutableStateFlow<List<Item>>(listOf())
-
-    private val _isShowNavigateBackAlertDialog = MutableStateFlow(false)
     private val _isShowFinishShoppingAlertDialog = MutableStateFlow(false)
 
     val uiState: StateFlow<ShoppingScreenUiState> =

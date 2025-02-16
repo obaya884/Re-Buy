@@ -22,24 +22,17 @@ class HomeViewModel @Inject constructor(
     private val _categories = MutableStateFlow<List<Category>>(listOf())
     private val _preparedItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
     private val _inBasketItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
-    private val _isAddingAnimationPlaying = MutableStateFlow(false)
-    private val _isRemovingAnimationPlaying = MutableStateFlow(false)
 
     val uiState: StateFlow<HomeScreenUiState> =
         combine(
             _categories,
             _preparedItems,
             _inBasketItems,
-            _isAddingAnimationPlaying,
-            _isRemovingAnimationPlaying
-        ) { categories, preparedItems, inBasketItems,
-            isAddingAnimationPlaying, isRemovingAnimationPlaying ->
+        ) { categories, preparedItems, inBasketItems ->
             HomeScreenUiState(
                 categories = categories,
                 preparedItems = preparedItems,
-                inBasketItems = inBasketItems,
-                isAddingAnimationPlaying = isAddingAnimationPlaying,
-                isRemovingAnimationPlaying = isRemovingAnimationPlaying
+                inBasketItems = inBasketItems
             )
         }.stateIn(
             viewModelScope,
@@ -47,9 +40,7 @@ class HomeViewModel @Inject constructor(
             HomeScreenUiState(
                 listOf(),
                 listOf(),
-                listOf(),
-                isAddingAnimationPlaying = false,
-                isRemovingAnimationPlaying = false
+                listOf()
             )
         )
 
@@ -73,21 +64,11 @@ class HomeViewModel @Inject constructor(
         // Ripple effect のために遅延を入れる
         delay(200)
         itemRepository.updateStatusAsInBasket(item)
-        _isAddingAnimationPlaying.emit(true)
     }
 
     fun removeFromBasket(item: Item) = viewModelScope.launch {
         // Ripple effect のために遅延を入れる
         delay(200)
         itemRepository.updateStatusAsNoDeal(item)
-        _isRemovingAnimationPlaying.emit(true)
-    }
-
-    fun onFinishAddingAnimation() = viewModelScope.launch {
-        _isAddingAnimationPlaying.emit(false)
-    }
-
-    fun onFinishRemovingAnimation() = viewModelScope.launch {
-        _isRemovingAnimationPlaying.emit(false)
     }
 }

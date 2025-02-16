@@ -25,7 +25,7 @@
     <string name="shopping_finish_alert_dialog_title">買い物を終了しますか？</string>
     <string name="shopping_finish_alert_dialog_message">チェック済みのアイテムは買い物リストから除かれます</string>
     <string name="shopping_finish_alert_dialog_positive_button">買い物を終わる</string>
-    <string name="shopping_finish_alert_dialog_negative_button">続ける</string>
+    <string name="shopping_finish_alert_dialog_negative_button">戻る</string>
 
     <string name="item_edit_title">アイテム</string>
     <string name="item_edit_add_dialog_title">アイテム追加</string>

@@ -6,7 +6,5 @@ import io.github.obaya884.favbasket.data.item.ItemWithCategory
 data class HomeScreenUiState(
     val categories: List<Category>,
     val inBasketItems: List<ItemWithCategory>,
-    val preparedItems: List<ItemWithCategory>,
-    val isAddingAnimationPlaying: Boolean,
-    val isRemovingAnimationPlaying: Boolean
+    val preparedItems: List<ItemWithCategory>
 )
