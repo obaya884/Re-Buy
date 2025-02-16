@@ -9,9 +9,9 @@
     <string name="home_add_item_button">リストに追加</string>
     <string name="home_remove_item_button">追加済み</string>
     <string name="home_remove_item_button_from_shopping_list">リストから削除</string>
-    <string name="home_no_item_message_category">このカテゴリーにアイテムが登録されていません。\nアイテム一覧画面からアイテムを登録してください。</string>
-    <string name="home_no_item_message_all">アイテムが登録されていません。\nアイテム一覧画面からアイテムを登録してください。</string>
-    <string name="home_no_item_message_in_basket">買い物リストにアイテムがありません。\nタブからアイテムを追加してください。</string>
+    <string name="home_no_item_message_category">このカテゴリーにアイテムが登録されていません。\nアイテム一覧からアイテムを登録してください。</string>
+    <string name="home_no_item_message_all">アイテムが登録されていません。\nアイテム一覧からアイテムを登録してください。</string>
+    <string name="home_no_item_message_in_basket">買い物リストにアイテムがありません。\nアイテムを追加してください。</string>
     <string name="home_no_item_button">アイテム一覧へ</string>
     <string name="home_no_item_button_shopping_list">アイテムを追加する</string>
     <string name="home_last_bought_at">最終購入：%1$s</string>
