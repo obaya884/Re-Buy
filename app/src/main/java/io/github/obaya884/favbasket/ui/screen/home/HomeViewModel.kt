@@ -46,17 +46,22 @@ class HomeViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            itemRepository.getAllWithCategory()
-                .collect { items ->
-                    _preparedItems.update { items }
-                    _inBasketItems.update {
-                        items.filter { it.item.status != ItemStatus.NO_DEAL }
+            //FIXME: zipして取得した方が良いかも。
+            launch {
+                itemRepository.getAllWithCategory()
+                    .collect { items ->
+                        _preparedItems.update { items }
+                        _inBasketItems.update {
+                            items.filter { it.item.status != ItemStatus.NO_DEAL }
+                        }
                     }
-                }
-            categoryRepository.getAll()
-                .collect { categories ->
-                    _categories.update { categories }
-                }
+            }
+            launch {
+                categoryRepository.getAll()
+                    .collect { categories ->
+                        _categories.update { categories }
+                    }
+            }
         }
     }
 
