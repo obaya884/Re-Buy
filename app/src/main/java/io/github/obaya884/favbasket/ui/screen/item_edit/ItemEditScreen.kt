@@ -207,10 +207,13 @@ fun ItemEditListRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp, 4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
             Column(
                 modifier = Modifier.weight(1f)
@@ -277,7 +280,6 @@ fun ItemEditListRow(
             }
         }
         HorizontalDivider(
-            modifier = Modifier.padding(top = 4.dp),
             color = Color.LightGray,
             thickness = 1.dp
         )

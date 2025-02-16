@@ -194,10 +194,13 @@ fun CategoryEditListRow(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp, 4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
         ) {
             Text(
                 modifier = Modifier.weight(1f),
