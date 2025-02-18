@@ -15,7 +15,7 @@ import io.github.obaya884.favbasket.data.item.ItemDao
     version = 1,
     exportSchema = true,
 )
-@TypeConverters(InstantDateFormatStringConverter::class)
+@TypeConverters(InstantDateFormatStringConverter::class, ItemStatusConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
     abstract fun categoryDao(): CategoryDao

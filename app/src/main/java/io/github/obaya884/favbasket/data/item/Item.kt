@@ -29,8 +29,8 @@ data class Item(
     val updatedAt: Instant = Instant.now()
 )
 
-enum class ItemStatus {
-    NO_DEAL,
-    IN_SHOPPING_LIST,
-    CHECKED_IN_SHOPPING_LIST
+enum class ItemStatus(val value: Int) {
+    NO_DEAL(0),
+    IN_SHOPPING_LIST(1),
+    CHECKED_IN_SHOPPING_LIST(2)
 }
