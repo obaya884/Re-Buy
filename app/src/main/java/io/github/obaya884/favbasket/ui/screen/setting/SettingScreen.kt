@@ -17,6 +17,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import io.github.obaya884.favbasket.BuildConfig
 import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.ui.Screen
 import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
@@ -54,6 +55,9 @@ fun SettingScreen(
             ) {
                 navController.navigate(Screen.CategoryEdit.route)
             }
+            Text(
+                BuildConfig.VERSION_NAME
+            )
         }
     }
 }
