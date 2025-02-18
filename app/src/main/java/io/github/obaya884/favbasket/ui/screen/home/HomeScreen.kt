@@ -85,7 +85,7 @@ fun HomeScreen(
             }
         },
         bottomBar = {
-            BottomNavigationBar(navController)
+            BottomNavigationBar(navController, uiState.inShoppingListItems.size)
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
@@ -145,8 +145,8 @@ fun HomeScreen(
                 val itemsForTab = remember(pagerIndex, tabs, uiState) {
                     when (tab) {
                         HomeTab.InBasket -> uiState.inBasketItems
-                        HomeTab.All -> uiState.preparedItems
-                        is HomeTab.CategoryTab -> uiState.preparedItems.filter { item ->
+                        HomeTab.All -> uiState.items
+                        is HomeTab.CategoryTab -> uiState.items.filter { item ->
                             item.item.categoryId == tab.category.id
                         }
                     }

@@ -36,7 +36,7 @@ fun ShoppingScreen(
     FavBasketAppScaffold(
         topBarTitle = stringResource(id = R.string.shopping_title),
         bottomBar = {
-            BottomNavigationBar(navController)
+            BottomNavigationBar(navController, uiState.inShoppingListItems.size)
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
@@ -49,7 +49,7 @@ fun ShoppingScreen(
                 modifier = Modifier.weight(1f)
             ) {
                 items(
-                    uiState.inShoppingListItems,
+                    uiState.shoppingListItems,
                     key = { item -> item.id }
                 ) { item ->
                     ShoppingItem(

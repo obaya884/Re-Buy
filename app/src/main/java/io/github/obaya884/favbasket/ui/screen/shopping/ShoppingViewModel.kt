@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.data.item.ItemStatus
+import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.domain.ItemRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
@@ -16,41 +16,36 @@ import javax.inject.Inject
 class ShoppingViewModel @Inject constructor(
     private val itemRepository: ItemRepository
 ) : ViewModel() {
+    private val _items = MutableStateFlow<List<ItemWithCategory>>(listOf())
     private val _isLoading = MutableStateFlow(false)
-    private val _inShoppingListItems = MutableStateFlow<List<Item>>(listOf())
     private val _isShowFinishShoppingAlertDialog = MutableStateFlow(false)
 
     val uiState: StateFlow<ShoppingScreenUiState> =
         combine(
             _isLoading,
-            _inShoppingListItems,
+            _items,
             _isShowFinishShoppingAlertDialog
-        ) { isLoading, inShoppingListItems, isShowFinishShoppingAlertDialog ->
+        ) { isLoading, items, isShowFinishShoppingAlertDialog ->
             ShoppingScreenUiState(
+                items = items,
                 isLoading = isLoading,
-                inShoppingListItems = inShoppingListItems,
                 isShowFinishShoppingAlertDialog = isShowFinishShoppingAlertDialog
             )
         }.stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
             ShoppingScreenUiState(
+                items = listOf(),
                 isLoading = false,
-                inShoppingListItems = listOf(),
                 isShowFinishShoppingAlertDialog = false
             )
         )
 
     init {
         viewModelScope.launch {
-            itemRepository.getAll()
+            itemRepository.getAllWithCategory()
                 .collect { items ->
-                    _inShoppingListItems.update {
-                        items.filter {
-                            it.status == ItemStatus.IN_SHOPPING_LIST
-                                    || it.status == ItemStatus.CHECKED_IN_SHOPPING_LIST
-                        }
-                    }
+                    _items.update { items }
                 }
         }
     }

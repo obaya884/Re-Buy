@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.favbasket.data.category.Category
 import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.data.item.ItemStatus
 import io.github.obaya884.favbasket.data.item.ItemWithCategory
 import io.github.obaya884.favbasket.domain.CategoryRepository
 import io.github.obaya884.favbasket.domain.ItemRepository
@@ -20,27 +19,23 @@ class HomeViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     private val _categories = MutableStateFlow<List<Category>>(listOf())
-    private val _preparedItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
-    private val _inBasketItems = MutableStateFlow<List<ItemWithCategory>>(listOf())
+    private val _items = MutableStateFlow<List<ItemWithCategory>>(listOf())
 
     val uiState: StateFlow<HomeScreenUiState> =
         combine(
             _categories,
-            _preparedItems,
-            _inBasketItems,
-        ) { categories, preparedItems, inBasketItems ->
+            _items
+        ) { categories, items ->
             HomeScreenUiState(
                 categories = categories,
-                preparedItems = preparedItems,
-                inBasketItems = inBasketItems
+                items = items
             )
         }.stateIn(
             viewModelScope,
             SharingStarted.Eagerly,
             HomeScreenUiState(
-                listOf(),
-                listOf(),
-                listOf()
+                categories = listOf(),
+                items = listOf()
             )
         )
 
@@ -50,10 +45,7 @@ class HomeViewModel @Inject constructor(
             launch {
                 itemRepository.getAllWithCategory()
                     .collect { items ->
-                        _preparedItems.update { items }
-                        _inBasketItems.update {
-                            items.filter { it.item.status != ItemStatus.NO_DEAL }
-                        }
+                        _items.update { items }
                     }
             }
             launch {

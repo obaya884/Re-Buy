@@ -1,16 +1,16 @@
 package io.github.obaya884.favbasket.ui.screen
 
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 
 @Composable
-fun BottomNavigationBar(navController: NavController) {
+fun BottomNavigationBar(
+    navController: NavController,
+    shoppingTabBadgeCount: Int
+) {
     val items = listOf(
         BottomNavigationItem.Home,
         BottomNavigationItem.Shopping
@@ -20,7 +20,21 @@ fun BottomNavigationBar(navController: NavController) {
         val currentRoute = navBackStackEntry.value?.destination?.route
         items.forEach { item ->
             NavigationBarItem(
-                icon = { Icon(imageVector = item.icon, contentDescription = null) },
+                icon = {
+                    BadgedBox(
+                        badge = {
+                            if (item == BottomNavigationItem.Shopping && shoppingTabBadgeCount > 0) {
+                                Badge {
+                                    Text(
+                                        text = shoppingTabBadgeCount.toString()
+                                    )
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(imageVector = item.icon, contentDescription = null)
+                    }
+                },
                 label = { Text(stringResource(item.titleId)) },
                 selected = currentRoute == item.route,
                 onClick = {
