@@ -1,10 +1,7 @@
 package io.github.obaya884.favbasket.ui.screen.setting
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
@@ -14,12 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import io.github.obaya884.favbasket.BuildConfig
 import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.ui.Screen
 import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
 
 @Composable
@@ -44,20 +39,19 @@ fun SettingScreen(
                 .fillMaxWidth()
                 .padding(innerPadding)
         ) {
-            // アプリについて、利用規約、プライバシーポリシー、ライセンス、バージョン、お問い合わせ、レビュー、アプリをシェア
-            SettingScreenItem(
-                text = stringResource(id = R.string.setting_row_item_edit)
-            ) {
-                navController.navigate(Screen.ItemEdit.route)
-            }
-            SettingScreenItem(
-                text = stringResource(id = R.string.setting_row_category_edit)
-            ) {
-                navController.navigate(Screen.CategoryEdit.route)
-            }
-            Text(
-                BuildConfig.VERSION_NAME
-            )
+            // アプリについて
+            // 利用規約
+            SettingScreenItem("利用規約") { }
+            // プライバシーポリシー
+            SettingScreenItem("プライバシーポリシー") { }
+            // OSSライセンス
+            SettingScreenItem("OSSライセンス") { }
+            // お問い合わせ・機能リクエスト
+            SettingScreenItem("お問い合わせ・機能リクエスト") { }
+            // レビュー(1stリリース後)
+            // アプリをシェア(1stリリース後)
+            // バージョン
+            VersionCell()
         }
     }
 }
@@ -71,28 +65,57 @@ fun SettingScreenItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onTap() }
-            .padding(horizontal = 16.dp)
+            .padding(vertical = 4.dp, horizontal = 16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(0.dp, 12.dp),
+                .height(48.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                modifier = Modifier.weight(1f),
                 text = text,
-                textAlign = TextAlign.Start
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f)
             )
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                modifier = Modifier.align(Alignment.Bottom),
                 contentDescription = null
             )
         }
-        HorizontalDivider(
-            color = Color.LightGray,
-            thickness = 1.dp
-        )
     }
+    HorizontalDivider(
+        color = Color.LightGray,
+        thickness = 1.dp
+    )
+}
+
+@Composable
+fun VersionCell() {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp, horizontal = 16.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "バージョン",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                text = BuildConfig.VERSION_NAME,
+                style = MaterialTheme.typography.titleMedium,
+            )
+        }
+    }
+    HorizontalDivider(
+        color = Color.LightGray,
+        thickness = 1.dp
+    )
 }
