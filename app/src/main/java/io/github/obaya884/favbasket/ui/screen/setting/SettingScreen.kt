@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import io.github.obaya884.favbasket.BuildConfig
 import io.github.obaya884.favbasket.R
 import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
@@ -52,6 +53,9 @@ fun SettingScreen(
             // アプリをシェア(1stリリース後)
             // バージョン
             VersionCell()
+            LibrariesContainer(
+                Modifier.fillMaxSize()
+            )
         }
     }
 }

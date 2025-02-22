@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.google.dagger.hilt)
     alias(libs.plugins.ksp)
     id 'dagger.hilt.android.plugin'
+    alias(libs.plugins.aboutLibraries)
 }
 
 android {
@@ -122,4 +123,11 @@ dependencies {
     debugImplementation libs.androidx.compose.ui.tooling
     debugImplementation libs.androidx.compose.ui.test.manifest
     androidTestImplementation libs.androidx.room.testing
+
+    /**
+     * OSS Libraries
+     */
+    implementation(libs.aboutlibraries.core)
+    implementation(libs.aboutlibraries.compose.core)
+    implementation(libs.aboutlibraries.compose.m3)
 }
