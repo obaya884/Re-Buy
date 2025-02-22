@@ -1,19 +1,20 @@
 [versions]
-kotlin = "1.8.0"
-ksp = "1.9.10-1.0.13"
+kotlin = "2.1.0"
+ksp = "2.1.10-1.0.30"
 android-gradle-plugin = "8.8.1"
-androidx-core = "1.13.1"
+androidx-core = "1.15.0"
 androidx-hilt = "1.2.0"
 androidx-room = "2.6.1"
-androidx-lifecycle = "2.8.2"
-androidx-compose-bom = "2024.06.00"
-androidx-navigation = "2.7.7"
-androidx-activity = "1.9.0"
+androidx-lifecycle = "2.8.7"
+androidx-compose-bom = "2025.02.00"
+androidx-navigation = "2.8.7"
+androidx-activity = "1.10.0"
 androidx-junit = "1.2.1"
 androidx-espresso = "3.6.1"
-google-dagger-hilt = "2.49"
+google-dagger-hilt = "2.51.1"
 jetbrains-kotlin = "1.9.10"
 junit = "4.13.2"
+aboutLibraries = "11.6.3"
 
 [libraries]
 jetbrains-kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "jetbrains-kotlin" }
@@ -48,8 +49,14 @@ androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-j
 
 junit = { module = "junit:junit", version.ref = "junit" }
 
+aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
+aboutlibraries-compose-core = { module = "com.mikepenz:aboutlibraries-compose", version.ref = "aboutLibraries" }
+aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
+
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "google-dagger-hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
