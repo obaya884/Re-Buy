@@ -13,9 +13,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import io.github.obaya884.favbasket.BuildConfig
 import io.github.obaya884.favbasket.R
+import io.github.obaya884.favbasket.ui.Screen
 import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
 
 @Composable
@@ -46,16 +46,13 @@ fun SettingScreen(
             // プライバシーポリシー
             SettingScreenItem("プライバシーポリシー") { }
             // OSSライセンス
-            SettingScreenItem("OSSライセンス") { }
+            SettingScreenItem("ライセンス") { navController.navigate(Screen.License.route) }
             // お問い合わせ・機能リクエスト
             SettingScreenItem("お問い合わせ・機能リクエスト") { }
             // レビュー(1stリリース後)
             // アプリをシェア(1stリリース後)
             // バージョン
             VersionCell()
-            LibrariesContainer(
-                Modifier.fillMaxSize()
-            )
         }
     }
 }

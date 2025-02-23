@@ -10,6 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import io.github.obaya884.favbasket.ui.screen.category_edit.CategoryEditScreen
 import io.github.obaya884.favbasket.ui.screen.home.HomeScreen
 import io.github.obaya884.favbasket.ui.screen.item_edit.ItemEditScreen
+import io.github.obaya884.favbasket.ui.screen.license.LicenseScreen
 import io.github.obaya884.favbasket.ui.screen.setting.SettingScreen
 import io.github.obaya884.favbasket.ui.screen.shopping.ShoppingScreen
 import io.github.obaya884.favbasket.ui.theme.FavBasketTheme
@@ -39,6 +40,9 @@ fun FavBasketApp() {
             composable(Screen.Shopping.route) {
                 ShoppingScreen(navController, snackbarHostState)
             }
+            composable(Screen.License.route) {
+                LicenseScreen(navController, snackbarHostState)
+            }
         }
     }
 }
@@ -49,6 +53,7 @@ sealed class Screen(val route: String) {
     data object CategoryEdit : Screen("category_edit")
     data object ItemEdit : Screen("item_edit")
     data object Shopping : Screen("shopping")
+    data object License : Screen("license")
 }
 
 fun NavController.navigateAsRoot(screen: Screen) {
