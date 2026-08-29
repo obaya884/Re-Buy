@@ -205,6 +205,12 @@ KMP ライブラリには build type が無く、宣言できるのは `androidC
 
 `defaultConfig` も無いので `vectorDrawables { useSupportLibrary = true }` が書けなくなる。minSdk 31 では実害が無いので落とす。
 
+### iOS が緑でも移送が成功したとは言えない
+
+ステップ 10 で実測した（2026-08-30）。`ViewModelTestBase` の継承を 1 クラスから外すと、**Android は 19/19 落ちるが iOS は 8 落ちて 11 が素通りする**。`androidx.lifecycle` は `Dispatchers.Main` の不在を例外で捕まえるが、iOS には Darwin の main キューが実在するので例外にならず、コルーチンが積まれたまま走らない。否定形のアサート（`assertFalse`・「何も起きない」系・初期値系）はその状態で緑になる。
+
+**移送の判定は必ず両ターゲットで見ること。** そして**変異を入れる側も両ターゲットで確かめる**——片方だけ見ていると「網が効いている」と誤読する。
+
 ### テストの `commonTest` 移送
 
 `Dispatchers.setMain` / `resetMain` 自体は共通 API で K/N でも動く。壊れるのは JUnit4 の `TestWatcher` / `@get:Rule` のほう。基底クラスへ置き換える。
