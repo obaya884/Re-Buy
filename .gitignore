@@ -11,3 +11,6 @@ local.properties
 
 # Kotlin 2.x のビルドセッション情報
 .kotlin
+
+# subagent-driven-development の作業領域
+.superpowers/
