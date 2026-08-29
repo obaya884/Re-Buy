@@ -11,6 +11,8 @@
 | 2026-08-30 | Compose Multiplatform は 1.12.0 を選ぶ | 最新の安定版。Kotlin 2.2.20 でビルドされているが、Kotlin コンパイラは古いメタデータを読めるので 2.4.10 から使える |
 | 2026-08-30 | KMP 化したモジュールでは `jvmTarget` をモジュール側で指定する | `rebuy.android.base` の `compileOptions` は KMP モジュールに当たらず、書かないとバイトコード版がビルド環境の JDK で決まる。手元の JBR 25 と CI の Temurin 21 で別物が出る状態だった。T-28b で convention plugin へ運ぶまでの暫定 |
 | 2026-08-30 | KMP の android ターゲットは `targets.withType` で型から引く | `KotlinMultiplatformAndroidLibraryTarget` は `KotlinTarget` を継承しているので `targets` から型で拾える。拡張名で引いて未チェックキャストする形より、DSL 名が変わったときにコンパイルで気づける。非 KMP 側を `extensions.configure<CommonExtension>` にしたのと同じ理屈 |
+| 2026-08-30 | iOS の framework は段 3 では debug だけ作る | 既定の debug ＋ release だと `./gradlew build` が 7 分 17 秒になり、release のリンクがヒープ 4GB を要求する。段 3 の目的はシミュレータで動かすことなので release は要らない。実機配布が要る段 4 で足す |
+| 2026-08-30 | iOS ターゲットは iosArm64 と iosSimulatorArm64 の 2 つだけにする | iosX64 は Intel Mac のシミュレータ用で、開発機も GitHub の macOS ランナーも arm64。要るようになったら build-logic に 1 行足せばよい |
 | 2026-08-30 | ライセンス一覧はステップ 5〜14 の間だけ空を許容する | AboutLibraries 15.2.0 の KMP 経路が AGP の KMP android ターゲットから依存を拾えず、`:shared:ui` を KMP 化すると 0 件になる。プラグインは最新版で上げる先が無い。生成済み json をソースツリーに凍結する案は、生成物をコミットすることになるうえ debug の表示件数が変わる。ステップ 14 でどのみち composeResources へ移すので、そこまで待つ |
 | 2026-08-30 | `Version.kt` を生成するタスクは convention plugin ではなくモジュールに置く | 計画は convention plugin に置くと書いていたが、`rebuy.versionName` を要るのは `:shared:ui` だけ。単一利用のタスクを共有 plugin に置くと、どのモジュールに効くのかが読めなくなる |
 | 2026-08-30 | `jvmTarget` の暫定対応を T-28b で convention plugin へ移した | モジュール側に書く形は、KMP 化する 2 モジュール目・3 モジュール目で同じ書き忘れが起きうる。書き忘れてもビルドもテストも緑のままなので、モジュールの記述に頼らない形にした |

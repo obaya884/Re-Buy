@@ -1,10 +1,17 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose.compiler)
+    // iosMain の Compose。androidMain は androidx の BOM のままにする
+    alias(libs.plugins.compose.multiplatform)
     // バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
     id("org.jetbrains.kotlin.plugin.serialization")
     alias(libs.plugins.aboutLibraries)
+    // iOS ターゲット（宣言は build-logic に 1 か所）
+    id("rebuy.kmp.ios")
     // Android の土台（内訳は plugin 側）
     id("rebuy.android.base")
 }
@@ -39,6 +46,17 @@ val generateVersionKt = tasks.register("generateVersionKt") {
 }
 
 kotlin {
+    // iOS 側へ出す framework。baseName が Swift から見える名前になる。
+    // ターゲットの宣言は rebuy.kmp.ios にある。
+    // debug のみ。release は実機配布が要る段 4 で足す（そのとき Gradle のヒープを上げる。経緯は log_23）
+    targets.withType<KotlinNativeTarget>().configureEach {
+        binaries.framework(listOf(NativeBuildType.DEBUG)) {
+            baseName = "ReBuyUi"
+            // static。Xcode 側は framework の埋め込みコピーが要らなくなる
+            isStatic = true
+        }
+    }
+
     android {
         // R の FQN になる。package と揃えることで、
         // 画面文言を使う側が「どのモジュールのリソースか」を import で読める
@@ -91,6 +109,16 @@ kotlin {
                 implementation(libs.aboutlibraries.compose.core)
                 implementation(libs.aboutlibraries.compose.m3)
             }
+        }
+
+        iosMain.dependencies {
+            // compose.*（Compose Multiplatform）は iosMain にだけ置く。androidMain や
+            // commonMain に置いても通ってしまい、:androidApp の androidx BOM とずれる
+            // （落とし穴 12）。逆に androidx を iosMain へ置く方向は解決に失敗するので気づける。
+            // ステップ 12 で画面が commonMain へ行けば :shared:ui は CMP 一本になり、この規約は消える
+            implementation(compose.runtime)
+            implementation(compose.material3)
+            implementation(compose.ui)
         }
 
         // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い

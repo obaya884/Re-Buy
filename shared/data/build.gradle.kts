@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
+    // iOS ターゲット（宣言は build-logic に 1 か所）
+    id("rebuy.kmp.ios")
     // Android の土台（内訳は plugin 側）
     id("rebuy.android.base")
 }

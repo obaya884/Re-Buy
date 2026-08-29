@@ -103,7 +103,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 3 | **`:shared:data` を KMP 化（android ターゲットのみ、コードは全部 `androidMain`）** | `:shared:data` のホストテストが**20 件**緑。`./gradlew build` 緑。`shared/data/schemas/**/2.json` の場所と中身が移行前と一致。instrumented 20 件緑。**`.claude/settings.json` の allow をここで追随させる**（タスク名が変わるので、待つと以降 12 commit ぶん許可プロンプトを踏む） |
 | 4 | **ターゲット定義を convention plugin へ抽出（T-28b）** | `./gradlew build` 緑。テスト件数不変。`shared/data/build.gradle.kts` からターゲット定義が消えている。**`jvmTarget` とホストテストの有効化も一緒に運ぶ**——運ばないとステップ 5 で `:shared:ui` と `:shared:domain` が落とし穴 1 と 6 を踏む |
 | 5 | **`:shared:domain` と `:shared:ui` を KMP 化（`androidMain` のまま）** | Android 同一挙動（**設定画面のバージョン表示が `0.0.1`**）。ホストテスト **102 件**緑。instrumented 20 件緑。`BuildConfig` → 生成 `Version.kt`。**唯一の例外がライセンス画面**——落とし穴 17 でステップ 14 まで空になる |
-| 6 | **3 モジュールに iOS ターゲットを足し、`:shared:ui` の `iosMain` に framework と `Text` 1 個のスタブを置く** | `./gradlew :shared:ui:linkDebugFrameworkIosSimulatorArm64` が通る。Android 側のテスト件数と挙動は不変 |
+| 6 | **3 モジュールに iOS ターゲットを足し、`:shared:ui` の `iosMain` に framework と `Text` 1 個のスタブを置く** | `./gradlew :shared:ui:linkDebugFrameworkIosSimulatorArm64` が通る。Android 側のテスト件数と挙動は不変。**`./gradlew build` の所要時間が段 3 着手前と同程度**——framework を debug に絞らないと 2 倍以上になる |
 | 7 | **`iosApp/` の Xcode プロジェクトを置き、シミュレータで Compose の 1 画面を出す** | **iOS シミュレータに `Text` が出る**。`.gitignore` に Xcode の生成物（`iosApp/build/` `xcuserdata/`）が入り、`project.pbxproj` はコミットされている。Android 無変更 |
 | 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**。**`ItemDao` / `CategoryDao` が `commonMain` にある**——ここに無いと `FakeDatabase` がステップ 10 で `commonTest` へ行けず往復になる。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
@@ -130,7 +130,6 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-    add("kspIosX64", libs.androidx.room.compiler)
 }
 ```
 
@@ -220,6 +219,14 @@ iOS には reflection ベースの多相シリアライズが無いので、**�
 
 ## iOS ホスト（ステップ 6・7・15）
 
+### framework は debug だけ作る
+
+`binaries.framework { }` は既定で debug と release の両方を作る。**release のリンクは重い**——`./gradlew build` が 2〜4 分から **7 分 17 秒**になり、さらに Kotlin/Native のコンパイラが `org.gradle.jvmargs=-Xmx2048m` では `OutOfMemoryError` で落ちて 4GB を要求した。
+
+段 3 の目的はシミュレータで動かすことなので `binaries.framework(listOf(NativeBuildType.DEBUG))` と絞る。debug だけなら 2GB のまま通る（2 ターゲット分の強制再リンクで 21 秒）。**実機配布で release が要る段 4 で足す。そのときヒープを 4GB に上げる必要がある。**
+
+### Xcode プロジェクト
+
 `iosApp/` に Xcode プロジェクトを丸ごとコミットする（KMP ウィザードと同じ形）。CocoaPods も SPM も段 3 では不要。
 
 ```
@@ -238,7 +245,13 @@ Build Phases に Run Script を 1 本足す。
 cd "$SRCROOT/.." && ./gradlew :shared:ui:embedAndSignAppleFrameworkForXcode
 ```
 
-Kotlin 側は `:shared:ui` の `iosMain` に framework を宣言（`baseName = "ReBuyUi"`, `isStatic = true`）し、`startReBuyKoin()` と `ReBuyViewController()` を公開する。
+Kotlin 側は `:shared:ui` の `iosMain` に framework を宣言（`baseName = "ReBuyUi"`, `isStatic = true`）し、`ReBuyViewController()` を公開する。**Koin を起動する関数はステップ 15 で足す**——ステップ 6 のスタブには要らない。
+
+### Swift から見える API 面はファイル名でも決まる
+
+Kotlin/Native はトップレベル関数の入れ物クラス名を**ファイル名から**作る。`ReBuyViewController.kt` のトップレベル関数は Swift から `ReBuyViewControllerKt.reBuyViewController()` になる。**iOS の入口関数は 1 ファイルにまとめる**——別ファイルに分けると Swift 側に `...Kt` が 2 つ並ぶ。
+
+Koin を起動する関数は `setupKoin()` にする。`startKoin()` は `org.koin.core.context.startKoin` と紛らわしく、`iosMain` で import すると衝突する。
 
 **Android 依存は `expect val platformDataModule: Module` に閉じ込め、`dataModule` がそれを `includes` する。** これで `uiModule → domainModule → dataModule → platformDataModule` という既存の連鎖の形を崩さずに済む。
 
@@ -275,7 +288,7 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 13. **`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。** `dynamicColor` の既定が `false` なので、この分岐を `expect/actual` に切るか削るかを決めれば挙動は変わらない
 14. **`AppDatabase` の `synchronized` が common に置けない**
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
-16. **`iosMain` の関数名を `init` で始めない。** `initKoin()` は Swift 側で `doInitKoin()` に化ける
+16. **`iosMain` の関数名を Objective-C の method family で始めない。** `init` / `new` / `copy` / `mutableCopy` / `alloc` の 5 つが該当し、いずれも Swift 側で `do` が付く（`initKoin()` → `doInitKoin()`）
 17. **AboutLibraries が KMP の android ターゲットから依存を拾えない。** 15.2.0（最新）の KMP 経路は AGP の KMP android ライブラリに追随しておらず、`:shared:ui` を KMP 化すると `aboutlibraries.json` が **0 件**になる（`collect { all = true }` でも `commonMain` に依存を置いても変わらない）。**ビルドもテストも緑のまま、ライセンス画面だけが空になる。** ステップ 5〜14 の間は空を許容し、ステップ 14 で戻す（2026-08-30 オーナー判断）。あわせて `aboutlibraries.json` が生成物なのにソースツリー内に出る点もここで片づける
 18. **`./gradlew build` が Linux CI で iOS 側に触る。** CI の `build` ジョブはタスクを明示列挙する形へ
 
