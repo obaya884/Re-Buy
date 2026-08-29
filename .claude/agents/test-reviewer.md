@@ -24,8 +24,8 @@ model: opus
 ## チェックリスト（毎回確認）
 
 - **条項の取りこぼし**: 実装した仕様条項（憲章 C-x、④ 以降は F-XXX / 画面定義書の §）に対応するテストが揃っているか
-- **異常系の網羅**: 例外を投げる経路（`InstantDateFormatStringConverter` の範囲外年、DAO の制約違反）を検証するテストがあるか。正常系だけになっていないか
-- **境界値**: `Instant` の 0 年未満・10000 年以上（例外）と 0 年・9999 年（正常）の両側、`ItemStatus` の 3 状態すべてからの遷移（同じ状態への更新は no-op）、`categoryId = null`（カテゴリ削除で `SET_NULL`）、空リスト、`lastBoughtAt = null`
+- **異常系の網羅**: 例外を投げる経路（`InstantConverter` のエポックミリ秒が `Long` に収まらない場合、DAO の制約違反）を検証するテストがあるか。正常系だけになっていないか
+- **境界値**: エポックミリ秒の `Long` 全域（下限・上限とも往復できる）とミリ秒未満の切り捨て、`ItemStatus` の 3 状態すべてからの遷移（同じ状態への更新は no-op）、`categoryId = null`（カテゴリ削除で `SET_NULL`）、空リスト、`lastBoughtAt = null`
 - **テストの正しさ（偽陽性防止）**: 常に true になる検証・自明すぎる assert になっていないか。`assertEquals(actual, expected)` の引数順が逆で失敗メッセージが読めなくなっていないか。全フィールドを比べるべき所で一部だけ見ていないか
 - **段の妥当性**: Android 非依存のロジックを androidTest に置いていないか（遅い）。逆に Room・Compose をユニット段でモックして意味の無い検証にしていないか
 - **Room の健全性**: マイグレーションテストが `app/schemas/` の JSON を使っているか。`ALL_MIGRATIONS` に新しい `Migration` が登録されているか。DAO テストが in-memory DB（`Room.inMemoryDatabaseBuilder`）で状態を持ち越していないか

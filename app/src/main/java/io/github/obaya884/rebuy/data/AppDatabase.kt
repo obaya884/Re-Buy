@@ -12,10 +12,10 @@ import io.github.obaya884.rebuy.data.item.ItemDao
 
 @Database(
     entities = [Item::class, Category::class],
-    version = 1,
+    version = 2,
     exportSchema = true,
 )
-@TypeConverters(InstantDateFormatStringConverter::class, ItemStatusConverter::class)
+@TypeConverters(InstantConverter::class, ItemStatusConverter::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
     abstract fun categoryDao(): CategoryDao
