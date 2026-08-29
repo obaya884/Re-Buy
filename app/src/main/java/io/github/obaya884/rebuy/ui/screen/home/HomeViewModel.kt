@@ -2,7 +2,6 @@ package io.github.obaya884.rebuy.ui.screen.home
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
@@ -11,10 +10,8 @@ import io.github.obaya884.rebuy.domain.ItemRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class HomeViewModel @Inject constructor(
+class HomeViewModel(
     private val itemRepository: ItemRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {

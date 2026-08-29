@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
@@ -23,13 +22,14 @@ import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ShoppingScreen(
     navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
-    val viewModel = hiltViewModel<ShoppingViewModel>()
+    val viewModel = koinViewModel<ShoppingViewModel>()
     val uiState by viewModel.uiState.collectAsState()
 
     ReBuyAppScaffold(

@@ -5,7 +5,7 @@
 - 作成日: 2026-08-29
 - 位置づけ: [KMP 化検討](../検討/32_KMP化検討.md) §10 の**段 2（モジュールを 4 つに分ける）**の実装手順。台帳エントリは T-20（[技術改善バックログ](./23_技術改善バックログ.md)）
 - 前段: [段 1 実装計画](./plan_23_kmp段1実装計画.md)（Koin 化）。**段 1 の完了が前提**
-- **本書は段 1 に入る前に書かれている。** 調査の結果を失わないための先行執筆で、着手時に段 1 の結果を踏まえて見直すこと。特に Koin モジュールの配置（段 1 Task 3）が本書の前提
+- **本書は段 1 に入る前に書かれている。** 調査の結果を失わないための先行執筆で、着手時に段 1 の結果を踏まえて見直すこと。特に Koin モジュールの配置（段 1 Task 3。`uiModule` → `domainModule` → `dataModule` の `includes` 連鎖）が本書の前提
 
 **Goal:** 単一モジュール `:app` を `:androidApp` / `:shared:ui` / `:shared:domain` / `:shared:data` の 4 つに割る。**Android のまま**で、KMP 化はしない（段 3）。挙動は変えない。
 
@@ -228,11 +228,11 @@ namespace の入れ替え・res の移動・`R` の解決先の変化が**分割
 
 - [ ] **① `:shared:ui` の骨だけ作り、AboutLibraries を適用して `assembleDebug` で `res/raw/aboutlibraries.json` が生成されることを確認する。**ここで躓いたら止まれる
 - [ ] ② namespace 入れ替え（`:shared:ui` = `io.github.obaya884.rebuy` / `:androidApp` = `io.github.obaya884.rebuy.app`）と res 移動
-- [ ] ③ `ui/**`（`MainActivity` を除く）・`FlowExt.kt`・Koin の `uiModule` と `sharedModules` を移動
+- [ ] ③ `ui/**`（`MainActivity` を除く）・`FlowExt.kt`・Koin の `uiModule` を移動
 - [ ] ④ `AndroidManifest.xml` の `android:name` を完全修飾へ
 - [ ] ⑤ `SettingScreen` の `BuildConfig.VERSION_NAME` 対応
 - [ ] ⑥ ユニットテスト 5 本 + ヘルパー 3 本（101 件）を `shared/ui/src/test` へ
-- [ ] ⑦ `:androidApp` は `implementation(project(":shared:ui"))` のみ（Koin の合成は `:shared:ui` の `sharedModules` 経由）
+- [ ] ⑦ `:androidApp` は `implementation(project(":shared:ui"))` のみ（Koin は `:shared:ui` の `uiModule` だけを読み込む）
 
 **完了条件:**
 

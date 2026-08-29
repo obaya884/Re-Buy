@@ -5,11 +5,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.ui.activity.MainActivity
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -17,7 +14,7 @@ import org.junit.Test
  * ViewModel が画面（NavEntry）ごとにスコープされることを確かめる。
  *
  * Navigation 3 では `rememberViewModelStoreNavEntryDecorator` が効いていないと
- * `hiltViewModel()` が Activity の `ViewModelStore` にフォールバックし、全画面の
+ * `koinViewModel()` が Activity の `ViewModelStore` にフォールバックし、全画面の
  * ViewModel が Activity スコープに昇格する。そうなると画面を離れても一時状態が残り、
  * 戻ってきたときにダイアログが開いたままになる。
  *
@@ -28,19 +25,10 @@ import org.junit.Test
  * 買い物画面の終了確認ダイアログを開くのにチェック済みの品目が要るため、
  * DB を差し替えられるようになってから書く（技術改善バックログ T-21）。
  */
-@HiltAndroidTest
 class ViewModelScopeTest {
 
-    @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
-
-    @get:Rule(order = 1)
+    @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
-
-    @Before
-    fun setUp() {
-        hiltRule.inject()
-    }
 
     private val addDialogTitle
         get() = composeRule.activity.getString(R.string.category_edit_add_dialog_title)
@@ -65,6 +53,8 @@ class ViewModelScopeTest {
         tapBackArrow()
         openCategoryEdit()
 
+        // 画面が出ていないことを「ダイアログが無い」と読み違えないための錨
+        composeRule.onNodeWithTag(TestTags.CATEGORY_EDIT_ADD_BUTTON).assertIsDisplayed()
         composeRule.onNodeWithText(addDialogTitle).assertDoesNotExist()
     }
 }

@@ -8,7 +8,7 @@
 
 **Goal:** DI を Hilt から Koin へ差し替える。**モジュールは分割しない**（段 2）。KMP 化もしない（段 3）。この段が終わった時点で、アプリの挙動は差し替え前と同一で、Hilt への依存が 1 つも残っていない。
 
-**Architecture:** Koin モジュールを層ごとに 3 本（`dataModule` / `domainModule` / `uiModule`）に分け、`sharedModules` として束ねる。単一モジュールのうちは 3 本とも同じ `di/` に置くが、**段 2 でファイルを移すだけで済む形**にしておく。`Application` が `startKoin` でこれを合成し、画面は `koinViewModel()` で ViewModel を取る。
+**Architecture:** Koin モジュールを層ごとに 3 本（`dataModule` / `domainModule` / `uiModule`）に分け、**各モジュールは `includes` で 1 つ下の層だけを知る**。単一モジュールのうちは 3 本とも同じ `di/` に置くが、**段 2 でファイルを移すだけで済む形**にしておく。`Application` は `uiModule` 1 つだけを読み込み、画面は `koinViewModel()` で ViewModel を取る。
 
 **なぜ分割より先にやるか:** Hilt のままモジュールを分割すると、各モジュールに `hilt-android` と `ksp(hilt-compiler)` を配線する作業が発生し、段 3 で丸ごと捨てることになる。Koin なら KSP もアノテーション処理も要らないので、段 2 で配線が要る KSP は Room の分だけになる（[KMP 化検討](../検討/32_KMP化検討.md) §10）。
 
@@ -117,12 +117,16 @@ val dataModule = module {
 
 // di/DomainModule.kt
 val domainModule = module {
-    single { ItemRepository(get()) }
-    single { CategoryRepository(get()) }
+    includes(dataModule)
+
+    singleOf(::ItemRepository)
+    singleOf(::CategoryRepository)
 }
 
-// di/UiModule.kt
+// di/UiModule.kt — アプリが読み込む唯一の入口
 val uiModule = module {
+    includes(domainModule)
+
     viewModelOf(::HomeViewModel)
     viewModelOf(::ShoppingViewModel)
     viewModelOf(::CategoryEditViewModel)
@@ -130,13 +134,11 @@ val uiModule = module {
 }
 ```
 
-DAO を `single` にするのは現状と揃えるため。Hilt 側は DAO に `@Singleton` を付けていないが、`AppDatabase` が `@Singleton` で `itemDao()` が毎回同じインスタンスを返すので、実質シングルトンだった。
+**`includes` で 1 つ下の層だけを知る形にする。** 3 本を平坦なリストで束ねると、束ねるファイルが全層の名前を知ることになり、段 2 でモジュールを割ったときに `:shared:ui` の中に `:shared:data` の名前が出る。`includes` の連なりなら Gradle の依存の向きとそのまま対応する。
 
-- [ ] **Step 2: 合成する入口を作る**
+Hilt 側は DAO に `@Singleton` を付けていないが、`AppDatabase` がシングルトンで `itemDao()` が同じ実体を返すため実質シングルトンだった。`single` にすると挙動が変わらない。
 
-`di/SharedModules.kt` に `val sharedModules = listOf(dataModule, domainModule, uiModule)` を置く。段 2 では `:shared:ui` に置き、`:androidApp` はこれだけを見る形にする（`:androidApp` が `dataModule` を直接参照すると、依存の向きが spec §3 の矢印とずれる）。
-
-**完了条件:** `./gradlew build` 緑。**まだ誰も `sharedModules` を呼んでいないので挙動は変わらない。**
+**完了条件:** `./gradlew build` 緑。**まだ誰も `uiModule` を読み込んでいないので挙動は変わらない。**
 
 ## Task 4: 差し替える
 
@@ -152,7 +154,7 @@ class ReBuyApplication : Application() {
         super.onCreate()
         startKoin {
             androidContext(this@ReBuyApplication)
-            modules(sharedModules)
+            modules(uiModule)
         }
     }
 }
@@ -223,7 +225,7 @@ grep -rni "hilt\|dagger" app/src gradle/libs.versions.toml app/build.gradle.kts 
 |---|---|
 | 技術スタックの 1 行 | `Room / Hilt / Navigation 3 / AboutLibraries` → `Room / Koin / Navigation 3 / AboutLibraries` |
 | アーキテクチャ冒頭 | 「DI は Hilt」→「DI は Koin」 |
-| `### DI (di/)` 節 | 「1 依存 1 ファイル」の説明を「層ごとに 1 つの Koin モジュール。`sharedModules` が合成する」に書き換える。**なぜ粒度を変えたか**（Koin では宣言が数行で、1 依存 1 ファイルにすると層の境界が読めなくなる）も書く |
+| `### DI (di/)` 節 | 「1 依存 1 ファイル」の説明を「層ごとに 1 つの Koin モジュールを置き、`includes` で 1 つ下の層だけを知る」に書き換える。**なぜ粒度を変えたか**（Koin では宣言が 1 行で済み、1 依存 1 ファイルにすると層の境界が読めなくなる）も書く |
 | `### UI 層 (ui/)` 節 | `hiltViewModel<XxxViewModel>()` → `koinViewModel<XxxViewModel>()` |
 
 - [ ] **Step 2: spec の段 1 を完了にする**

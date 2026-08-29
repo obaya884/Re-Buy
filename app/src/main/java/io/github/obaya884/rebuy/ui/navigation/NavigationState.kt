@@ -71,7 +71,7 @@ class NavigationState(
 /**
  * ナビゲーション状態を [NavEntry] の列に変換する。
  *
- * ViewModel 用の decorator を入れているのは、全画面が `hiltViewModel()` で ViewModel を取るため。
+ * ViewModel 用の decorator を入れているのは、全画面が `koinViewModel()` で ViewModel を取るため。
  * これが無いと ViewModel が entry ごとにスコープされない。
  */
 @Composable

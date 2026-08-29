@@ -2,7 +2,6 @@ package io.github.obaya884.rebuy.ui.screen.item_edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.rebuy.combine
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.Item
@@ -11,10 +10,8 @@ import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class ItemEditViewModel @Inject constructor(
+class ItemEditViewModel(
     private val itemRepository: ItemRepository,
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {

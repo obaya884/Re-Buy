@@ -2,15 +2,12 @@ package io.github.obaya884.rebuy.ui.screen.category_edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.domain.CategoryRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class CategoryEditViewModel @Inject constructor(
+class CategoryEditViewModel(
     private val categoryRepository: CategoryRepository
 ) : ViewModel() {
     private val _categories = MutableStateFlow<List<Category>>(listOf())
