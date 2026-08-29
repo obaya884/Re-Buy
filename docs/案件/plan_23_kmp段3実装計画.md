@@ -178,6 +178,12 @@ kotlinx-datetime 0.7 で `Instant` / `Clock` は stdlib へ移管され、`kotli
 
 ## UI 層（ステップ 10〜13）
 
+### androidx の lifecycle と Navigation 3 は iOS 成果物を持っている
+
+ステップ 9 の時点で Google Maven を確認した（2026-08-30）。`lifecycle-viewmodel-iosarm64` と `navigation3-runtime-iosarm64` が実在するので、**JetBrains のフォーク（`org.jetbrains.androidx.*`）へ乗り換える必要は無い**。ViewModel と Navigator をそのまま `commonMain` へ運べる見込み。
+
+**確認するときは対照を置くこと。** 最初に `group-index.xml` を grep したときはパターンが壊れていて「どれも無い」という誤った結論が出た。`room-runtime` / `sqlite-bundled`（iOS で動いているのが既知）を同じ手順にかけて、そちらが「あり」と出ることを見てから読む。
+
 ### 日付の書式化だけは `expect/actual`
 
 `HomeScreen` の `DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)` はロケール依存で、stdlib にも kotlinx-datetime にも等価物が無い。
