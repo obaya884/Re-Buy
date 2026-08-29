@@ -130,7 +130,6 @@ dependencies {
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)
-    add("kspIosX64", libs.androidx.room.compiler)
 }
 ```
 
@@ -246,7 +245,13 @@ Build Phases に Run Script を 1 本足す。
 cd "$SRCROOT/.." && ./gradlew :shared:ui:embedAndSignAppleFrameworkForXcode
 ```
 
-Kotlin 側は `:shared:ui` の `iosMain` に framework を宣言（`baseName = "ReBuyUi"`, `isStatic = true`）し、`startReBuyKoin()` と `ReBuyViewController()` を公開する。
+Kotlin 側は `:shared:ui` の `iosMain` に framework を宣言（`baseName = "ReBuyUi"`, `isStatic = true`）し、`ReBuyViewController()` を公開する。**Koin を起動する関数はステップ 15 で足す**——ステップ 6 のスタブには要らない。
+
+### Swift から見える API 面はファイル名でも決まる
+
+Kotlin/Native はトップレベル関数の入れ物クラス名を**ファイル名から**作る。`ReBuyViewController.kt` のトップレベル関数は Swift から `ReBuyViewControllerKt.reBuyViewController()` になる。**iOS の入口関数は 1 ファイルにまとめる**——別ファイルに分けると Swift 側に `...Kt` が 2 つ並ぶ。
+
+Koin を起動する関数は `setupKoin()` にする。`startKoin()` は `org.koin.core.context.startKoin` と紛らわしく、`iosMain` で import すると衝突する。
 
 **Android 依存は `expect val platformDataModule: Module` に閉じ込め、`dataModule` がそれを `includes` する。** これで `uiModule → domainModule → dataModule → platformDataModule` という既存の連鎖の形を崩さずに済む。
 
@@ -283,7 +288,7 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 13. **`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。** `dynamicColor` の既定が `false` なので、この分岐を `expect/actual` に切るか削るかを決めれば挙動は変わらない
 14. **`AppDatabase` の `synchronized` が common に置けない**
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
-16. **`iosMain` の関数名を `init` で始めない。** `initKoin()` は Swift 側で `doInitKoin()` に化ける
+16. **`iosMain` の関数名を Objective-C の method family で始めない。** `init` / `new` / `copy` / `mutableCopy` / `alloc` の 5 つが該当し、いずれも Swift 側で `do` が付く（`initKoin()` → `doInitKoin()`）
 17. **AboutLibraries が KMP の android ターゲットから依存を拾えない。** 15.2.0（最新）の KMP 経路は AGP の KMP android ライブラリに追随しておらず、`:shared:ui` を KMP 化すると `aboutlibraries.json` が **0 件**になる（`collect { all = true }` でも `commonMain` に依存を置いても変わらない）。**ビルドもテストも緑のまま、ライセンス画面だけが空になる。** ステップ 5〜14 の間は空を許容し、ステップ 14 で戻す（2026-08-30 オーナー判断）。あわせて `aboutlibraries.json` が生成物なのにソースツリー内に出る点もここで片づける
 18. **`./gradlew build` が Linux CI で iOS 側に触る。** CI の `build` ジョブはタスクを明示列挙する形へ
 

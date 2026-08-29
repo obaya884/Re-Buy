@@ -46,12 +46,13 @@ val generateVersionKt = tasks.register("generateVersionKt") {
 }
 
 kotlin {
-    // iOS 側へ出す framework。Swift から見える名前になる。
-    // debug だけ作る——release のリンクは重く（段 3 では 1 回で数分）、シミュレータで
-    // 動かすのに要らない。実機・配布で要るようになる段 4 で release を足す
+    // iOS 側へ出す framework。baseName が Swift から見える名前になる。
+    // ターゲットの宣言は rebuy.kmp.ios にある。
+    // debug のみ。release は実機配布が要る段 4 で足す（そのとき Gradle のヒープを上げる。経緯は log_23）
     targets.withType<KotlinNativeTarget>().configureEach {
         binaries.framework(listOf(NativeBuildType.DEBUG)) {
             baseName = "ReBuyUi"
+            // static。Xcode 側は framework の埋め込みコピーが要らなくなる
             isStatic = true
         }
     }
@@ -111,10 +112,11 @@ kotlin {
         }
 
         iosMain.dependencies {
-            // iOS 側は Compose Multiplatform を使う。androidMain の androidx とは
-            // 別系統なので、両方を同じ source set に混ぜないこと
+            // compose.*（Compose Multiplatform）は iosMain にだけ置く。androidMain や
+            // commonMain に置いても通ってしまい、:androidApp の androidx BOM とずれる
+            // （落とし穴 12）。逆に androidx を iosMain へ置く方向は解決に失敗するので気づける。
+            // ステップ 12 で画面が commonMain へ行けば :shared:ui は CMP 一本になり、この規約は消える
             implementation(compose.runtime)
-            implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
         }
