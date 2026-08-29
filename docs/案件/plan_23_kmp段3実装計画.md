@@ -52,7 +52,7 @@
 優先順。実測で潰したものは結果を残す。
 
 1. ~~Gradle の埋め込み Kotlin で KGP 2.4.10 を使う convention plugin をコンパイルできるか~~ → **できる**（2026-08-29）。Gradle 9.7.1 の埋め込み Kotlin は 2.2 ではなく **2.4.0** で、KGP と同じマイナーだった。退避策は不要
-2. ~~AGP 9.3.2 の KMP ライブラリ DSL のブロック名と host test の source set 名~~ → **確定**（2026-08-30）。プラグイン id `com.android.kotlin.multiplatform.library`、DSL は `kotlin { androidLibrary { } }`、host test は `withHostTestBuilder { }.configure { }` で開き、source set は **`androidHostTest`**、テストタスクは **`testAndroidHostTest`**（`testDebugUnitTest` ではない）
+2. ~~AGP 9.3.2 の KMP ライブラリ DSL のブロック名と host test の source set 名~~ → **確定**（2026-08-30）。プラグイン id `com.android.kotlin.multiplatform.library`、DSL は **`kotlin { android { } }`**、host test は `withHostTest { }` で開き、source set は **`androidHostTest`**、テストタスクは **`testAndroidHostTest`**（`testDebugUnitTest` ではない）。`androidLibrary { }` も通るが**非推奨**——返る型に `@Deprecated("The 'androidLibrary' block is deprecated. Please use 'android' instead.")` が付いている。警告はビルドスクリプトのコンパイル時にしか出ず、Gradle がコンパイル済みスクリプトをキャッシュするので**タスク実行の出力には現れない**
 3. ~~`kotlin.time.Instant` が Kotlin 2.4.10 で stable か~~ → **stable**（2026-08-30）。`Clock.System.now()` と `Instant.fromEpochMilliseconds()` を使う捨てファイルを `:shared:data` でコンパイルし、警告もエラーも出ないことを確認した。`@OptIn` の伝播は起きない
 4. ~~`androidx.room` Gradle プラグインの `schemaDirectory` がバリアント別サブディレクトリを掘らないか~~ → **掘らない**（2026-08-30）。`2.json` を消して再ビルドすると同じ場所に同じ内容で戻る。`androidApp` の assets 指定は無変更でよい
 5. ~~Compose Multiplatform のどの版が Kotlin 2.4.10 に対応するか~~ → **1.12.0**（2026-08-30）。Kotlin 2.2.20 でビルドされているが、Kotlin は古いメタデータを読めるので 2.4.10 から使える。Compose BOM 2026.08.00 との突き合わせはステップ 12 で行う
@@ -101,7 +101,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 1 | **build-logic を included build として立てる（T-28a）** | `./gradlew build` 緑。`:shared:*` 3 本と `:androidApp` から `repositories {}` と `compileOptions {}` が消えている。ユニット 122・instrumented 20 が緑。`--configuration-cache` の 2 回目が `reused`。build-logic の AGP / KGP が catalog と同じ版で宣言されている |
 | 2 | **catalog に KMP / CMP / Room-KMP / sqlite-bundled の版を足す（適用はしない）** | `./gradlew build` 緑。生成物に差分なし。root の `plugins { ... apply false }` に KMP と CMP と Android-KMP-library が並んでいる |
 | 3 | **`:shared:data` を KMP 化（android ターゲットのみ、コードは全部 `androidMain`）** | `:shared:data` のホストテストが**20 件**緑。`./gradlew build` 緑。`shared/data/schemas/**/2.json` の場所と中身が移行前と一致。instrumented 20 件緑。**`.claude/settings.json` の allow をここで追随させる**（タスク名が変わるので、待つと以降 12 commit ぶん許可プロンプトを踏む） |
-| 4 | **ターゲット定義を convention plugin へ抽出（T-28b）** | `./gradlew build` 緑。テスト件数不変。`shared/data/build.gradle.kts` からターゲット定義が消えている。**`jvmTarget` も一緒に運ぶ**——運ばないとステップ 5 で `:shared:ui` と `:shared:domain` が落とし穴 6 を踏む |
+| 4 | **ターゲット定義を convention plugin へ抽出（T-28b）** | `./gradlew build` 緑。テスト件数不変。`shared/data/build.gradle.kts` からターゲット定義が消えている。**`jvmTarget` とホストテストの有効化も一緒に運ぶ**——運ばないとステップ 5 で `:shared:ui` と `:shared:domain` が落とし穴 1 と 6 を踏む |
 | 5 | **`:shared:domain` と `:shared:ui` を KMP 化（`androidMain` のまま）** | Android 同一挙動（**設定画面のバージョン表示が `0.0.1`**）。ホストテスト **102 件**緑。instrumented 20 件緑。`BuildConfig` → 生成 `Version.kt`、`debugImplementation` → `androidRuntimeClasspath` に置き換わっている |
 | 6 | **3 モジュールに iOS ターゲットを足し、`:shared:ui` の `iosMain` に framework と `Text` 1 個のスタブを置く** | `./gradlew :shared:ui:linkDebugFrameworkIosSimulatorArm64` が通る。Android 側のテスト件数と挙動は不変 |
 | 7 | **`iosApp/` の Xcode プロジェクトを置き、シミュレータで Compose の 1 画面を出す** | **iOS シミュレータに `Text` が出る**。`.gitignore` に Xcode の生成物（`iosApp/build/` `xcuserdata/`）が入り、`project.pbxproj` はコミットされている。Android 無変更 |
@@ -255,7 +255,7 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 3. **build-logic の AGP / KGP 版が root とずれると、コンパイルは通って実行時に `NoSuchMethodError`**
 4. **Room の KSP をターゲットごとに書き忘れると、そのターゲットだけリンク時に落ちる。** Android では一切現れない
 5. **AGP の lint タスクが KSP の生成先を入力に取るのに依存を宣言しない。** KMP ライブラリプラグインの host test で `lintAnalyzeAndroidHostTest` と `generateAndroidHostTestLintModel` が `Property has implicit dependency` で落ちる。`dependsOn("kspAndroidHostTest")` を自分で繋ぐ（`:shared:data` に実例）
-6. **KMP 化すると JVM target 17 が黙って外れる。** `rebuy.android.base` の `compileOptions` は KMP モジュールに当たらないので、`androidLibrary { compilerOptions { jvmTarget } }` を自分で書く。**書き忘れてもビルドもテストも緑のまま**で、バイトコード版がビルドした環境の JDK で決まる（手元の JBR 25 と CI の Temurin 21 で別物が出る）。`javap -v <class> | grep "major version"` が 61 かで確かめる
+6. ~~**KMP 化すると JVM target 17 が黙って外れる。**~~ → **T-28b（ステップ 4）で塞いだ**（2026-08-30）。`rebuy.android.base` の KMP 用の枝が `jvmTarget` を入れるので、**モジュール側に書かない**。書き忘れてもビルドもテストも緑のままバイトコード版がビルド環境の JDK で決まる（手元の JBR 25 と CI の Temurin 21 で別物が出る）性質は変わらないので、KMP 化のたびに `javap -v <class> | grep "major version"` が 61 かを確かめる
 7. **`room { schemaDirectory }` がバリアント別サブディレクトリを掘ると、assets 指定と `RoomMigrationTest` が同時に壊れる**
 8. **`RoomMigrationTest` は driver 導入で 2 か所壊れる**
 9. **Navigation 3 の多相シリアライズの登録漏れは iOS だけで出る**

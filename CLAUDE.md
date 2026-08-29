@@ -42,12 +42,13 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 ### ビルド構成の注意点
 
 - **Kotlin は AGP の built-in Kotlin でコンパイルされる**（KMP 化していないモジュール）。`org.jetbrains.kotlin.android` プラグインは適用していないので、足さないこと。**KMP 化したモジュール**（`:shared:data`）は `org.jetbrains.kotlin.multiplatform` を明示適用するので built-in Kotlin は関与しない。
-- **KMP モジュールでは `jvmTarget` を自分で書く。** `rebuy.android.base` の `compileOptions` が当たらないため、`androidLibrary { compilerOptions { jvmTarget = JvmTarget.JVM_17 } }` が要る。書き忘れてもビルドもテストも緑のままで、バイトコード版がビルド環境の JDK で決まってしまう（`javap -v <class> | grep "major version"` が 61 かで確かめる）。
+- **KMP モジュールには `compileOptions` が無い。** `jvmTarget` を指定しないとバイトコード版がビルド環境の JDK で決まり、手元と CI で別物が出る。`rebuy.android.base` が KMP 用の枝で入れているので通常は意識しなくてよいが、**convention plugin を通さない設定を書くときは `javap -v <class> | grep "major version"` が 61 かで確かめる**。
 - そのため Kotlin / KSP のバージョンは、ルート `build.gradle.kts` の `buildscript { dependencies { classpath ... } }` で引き上げている。AGP 同梱の KGP より新しいものを使いたい場合はここを直す（version catalog の `kotlin` / `ksp` が実体）。
 - `kotlinOptions {}` は使えない。コンパイラオプションが必要なら `kotlin { compilerOptions {} }` を使う。JVM target は `compileOptions.targetCompatibility` から引き継がれるので通常は指定不要。
 - `ksp {}` と `android.sourceSets {}` はトップレベル / `android {}` 直下に置くこと。Groovy DSL 時代は `defaultConfig {}` の中に書いても暗黙の委譲で動いていたが、Kotlin DSL では解決できない。
-- リポジトリ・SDK レベル・`compileOptions` は `build-logic` の convention plugin `rebuy.android.base` が入れる。**モジュールを増やしたら `plugins {}` に `id("rebuy.android.base")` を足す**と、これらを各モジュールに書かなくてよくなる。ただし `rebuy.android.base` は AGP を適用せず、適用済みかどうかを見て設定するだけなので、`alias(libs.plugins.android.application)` / `alias(libs.plugins.android.library)` は引き続きモジュール側に要る。プラグインの解決は `settings.gradle.kts` の `pluginManagement {}` で宣言している。ルートの `settings.gradle.kts` では `dependencyResolutionManagement {}` を使わない（Gradle 9.7 時点でも `@Incubating` で Kotlin DSL だと警告が出る）。
+- リポジトリ・SDK レベル・`compileOptions`（KMP モジュールでは `jvmTarget`）・KMP のホストテストの有効化は `build-logic` の convention plugin `rebuy.android.base` が入れる。**モジュールを増やしたら `plugins {}` に `id("rebuy.android.base")` を足す**と、これらを各モジュールに書かなくてよくなる。ただし `rebuy.android.base` は AGP を適用せず、適用済みかどうかを見て設定するだけなので、`alias(libs.plugins.android.application)` / `alias(libs.plugins.android.library)` は引き続きモジュール側に要る。プラグインの解決は `settings.gradle.kts` の `pluginManagement {}` で宣言している。ルートの `settings.gradle.kts` では `dependencyResolutionManagement {}` を使わない（Gradle 9.7 時点でも `@Incubating` で Kotlin DSL だと警告が出る）。
 - **`build-logic` は included build なので、ルートの `buildscript { classpath }` を継承しない。** convention plugin のコンパイルに要る AGP / KGP は `build-logic/build.gradle.kts` で自前に宣言する。**実行時に効くのはルート側の版**なので、`compileOnly` にしたうえで catalog と同じ版に固定する——ずれるとコンパイルは通って実行時に `NoSuchMethodError` になる。同じ理由で、convention plugin の中では `plugins { id(...) }` ではなく `plugins.withId(...)` で書く。
+- **`clean` の直後の 1 回目の `build` が `lintAnalyzeDebug` で落ちることがある**（`partialResultsDirectory` の `NoSuchFileException`）。`clean` が消したディレクトリを、それ以前に作られた設定キャッシュのエントリが参照するために起きる。もう一度叩けば通る。
 - AGP 10 以降に上げるときは、`gradle.properties` に `android.builtInKotlin` / `android.newDsl` を足して退避する手は使えなくなる（すでに移行済みなので問題ない）。
 
 ## アーキテクチャ

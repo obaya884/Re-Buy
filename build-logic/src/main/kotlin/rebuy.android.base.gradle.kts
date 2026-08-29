@@ -1,6 +1,9 @@
 import com.android.build.api.dsl.CommonExtension
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
-// 4 モジュールで同じだった Android の土台（リポジトリ・SDK レベル・Java 互換）をここに集める。
+// 各モジュールの Android の土台をここに集める。内訳は下の 2 つの関数を見ること。
 // モジュール側で書き忘れても効くので、モジュールを増やしたときのずれが起きない。
 //
 // このプラグインは AGP を適用しない。適用されたのを見て設定するだけなので、モジュール側の
@@ -27,8 +30,20 @@ fun Project.configureAndroidBase() = extensions.configure<CommonExtension> {
     compileOptions.targetCompatibility = JavaVersion.VERSION_17
 }
 
-// KMP 化（T-28b）すると android 拡張は project ではなく kotlin 拡張の下へ移るので、
-// この 2 行はどちらにも当たらなくなる。compileSdk 未設定でビルドが落ちるため気づけはするが、
-// T-28b では KMP ライブラリ用の口を足すこと
+// KMP モジュールには compileOptions が無い。jvmTarget を書かないとバイトコード版が
+// ビルド環境の JDK で決まり、手元と CI で別物が出る
+fun Project.configureKmpAndroidBase() = extensions.configure<KotlinMultiplatformExtension> {
+    targets.withType<KotlinMultiplatformAndroidLibraryTarget>().configureEach {
+        compileSdk = sdkVersion("compileSdk")
+        minSdk = sdkVersion("minSdk")
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
+        // ホストテストは既定で無効。開けないとユニットテストが 0 件のままビルドが緑になる
+        withHostTest { }
+    }
+}
+
 plugins.withId("com.android.application") { configureAndroidBase() }
 plugins.withId("com.android.library") { configureAndroidBase() }
+plugins.withId("com.android.kotlin.multiplatform.library") { configureKmpAndroidBase() }
