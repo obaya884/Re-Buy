@@ -1,10 +1,7 @@
 package io.github.obaya884.rebuy.data
 
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Before
-import org.junit.Test
-import java.util.TimeZone
+import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.time.Instant
 
 /**
@@ -13,29 +10,11 @@ import kotlin.time.Instant
  * 固定している条項（CLAUDE.md「アーキテクチャ / データ層」）は 2 つ。
  * - エポックミリ秒（`INTEGER`）で保存する
  * - ミリ秒未満は切り捨てる（0 方向ではなく過去方向）
+ *
+ * **タイムゾーンに依存しないことの検査はここには無い。** 既定タイムゾーンを差し替える
+ * API が common に無いため、[InstantConverterTimeZoneTest]（`androidHostTest`）に置いてある。
  */
 class InstantConverterTest {
-
-    private lateinit var originalTimeZone: TimeZone
-
-    /**
-     * 既定タイムゾーンを非 UTC に固定する。
-     *
-     * 変換がローカル日時を経由するようになるとホストのタイムゾーンで値がずれるが、
-     * TZ=UTC で動く CI ではそのずれが見えない。JST に寄せて検出できるようにする。
-     *
-     * このクラスの全テストが JST で走るので、既定 TZ が UTC である前提のテストは足さないこと。
-     */
-    @Before
-    fun setUp() {
-        originalTimeZone = TimeZone.getDefault()
-        TimeZone.setDefault(TimeZone.getTimeZone("Asia/Tokyo"))
-    }
-
-    @After
-    fun tearDown() {
-        TimeZone.setDefault(originalTimeZone)
-    }
 
     // ---- 書き出し方向（Instant → Long） ----
 

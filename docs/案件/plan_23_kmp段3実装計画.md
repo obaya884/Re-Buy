@@ -34,9 +34,14 @@
 | 段階 | ユニット | instrumented |
 |---|---|---|
 | 着手前 | 122（`:shared:ui` 102 ＋ `:shared:data` 20） | 20（`:androidApp`） |
-| 完了時 | 121 が `commonTest`（android と iosSimulatorArm64 の両方で走る）＋ 1 が `androidHostTest` | 20（変わらず） |
+| 完了時 | 121 が `commonTest`（android と iosSimulatorArm64 の両方で走る）＋ 3 が `androidHostTest` | 20（変わらず） |
 
-`commonTest` へ行けないのは `KoinModulesTest` 1 件だけ。`koin-test` の `verify()` が kotlin-reflect 依存で JVM 専用のため。
+`commonTest` へ行けないのは 3 件。
+
+- `KoinModulesTest` 1 件——`koin-test` の `verify()` が kotlin-reflect 依存で JVM 専用
+- `InstantConverterTimeZoneTest` 2 件——既定タイムゾーンを差し替える API が common に無い。**この検査を捨てると、CI が TZ=UTC で走るせいでタイムゾーン依存の混入が見えなくなる**（ステップ 8 で実測して分けた）
+
+**Android 側で数えると 124 件、iOS 側では 121 件が走る**ことになる。
 
 ## iOS は 2 回出す
 
@@ -105,7 +110,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 5 | **`:shared:domain` と `:shared:ui` を KMP 化（`androidMain` のまま）** | Android 同一挙動（**設定画面のバージョン表示が `0.0.1`**）。ホストテスト **102 件**緑。instrumented 20 件緑。`BuildConfig` → 生成 `Version.kt`。**唯一の例外がライセンス画面**——落とし穴 17 でステップ 14 まで空になる |
 | 6 | **3 モジュールに iOS ターゲットを足し、`:shared:ui` の `iosMain` に framework と `Text` 1 個のスタブを置く** | `./gradlew :shared:ui:linkDebugFrameworkIosSimulatorArm64` が通る。Android 側のテスト件数と挙動は不変。**`./gradlew build` の所要時間が段 3 着手前と同程度**——framework を debug に絞らないと 2 倍以上になる |
 | 7 | **`iosApp/` の Xcode プロジェクトを置き、シミュレータで Compose の 1 画面を出す** | **iOS シミュレータに `Text` が出る**。`.gitignore` に Xcode の生成物（`iosApp/build/` `xcuserdata/`）が入り、`project.pbxproj` はコミットされている。Android 無変更 |
-| 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**。**`ItemDao` / `CategoryDao` が `commonMain` にある**——ここに無いと `FakeDatabase` がステップ 10 で `commonTest` へ行けず往復になる。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
+| 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**、＋ TZ 固定の 2 件が `androidHostTest`（`:shared:data` は Android 22 件 / iOS 20 件）。**`shared/data/schemas` に git 差分が出ない**。**`ItemDao` / `CategoryDao` が `commonMain` にある**——ここに無いと `FakeDatabase` がステップ 10 で `commonTest` へ行けず往復になる。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
 | 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **101 件が `commonTest` で両ターゲット緑**、`KoinModulesTest` 1 件が `androidHostTest` で緑。合計 122 件。**アサーションの中身は 1 行も変えていない** |
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一。instrumented 20 件緑。`shared/ui/src/main/res` が消えている |

@@ -35,9 +35,14 @@ kotlin {
             implementation(libs.koin.android)
         }
 
+        commonTest.dependencies {
+            // ターゲットごとに適切な実装（Android は JUnit4、iOS は kotlin.test.native）へ解決される
+            implementation(kotlin("test"))
+        }
+
         // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い
         getByName("androidHostTest").dependencies {
-            implementation(libs.junit)
+            implementation(kotlin("test"))
         }
     }
 }

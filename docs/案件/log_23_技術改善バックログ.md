@@ -11,6 +11,8 @@
 | 2026-08-30 | Compose Multiplatform は 1.12.0 を選ぶ | 最新の安定版。Kotlin 2.2.20 でビルドされているが、Kotlin コンパイラは古いメタデータを読めるので 2.4.10 から使える |
 | 2026-08-30 | KMP 化したモジュールでは `jvmTarget` をモジュール側で指定する | `rebuy.android.base` の `compileOptions` は KMP モジュールに当たらず、書かないとバイトコード版がビルド環境の JDK で決まる。手元の JBR 25 と CI の Temurin 21 で別物が出る状態だった。T-28b で convention plugin へ運ぶまでの暫定 |
 | 2026-08-30 | KMP の android ターゲットは `targets.withType` で型から引く | `KotlinMultiplatformAndroidLibraryTarget` は `KotlinTarget` を継承しているので `targets` から型で拾える。拡張名で引いて未チェックキャストする形より、DSL 名が変わったときにコンパイルで気づける。非 KMP 側を `extensions.configure<CommonExtension>` にしたのと同じ理屈 |
+| 2026-08-30 | タイムゾーン固定の検査だけ androidHostTest に残す | 既定タイムゾーンを差し替える API が common に無い。CI は TZ=UTC で走るので、この検査を捨てるとタイムゾーン依存の混入が見えなくなる。共通の 20 件とは別クラスにして 2 件だけ JVM 側に置いた |
+| 2026-08-30 | iOS の DB は Documents ディレクトリに置く | バックアップ対象で、アプリを消すまで残る。Android の `getDatabasePath` と対になる場所 |
 | 2026-08-30 | iosApp のビルド設定は Xcode の GUI ではなく Config.xcconfig で持つ | GUI で保存すると pbxproj 全体がキャノニカル形式に書き直され、差分が読めなくなる。構成（Debug / Release）で差の無い設定は xcconfig に置き、pbxproj には差のあるものだけ残す |
 | 2026-08-30 | pbxproj の疑似 UUID は Xcode と同じ 24 桁にする | 22 桁でも Xcode は動くが、外部ツール（xcodeproj gem・XcodeGen・Tuist）は 24 桁前提の実装が多い。連番かつ AA01 プレフィックスなので衝突の危険はランダム生成より小さい |
 | 2026-08-30 | iOS の framework は段 3 では debug だけ作る | 既定の debug ＋ release だと `./gradlew build` が 7 分 17 秒になり、release のリンクがヒープ 4GB を要求する。段 3 の目的はシミュレータで動かすことなので release は要らない。実機配布が要る段 4 で足す |
