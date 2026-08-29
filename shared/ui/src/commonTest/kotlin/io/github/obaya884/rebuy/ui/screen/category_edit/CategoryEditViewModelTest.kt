@@ -1,6 +1,6 @@
 package io.github.obaya884.rebuy.ui.screen.category_edit
 
-import io.github.obaya884.rebuy.ui.MainDispatcherRule
+import io.github.obaya884.rebuy.ui.ViewModelTest
 import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.category.Category
@@ -8,18 +8,14 @@ import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.ui.item
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.Test
 
 /** カテゴリー編集画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
-class CategoryEditViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class CategoryEditViewModelTest : ViewModelTest() {
 
     private val db = FakeDatabase()
 
