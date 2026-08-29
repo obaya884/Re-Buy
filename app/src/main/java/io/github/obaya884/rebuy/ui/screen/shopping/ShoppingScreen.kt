@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.shopping
+package io.github.obaya884.rebuy.ui.screen.shopping
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -17,13 +17,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.data.item.ItemStatus
-import io.github.obaya884.favbasket.ui.Screen
-import io.github.obaya884.favbasket.ui.navigateAsRoot
-import io.github.obaya884.favbasket.ui.screen.BottomNavigationBar
-import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
+import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.data.item.Item
+import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.ui.Screen
+import io.github.obaya884.rebuy.ui.navigateAsRoot
+import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
 @Composable
 fun ShoppingScreen(
@@ -33,7 +33,7 @@ fun ShoppingScreen(
     val viewModel = hiltViewModel<ShoppingViewModel>()
     val uiState by viewModel.uiState.collectAsState()
 
-    FavBasketAppScaffold(
+    ReBuyAppScaffold(
         topBarTitle = stringResource(id = R.string.shopping_title),
         bottomBar = {
             BottomNavigationBar(navController, uiState.inShoppingListItems.size)

@@ -1,9 +1,9 @@
-package io.github.obaya884.favbasket.ui.screen.shopping
+package io.github.obaya884.rebuy.ui.screen.shopping
 
-import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.data.item.ItemStatus
-import io.github.obaya884.favbasket.data.item.ItemWithCategory
-import io.github.obaya884.favbasket.ui.screen.BottomNavigationScreenUiState
+import io.github.obaya884.rebuy.data.item.Item
+import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.ui.screen.BottomNavigationScreenUiState
 
 data class ShoppingScreenUiState(
     private val items: List<ItemWithCategory>,

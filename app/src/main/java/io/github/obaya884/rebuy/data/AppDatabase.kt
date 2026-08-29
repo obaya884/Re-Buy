@@ -1,14 +1,14 @@
-package io.github.obaya884.favbasket.data
+package io.github.obaya884.rebuy.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import io.github.obaya884.favbasket.data.category.Category
-import io.github.obaya884.favbasket.data.category.CategoryDao
-import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.data.item.ItemDao
+import io.github.obaya884.rebuy.data.category.Category
+import io.github.obaya884.rebuy.data.category.CategoryDao
+import io.github.obaya884.rebuy.data.item.Item
+import io.github.obaya884.rebuy.data.item.ItemDao
 
 @Database(
     entities = [Item::class, Category::class],

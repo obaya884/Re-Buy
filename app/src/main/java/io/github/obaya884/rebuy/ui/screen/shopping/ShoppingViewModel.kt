@@ -1,11 +1,11 @@
-package io.github.obaya884.favbasket.ui.screen.shopping
+package io.github.obaya884.rebuy.ui.screen.shopping
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.data.item.ItemWithCategory
-import io.github.obaya884.favbasket.domain.ItemRepository
+import io.github.obaya884.rebuy.data.item.Item
+import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.domain.ItemRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.joinAll

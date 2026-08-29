@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.data.category
+package io.github.obaya884.rebuy.data.category
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

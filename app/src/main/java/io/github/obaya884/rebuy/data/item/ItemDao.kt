@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.data.item
+package io.github.obaya884.rebuy.data.item
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow

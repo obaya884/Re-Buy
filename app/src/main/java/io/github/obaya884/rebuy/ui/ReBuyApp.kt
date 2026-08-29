@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui
+package io.github.obaya884.rebuy.ui
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
@@ -7,20 +7,20 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import io.github.obaya884.favbasket.ui.screen.category_edit.CategoryEditScreen
-import io.github.obaya884.favbasket.ui.screen.home.HomeScreen
-import io.github.obaya884.favbasket.ui.screen.item_edit.ItemEditScreen
-import io.github.obaya884.favbasket.ui.screen.license.LicenseScreen
-import io.github.obaya884.favbasket.ui.screen.setting.SettingScreen
-import io.github.obaya884.favbasket.ui.screen.shopping.ShoppingScreen
-import io.github.obaya884.favbasket.ui.theme.FavBasketTheme
+import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditScreen
+import io.github.obaya884.rebuy.ui.screen.home.HomeScreen
+import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditScreen
+import io.github.obaya884.rebuy.ui.screen.license.LicenseScreen
+import io.github.obaya884.rebuy.ui.screen.setting.SettingScreen
+import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingScreen
+import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 
 @Composable
-fun FavBasketApp() {
+fun ReBuyApp() {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    FavBasketTheme {
+    ReBuyTheme {
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route

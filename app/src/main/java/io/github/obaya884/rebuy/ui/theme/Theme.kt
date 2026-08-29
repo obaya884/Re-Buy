@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.theme
+package io.github.obaya884.rebuy.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
@@ -82,7 +82,7 @@ private val darkScheme = darkColorScheme(
 )
 
 @Composable
-fun FavBasketTheme(
+fun ReBuyTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     // Return to true when the "material you" is activated

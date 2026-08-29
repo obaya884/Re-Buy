@@ -1,9 +1,9 @@
-package io.github.obaya884.favbasket.ui.screen.home
+package io.github.obaya884.rebuy.ui.screen.home
 
-import io.github.obaya884.favbasket.data.category.Category
-import io.github.obaya884.favbasket.data.item.ItemStatus
-import io.github.obaya884.favbasket.data.item.ItemWithCategory
-import io.github.obaya884.favbasket.ui.screen.BottomNavigationScreenUiState
+import io.github.obaya884.rebuy.data.category.Category
+import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.ui.screen.BottomNavigationScreenUiState
 
 data class HomeScreenUiState(
     val categories: List<Category>,

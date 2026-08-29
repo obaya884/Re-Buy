@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.home
+package io.github.obaya884.rebuy.ui.screen.home
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -21,13 +21,13 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.data.item.ItemStatus
-import io.github.obaya884.favbasket.data.item.ItemWithCategory
-import io.github.obaya884.favbasket.ui.Screen
-import io.github.obaya884.favbasket.ui.screen.BottomNavigationBar
-import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
+import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.data.item.Item
+import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.ui.Screen
+import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.ZoneId
@@ -48,7 +48,7 @@ fun HomeScreen(
         rememberPagerState(initialPage = tabs.indexOf(HomeTab.All), pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
 
-    FavBasketAppScaffold(
+    ReBuyAppScaffold(
         topBarTitle = stringResource(R.string.home_title),
         topBarActions = {
             IconButton(

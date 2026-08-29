@@ -1,9 +1,9 @@
-package io.github.obaya884.favbasket.domain
+package io.github.obaya884.rebuy.domain
 
-import io.github.obaya884.favbasket.data.item.Item
-import io.github.obaya884.favbasket.data.item.ItemDao
-import io.github.obaya884.favbasket.data.item.ItemStatus
-import io.github.obaya884.favbasket.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.data.item.Item
+import io.github.obaya884.rebuy.data.item.ItemDao
+import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.data.item.ItemWithCategory
 import kotlinx.coroutines.flow.Flow
 
 class ItemRepository(private val itemDao: ItemDao) {

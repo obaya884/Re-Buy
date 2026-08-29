@@ -12,11 +12,11 @@ repositories {
 }
 
 android {
-    namespace = "io.github.obaya884.favbasket"
+    namespace = "io.github.obaya884.rebuy"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "io.github.obaya884.favbasket"
+        applicationId = "io.github.obaya884.rebuy"
         minSdk = 31
         targetSdk = 35
         versionCode = 1

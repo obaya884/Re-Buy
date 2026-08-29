@@ -1,11 +1,11 @@
-package io.github.obaya884.favbasket.di
+package io.github.obaya884.rebuy.di
 
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import io.github.obaya884.favbasket.data.category.CategoryDao
-import io.github.obaya884.favbasket.domain.CategoryRepository
+import io.github.obaya884.rebuy.data.category.CategoryDao
+import io.github.obaya884.rebuy.domain.CategoryRepository
 
 @Module
 @InstallIn(SingletonComponent::class)

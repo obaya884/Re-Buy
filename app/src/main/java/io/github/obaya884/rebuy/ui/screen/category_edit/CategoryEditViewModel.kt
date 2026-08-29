@@ -1,10 +1,10 @@
-package io.github.obaya884.favbasket.ui.screen.category_edit
+package io.github.obaya884.rebuy.ui.screen.category_edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import io.github.obaya884.favbasket.data.category.Category
-import io.github.obaya884.favbasket.domain.CategoryRepository
+import io.github.obaya884.rebuy.data.category.Category
+import io.github.obaya884.rebuy.domain.CategoryRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject

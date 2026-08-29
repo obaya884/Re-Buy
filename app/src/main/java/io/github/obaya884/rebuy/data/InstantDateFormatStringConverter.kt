@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.data
+package io.github.obaya884.rebuy.data
 
 import androidx.room.TypeConverter
 import java.time.Instant

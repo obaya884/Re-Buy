@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.category_edit
+package io.github.obaya884.rebuy.ui.screen.category_edit
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -21,10 +21,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
-import io.github.obaya884.favbasket.ui.screen.TextFieldAddDialog
-import io.github.obaya884.favbasket.ui.screen.TextFieldEditDialog
+import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.TextFieldAddDialog
+import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
 
 @Composable
 fun CategoryEditScreen(
@@ -35,7 +35,7 @@ fun CategoryEditScreen(
     val uiState by viewModel.uiState.collectAsState()
     val editingCategory = uiState.editingCategory
 
-    FavBasketAppScaffold(
+    ReBuyAppScaffold(
         topBarTitle = stringResource(id = R.string.category_edit_title),
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {

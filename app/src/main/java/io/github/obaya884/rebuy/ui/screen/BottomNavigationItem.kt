@@ -1,10 +1,10 @@
-package io.github.obaya884.favbasket.ui.screen
+package io.github.obaya884.rebuy.ui.screen
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
-import io.github.obaya884.favbasket.R
+import io.github.obaya884.rebuy.R
 
 sealed class BottomNavigationItem(val route: String, val icon: ImageVector, val titleId: Int) {
     data object Home :

@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen
+package io.github.obaya884.rebuy.ui.screen
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FavBasketAppScaffold(
+fun ReBuyAppScaffold(
     topBarTitle: String,
     topBarNavigationIcon: @Composable () -> Unit = {},
     topBarActions: @Composable RowScope.() -> Unit = {},

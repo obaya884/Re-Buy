@@ -5,5 +5,5 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
-rootProject.name = "FavBasket"
+rootProject.name = "ReBuy"
 include(":app")

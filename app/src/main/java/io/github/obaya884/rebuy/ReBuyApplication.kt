@@ -1,8 +1,8 @@
-package io.github.obaya884.favbasket
+package io.github.obaya884.rebuy
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp
-class FavBasketApplication : Application() {
+class ReBuyApplication : Application() {
 }

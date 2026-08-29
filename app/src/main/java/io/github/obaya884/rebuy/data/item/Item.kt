@@ -1,10 +1,10 @@
-package io.github.obaya884.favbasket.data.item
+package io.github.obaya884.rebuy.data.item
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
-import io.github.obaya884.favbasket.data.category.Category
+import io.github.obaya884.rebuy.data.category.Category
 import java.time.Instant
 
 @Entity(

@@ -1,6 +1,6 @@
-package io.github.obaya884.favbasket
+package io.github.obaya884.rebuy
 
-import io.github.obaya884.favbasket.data.InstantDateFormatStringConverter
+import io.github.obaya884.rebuy.data.InstantDateFormatStringConverter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

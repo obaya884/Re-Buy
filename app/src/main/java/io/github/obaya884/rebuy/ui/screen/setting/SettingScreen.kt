@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.setting
+package io.github.obaya884.rebuy.ui.screen.setting
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -13,17 +13,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import io.github.obaya884.favbasket.BuildConfig
-import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.ui.Screen
-import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
+import io.github.obaya884.rebuy.BuildConfig
+import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.ui.Screen
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
 @Composable
 fun SettingScreen(
     navController: NavController,
     snackbarHostState: SnackbarHostState
 ) {
-    FavBasketAppScaffold(
+    ReBuyAppScaffold(
         topBarTitle = stringResource(id = R.string.setting_title),
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {

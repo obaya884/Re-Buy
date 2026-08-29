@@ -1,6 +1,6 @@
-package io.github.obaya884.favbasket.ui.screen.home
+package io.github.obaya884.rebuy.ui.screen.home
 
-import io.github.obaya884.favbasket.data.category.Category
+import io.github.obaya884.rebuy.data.category.Category
 
 sealed class HomeTab(val title: String) {
     data object InBasket : HomeTab("買い物リスト")

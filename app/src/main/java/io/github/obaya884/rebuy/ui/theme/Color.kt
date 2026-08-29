@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.theme
+package io.github.obaya884.rebuy.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

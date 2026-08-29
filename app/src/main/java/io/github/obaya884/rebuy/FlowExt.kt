@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket
+package io.github.obaya884.rebuy
 
 import kotlinx.coroutines.flow.Flow
 

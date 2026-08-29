@@ -3,19 +3,19 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <application
-        android:name=".FavBasketApplication"
+        android:name=".ReBuyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.FavBasket"
+        android:theme="@style/Theme.ReBuy"
         tools:targetApi="31">
         <activity
             android:name=".ui.activity.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.FavBasket">
+            android:theme="@style/Theme.ReBuy">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

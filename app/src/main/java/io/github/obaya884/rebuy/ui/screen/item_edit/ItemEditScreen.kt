@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.item_edit
+package io.github.obaya884.rebuy.ui.screen.item_edit
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,11 +25,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.data.category.Category
-import io.github.obaya884.favbasket.data.item.ItemWithCategory
-import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
-import io.github.obaya884.favbasket.ui.screen.TextFieldEditDialog
+import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.data.category.Category
+import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
 
 @Composable
 fun ItemEditScreen(
@@ -41,7 +41,7 @@ fun ItemEditScreen(
 
     val listState = rememberLazyListState()
 
-    FavBasketAppScaffold(
+    ReBuyAppScaffold(
         topBarTitle = stringResource(id = R.string.item_edit_title),
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {

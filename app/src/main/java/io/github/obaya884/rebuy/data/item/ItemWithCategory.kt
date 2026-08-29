@@ -1,8 +1,8 @@
-package io.github.obaya884.favbasket.data.item
+package io.github.obaya884.rebuy.data.item
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import io.github.obaya884.favbasket.data.category.Category
+import io.github.obaya884.rebuy.data.category.Category
 
 /**
  * Item と Category の 多 対 1 の関係を表すデータクラス

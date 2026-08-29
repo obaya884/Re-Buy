@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen
+package io.github.obaya884.rebuy.ui.screen
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,7 +9,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import io.github.obaya884.favbasket.R
+import io.github.obaya884.rebuy.R
 
 @Composable
 fun TextFieldAddDialog(

@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.ui.screen.license
+package io.github.obaya884.rebuy.ui.screen.license
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavController
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import io.github.obaya884.favbasket.R
-import io.github.obaya884.favbasket.ui.screen.FavBasketAppScaffold
+import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -25,7 +25,7 @@ fun LicenseScreen(
 ) {
     val libraries by produceLibraries(R.raw.aboutlibraries)
 
-    FavBasketAppScaffold(
+    ReBuyAppScaffold(
         topBarTitle = "ライセンス",
         topBarNavigationIcon = {
             IconButton(onClick = { navController.navigateUp() }) {

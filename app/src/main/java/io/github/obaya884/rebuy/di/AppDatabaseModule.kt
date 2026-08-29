@@ -1,4 +1,4 @@
-package io.github.obaya884.favbasket.di
+package io.github.obaya884.rebuy.di
 
 import android.content.Context
 import dagger.Module
@@ -6,7 +6,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import io.github.obaya884.favbasket.data.AppDatabase
+import io.github.obaya884.rebuy.data.AppDatabase
 import javax.inject.Singleton
 
 @Module

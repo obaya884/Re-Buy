@@ -1,11 +1,11 @@
-package io.github.obaya884.favbasket.ui.activity
+package io.github.obaya884.rebuy.ui.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import dagger.hilt.android.AndroidEntryPoint
-import io.github.obaya884.favbasket.ui.FavBasketApp
+import io.github.obaya884.rebuy.ui.ReBuyApp
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            FavBasketApp()
+            ReBuyApp()
         }
     }
 }

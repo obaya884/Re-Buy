@@ -1,7 +1,7 @@
-package io.github.obaya884.favbasket.domain
+package io.github.obaya884.rebuy.domain
 
-import io.github.obaya884.favbasket.data.category.Category
-import io.github.obaya884.favbasket.data.category.CategoryDao
+import io.github.obaya884.rebuy.data.category.Category
+import io.github.obaya884.rebuy.data.category.CategoryDao
 import kotlinx.coroutines.flow.Flow
 
 class CategoryRepository(private val categoryDao: CategoryDao) {
