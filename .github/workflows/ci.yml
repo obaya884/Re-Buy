@@ -59,18 +59,6 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v6
 
-      # actions/cache の path に環境変数を渡すため、ランナーの ANDROID_HOME を env コンテキストへ写す
-      - name: Resolve system image path
-        run: echo "SYSIMG=$ANDROID_HOME/system-images/android-35/aosp_atd/x86_64" >> "$GITHUB_ENV"
-
-      # GMD のシステムイメージ（約 500MB）を実行間で使い回す。
-      # キーはイメージ名で固定——イメージの更新はキーを変えて行う
-      - name: Cache GMD system image
-        uses: actions/cache@v6
-        with:
-          path: ${{ env.SYSIMG }}
-          key: gmd-system-image-android-35-aosp_atd-x86_64
-
       # エミュレータのハードウェアアクセラレーション。ubuntu-latest は KVM を持つが
       # 既定では runner ユーザーが /dev/kvm を開けない
       - name: Enable KVM
