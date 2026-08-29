@@ -73,11 +73,13 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 
 ### DI (`di/`)
 
-Koin モジュールを**層ごとに 1 ファイル**置く（`DataModule` / `DomainModule` / `UiModule`）。`SharedModules.kt` の `sharedModules` がそれを束ね、`ReBuyApplication` が `startKoin` で合成する。新しい依存は該当する層のモジュールに足す。
+Koin モジュールを**層ごとに 1 ファイル**置く（`DataModule` / `DomainModule` / `UiModule`）。粒度が「1 依存 1 ファイル」でないのは、Koin では宣言が 1 行で済み、依存ごとにファイルを分けると層の境界が読めなくなるため。新しい依存は該当する層のモジュールに足す。
 
-粒度が「1 依存 1 ファイル」でないのは、Koin では宣言が 1 行で済み、依存ごとにファイルを分けると層の境界が読めなくなるため。この 3 ファイルは ③ の段 2 でそれぞれ `:shared:data` / `:shared:domain` / `:shared:ui` へ移る。
+**各モジュールは `includes` で 1 つ下の層だけを知る**（`uiModule` → `domainModule` → `dataModule`）。アプリが読み込むのは `uiModule` 1 つだけで、残りは Koin が連鎖で解決する。この連なりが ③ の段 2 で作る Gradle の依存の向き（`:shared:ui` → `:shared:domain` → `:shared:data`）とそのまま対応し、3 ファイルはそれぞれのモジュールへ移る。
 
-**Koin は依存グラフをコンパイル時に検証しない。** 配線ミスは起動時まで分からないので、DI に触れたら `pixel6Api35DebugAndroidTest` を必ず回す（`NavigationTest` が全画面を開くので、ViewModel がすべて解決できることを実質的に確かめている）。
+**テストでは `startKoin` を呼ばない。** instrumented は本物の `ReBuyApplication` の上で走るので、二重に起動すると落ちる。差し替えたいときは `loadKoinModules` / `unloadKoinModules` を使う。
+
+**Koin は依存グラフをコンパイル時に検証しない。** 配線ミスは起動時まで分からないので、`KoinModulesTest`（JVM 段）が `verify` でグラフを組み立てられることを固定し、`KoinGraphTest`（instrumented）が依存を 1 つずつしか持たないことを固定している。DI に触れたら両方を回す。
 
 ### UI 層 (`ui/`)
 

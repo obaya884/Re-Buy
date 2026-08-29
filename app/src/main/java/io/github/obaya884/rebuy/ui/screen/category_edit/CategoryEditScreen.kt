@@ -20,13 +20,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import org.koin.compose.viewmodel.koinViewModel
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.TextFieldAddDialog
 import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun CategoryEditScreen(

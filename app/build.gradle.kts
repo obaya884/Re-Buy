@@ -91,8 +91,7 @@ dependencies {
      * DI
      */
     // Koin
-    val koinBom = platform(libs.koin.bom)
-    implementation(koinBom)
+    implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.compose.viewmodel)
 
@@ -136,6 +135,8 @@ dependencies {
      */
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(platform(libs.koin.bom))
+    testImplementation(libs.koin.test)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 

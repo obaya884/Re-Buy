@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import org.koin.compose.viewmodel.koinViewModel
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
@@ -23,6 +22,7 @@ import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ShoppingScreen(

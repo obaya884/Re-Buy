@@ -53,6 +53,8 @@ class ViewModelScopeTest {
         tapBackArrow()
         openCategoryEdit()
 
+        // 画面が出ていないことを「ダイアログが無い」と読み違えないための錨
+        composeRule.onNodeWithTag(TestTags.CATEGORY_EDIT_ADD_BUTTON).assertIsDisplayed()
         composeRule.onNodeWithText(addDialogTitle).assertDoesNotExist()
     }
 }

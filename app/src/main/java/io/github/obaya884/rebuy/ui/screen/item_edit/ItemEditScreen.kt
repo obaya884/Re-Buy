@@ -24,7 +24,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import org.koin.compose.viewmodel.koinViewModel
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
@@ -32,6 +31,7 @@ import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
+import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
 fun ItemEditScreen(
