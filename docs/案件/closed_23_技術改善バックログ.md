@@ -22,6 +22,8 @@
 | T-18 | ③ 段 0 Navigation 3 化 | 内部設計 | 高 | 完了 2026-08-29 | [詳細](#t-18) |
 | T-14 | toInstant の異常系と UTC 保存条項のテスト | テスト | 中 | 完了 2026-08-29 | [詳細](#t-14) |
 | T-16 | InstantDateFormatStringConverterTest の構造 | テスト | 低 | 完了 2026-08-29 | [詳細](#t-16) |
+| T-15 | ItemStatusConverter のテスト新設 | テスト | 中 | 完了 2026-08-29 | [詳細](#t-15) |
+| T-23 | 日時の読み出しを ResolverStyle.STRICT にする | 内部設計 | 中 | 完了 2026-08-29 | [詳細](#t-23) |
 
 ## 詳細
 
@@ -110,3 +112,17 @@
 - 背景: `InstantDateFormatStringConverterTest` は `.let {}.also {}` のチェーンで書かれており、実測値が `it` に隠れて期待値との区別が目で付かない（T-13 の引数順ミスが生まれた素地）。加えて 1 つの `@Test` に 4 ケースを直列に詰めているため最初の失敗で残りが走らず、例外系の `assertTrue(... is DateTimeException)` は失敗時に真偽しか出ない。テストメソッド名と KDoc の有無も 2 つの `@Test` で揃っていない
 - 対応方針: 実測値に名前を付ける素直な形へ直し、ケースごとに `@Test` を分け、例外系は `assertThrows` にする
 - 関連: T-13 のレビューで code-quality-reviewer と test-reviewer が指摘
+
+### T-15
+
+- 背景: `ItemStatusConverter` にテストが 1 件も無い。CLAUDE.md は「enum の `value` は既存 DB と互換を壊さない限り変更しない」と定めているが、この条項を守るテストが存在しない
+- 対応方針: `NO_DEAL→0` / `IN_SHOPPING_LIST→1` / `CHECKED_IN_SHOPPING_LIST→2` の対応と、未知の値を渡したときの挙動を固定する
+- 優先度の根拠: 値がずれると既存 DB のデータが別の状態として読まれる。壊れ方が静か
+- 関連: T-13 のレビューで test-reviewer が指摘
+
+### T-23
+
+- 背景: `InstantDateFormatStringConverter` は `ResolverStyle` を指定しておらず、既定の SMART で解決される。そのため `2024-02-30` が例外にならず `2024-02-29` として、`24:00:00` が翌日として黙って読まれる。「非準拠の文字列を黙って別の日時として読まない」という前提が実際には成り立っていなかった
+- 対応方針: `withResolverStyle(ResolverStyle.STRICT)` を足し、存在しない日付と 24 時を例外にする。書き込むのはこの converter だけで常に準拠した文字列を書くため、既存データが読めなくなる経路は無い
+- 優先度の根拠: 壊れた値を近い日付として読むと、間違いに気づけないまま最終購入日がずれる。オーナー判断で「落ちて気づけるほう」を採った（CLAUDE.md のデータ層の条項を先に更新済み）
+- 関連: T-14 のレビューで test-reviewer が発見

@@ -54,14 +54,16 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 
 - `AppDatabase`: Room。エンティティは `Item` と `Category` の 2 つ。`exportSchema = true` で `app/schemas/` に JSON を出力する
 - `Item.categoryId` → `Category.id` の外部キー（`onDelete = SET_NULL`）。JOIN 済みの読み出しは `ItemWithCategory`（`@Embedded` + `@Relation`）を使う
-- 日時は `Instant` で保持し、`InstantDateFormatStringConverter` が `YYYY-MM-DD HH:MM:SS`（UTC）文字列として保存する。0 年未満・10000 年以上は例外になる仕様（テスト済み）
-- **読み出しは非準拠の文字列を黙って別の日時として読まない**。存在しない日付（`2024-02-30`）や 24 時は丸めずに例外にする（`ResolverStyle.STRICT`）。壊れた値を近い日付として読むより、落ちて気づけるほうを採る
+- 日時は `Instant` で保持し、`InstantEpochMilliConverter` がエポックミリ秒（`INTEGER`）として保存する。ミリ秒未満は切り捨てる（0 方向ではなく過去方向）
+- **日時をテキストで保存しない**。文字列にするとタイムゾーン・ゼロ埋め・存在しない日付の解決規則といった解釈の余地が保存形式に入り込む。エポックミリ秒なら読み方が 1 通りしかなく、壊れた値を別の日時として読む経路が消える
 - `ItemStatus` は `NO_DEAL(0)` / `IN_SHOPPING_LIST(1)` / `CHECKED_IN_SHOPPING_LIST(2)` の 3 状態。`ItemStatusConverter` で Int に変換して保存するため、**enum の `value` は既存 DB と互換を壊さない限り変更しない**
 - DAO の更新系クエリは `updatedAt = Instant.now()` をデフォルト引数で受け取り、更新のたびにタイムスタンプを書き換える
 
 ### スキーマ変更時の手順
 
 `AppDatabase` の `version` を上げ、`Migration` を追加し、`RoomMigrationTest.ALL_MIGRATIONS` に登録する。`app/schemas/` に生成された新しい JSON もコミットすること（`androidTest` はこのディレクトリを assets として参照している）。
+
+**⑤ でストアに出すまでは `Migration` を書かない。** `version` を上げるだけにして、旧 DB を持つ端末は入れ直す。守るべき実データがまだ無い段階で移行コードを書いても、検証されないまま積み上がる。`fallbackToDestructiveMigration` も足さない——黙ってデータが消えるより、起動時に落ちて気づけるほうを採る。
 
 ### ドメイン層 (`domain/`)
 
@@ -140,7 +142,7 @@ AboutLibraries プラグインでビルド時にライセンス情報を生成�
 ## 開発コマンド
 
 - `./gradlew build` — lint・unit test・debug/release の assemble
-- `./gradlew testDebugUnitTest` — ユニットテスト（JVM）。単一クラス: `--tests "io.github.obaya884.rebuy.InstantDateFormatStringConverterTest"`
+- `./gradlew testDebugUnitTest` — ユニットテスト（JVM）。単一クラス: `--tests "io.github.obaya884.rebuy.InstantEpochMilliConverterTest"`
 - `./gradlew pixel6Api35DebugAndroidTest` — インストルメンテーションテスト（Gradle Managed Device。エミュレータの手動起動は不要。初回はイメージのダウンロードで数分）
 - `./gradlew installDebug` — 端末・エミュレータへインストール
 - `./gradlew clean` — KSP（Hilt / Room）の生成コードが壊れたとき

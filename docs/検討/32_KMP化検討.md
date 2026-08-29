@@ -49,8 +49,8 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 - ドライバは `BundledSQLiteDriver`。両 OS に同じ SQLite 実装が載るので挙動差が出ない
 - ビルダーには `setDriver(BundledSQLiteDriver())` と **`setQueryCoroutineContext(Dispatchers.IO)`** を必ず対で指定する
 - DB ファイルのパス解決だけ `expect/actual`（Android は `Context` 経由、iOS は `NSDocumentDirectory`）
-- `app/schemas/` の JSON は `shared/data/schemas/` へ移す。`version = 1` のままなので中身は変えない
-- **`InstantDateFormatStringConverter` の `java.time` 依存を外す**。`kotlinx-datetime` または `kotlin.time.Instant` へ置き換える。**保存文字列の形式（`YYYY-MM-DD HH:MM:SS` UTC）と 0 年未満・10000 年以上で例外になる挙動は 1 バイトも変えない**——既存 DB との互換が壊れる
+- `app/schemas/` の JSON は `shared/data/schemas/` へ移す。移すだけで中身は変えない
+- **`InstantEpochMilliConverter` の `java.time` 依存を外す**。`kotlinx-datetime` または `kotlin.time.Instant` へ置き換える。保存形式はエポックミリ秒の `INTEGER` で、どの実装でも同じ値になるため置き換えで壊れない（T-24 で文字列保存をやめた）
 - `ItemStatusConverter` の `value`（0 / 1 / 2）も変えない
 
 ## 5. DI（C）
@@ -129,7 +129,7 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 
 - **AboutLibraries が CMP で動くか**。`LicenseScreen` が依存しており、動かなければ iOS 側のライセンス表示を別手段にする
 - Navigation 3 の CMP 対応は 1.10 で入ったばかり。iOS 実機・シミュレータでの安定性
-- `kotlinx-datetime` と `kotlin.time.Instant` のどちらで `java.time` を置き換えるか（保存形式を変えないことが条件）
+- `kotlinx-datetime` と `kotlin.time.Instant` のどちらで `java.time` を置き換えるか
 - Room KMP と AGP 9 の built-in Kotlin の組み合わせ（このリポジトリは `org.jetbrains.kotlin.android` を適用していない。CLAUDE.md「ビルド構成の注意点」）
 
 ## 14. 完了条件
@@ -157,6 +157,7 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 | 2026-08-29 | iOS の外枠は SwiftUI のネイティブ view で持つ | オーナー判断。Liquid Glass はシステムが SwiftUI の TabView / NavigationStack に描くもので、Compose の自前描画には乗らない。C-5 は機能の対等性を求めるもので、各 OS で最適な体験を出すことと矛盾しない |
 | 2026-08-29 | モジュールを層別 3 つ＋アプリに分ける | 3,000 行に機能別分割は過剰。層別なら依存の向きを Gradle が強制でき、マルチモジュールの学習にもなる |
 | 2026-08-29 | モジュール名を `:shared:*` に寄せる | JetBrains の新デフォルト構成（sharedLogic / sharedUI）と語彙を揃えつつ、data と domain の境界を Gradle で強制する |
+| 2026-08-29 | 日時をエポックミリ秒で保存する（T-24） | ③ の移植で `java.time` を捨てるとき、文字列形式を 1 バイトも変えないという縛りが移植の自由度を奪う。未公開アプリなので既存 DB との互換より形式の単純さを採る。エポックミリ秒なら実装を替えても値が変わらない |
 | 2026-08-29 | DI を Koin にする | KMP で最も普及しており CMP の ViewModel 連携も整っている。③ の主戦場は KMP 移植であり、DI で別の学習正面を作らない |
 | 2026-08-29 | Navigation 3 を最初から採る | オーナー判断。どうせ書き換えるなら一回で済ませる。backstack を自分で持つモデルは iOS のネイティブシェルとの同期にも都合が良い |
 | 2026-08-29 | Nav3 化を段 0 として Android 単体で先に済ませる | Nav3 化は挙動が変わりやすい書き換えで、KMP 移植と混ぜると落ちたときに切り分けられない |
