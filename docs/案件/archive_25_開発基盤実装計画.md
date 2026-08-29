@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 - 作成日: 2026-08-29
-- 位置づけ: [開発基盤検討](../検討/31_開発基盤検討.md) の実装手順。タスクは技術改善バックログ（23）の T-01〜T-10 と 1:1 に対応する。② が完了したら本書は `archive_25_開発基盤実装計画.md` に改名して凍結する
+- 位置づけ: [開発基盤検討](../検討/31_開発基盤検討.md) の実装手順。タスクは技術改善バックログ（23）の T-01〜T-10 と 1:1 に対応する。② が完了したら本書は `archive_25_開発基盤実装計画.md` に改名して凍結する。**② 完了により凍結（2026-08-29）。以後は書き換えない**
 
 **Goal:** hitosuji の AI 主導開発体制（docs が正・台帳・レビュアー agent・機械検査・CI）を Re-Buy に骨格だけ移植し、リポジトリを public にする。
 
