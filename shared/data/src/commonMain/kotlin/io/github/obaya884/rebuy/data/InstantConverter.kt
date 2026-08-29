@@ -22,8 +22,12 @@ object InstantConverter {
      *
      * ミリ秒未満は切り捨てられる（0 方向ではなく過去方向）。
      *
-     * オーバーフローは起きない。[Instant] が表現できる最も遠い未来・過去
-     * （[Instant.DISTANT_FUTURE] / [Instant.DISTANT_PAST]）でも [Long] に収まる。
+     * **[Long] のミリ秒に収まらない日時は、例外ではなく上限・下限に張り付く**
+     * （`kotlin.time.Instant` は ±約 10 億年まで表現でき、[Long] のミリ秒（±約 29 万年）を超える）。
+     * その場合は往復しても元の日時に戻らない。
+     *
+     * `Clock.System.now()` から得た値がこの範囲を出ることはないので実害は無いが、
+     * 「収まらない値を渡すと落ちる」とは考えないこと。
      */
     @TypeConverter
     fun fromInstant(instant: Instant): Long = instant.toEpochMilliseconds()

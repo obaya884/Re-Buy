@@ -17,9 +17,14 @@ actual val platformDataModule: Module = module {
 /**
  * **既存端末の DB を引き継ぐため、Room がこれまで使っていたのと同じ絶対パスを渡す。**
  * `getDatabasePath(APP_DATABASE_NAME)` は、旧コードの `Room.databaseBuilder(context, klass, name)`
- * が置いていた場所と同じ。名前の付け方を変えると利用者のデータが消える。
+ * が相対名から解決していた場所と同じ。
+ *
+ * **`getDatabasePath()` は `databases/` ディレクトリが無ければ作る。** 同梱 driver は
+ * 親ディレクトリを作らないので、`File(context.dataDir, "databases/…")` のように
+ * 「単純化」すると初回起動が壊れる。
  */
 private fun createAppDatabase(context: Context): AppDatabase {
+    // Activity を握り続けないための保険
     val applicationContext = context.applicationContext
     return Room.databaseBuilder<AppDatabase>(
         context = applicationContext,

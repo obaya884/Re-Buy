@@ -15,9 +15,8 @@ import org.koin.core.context.GlobalContext
 /**
  * 起動済みの Koin が、依存を 1 つずつだけ持っていることを固定する。
  *
- * `single` を `factory` に取り違えても、いまは `AppDatabase` の companion キャッシュと
- * Room の DAO キャッシュが同じ実体を返すので**挙動に現れない**。③ の段 3 で companion の
- * キャッシュを畳むと `single` が唯一のガードになるため、同一性を直接押さえておく。
+ * `single` が `AppDatabase` の単一性の**唯一のガード**になっている（`AppDatabase.kt` の
+ * KDoc と対）。`factory` に取り違えると DB の実体が複数できるので、同一性を直接押さえておく。
  *
  * 画面を開かないので、`NavigationTest` の到達性には依存しない。
  */

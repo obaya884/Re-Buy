@@ -6,6 +6,8 @@ import io.github.obaya884.rebuy.data.APP_DATABASE_NAME
 import io.github.obaya884.rebuy.data.AppDatabase
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
+// Native では Dispatchers.IO は拡張プロパティなので、この import が要る
+import kotlinx.coroutines.IO
 import org.koin.core.module.Module
 import org.koin.dsl.module
 import platform.Foundation.NSDocumentDirectory
@@ -18,23 +20,28 @@ actual val platformDataModule: Module = module {
 }
 
 private fun createAppDatabase(): AppDatabase =
-    Room.databaseBuilder<AppDatabase>(name = "${documentDirectoryPath()}/$APP_DATABASE_NAME")
+    Room.databaseBuilder<AppDatabase>(name = databaseFilePath())
         .setDriver(BundledSQLiteDriver())
-        // Native の Dispatchers.IO は 1.11.0 時点でも internal なので Default を使う。
-        // Native の Default はスレッドプールなので、ブロッキング寄りの DB I/O でも
-        // 単一スレッドを塞ぐことはない
-        .setQueryCoroutineContext(Dispatchers.Default)
+        .setQueryCoroutineContext(Dispatchers.IO)
         .build()
 
-/** iOS では Documents ディレクトリに置く。バックアップ対象で、アプリを消すまで残る。 */
+/**
+ * iOS では Documents ディレクトリに置く。バックアップ対象で、アプリを消すまで残る。
+ *
+ * `create = false` にしてあるのは、Documents は OS が必ず用意するため。
+ * 無ければ異常なので、黙って作らずに起動を止める。
+ */
 @OptIn(ExperimentalForeignApi::class)
-private fun documentDirectoryPath(): String {
-    val url: NSURL? = NSFileManager.defaultManager.URLForDirectory(
+private fun databaseFilePath(): String {
+    val documents: NSURL? = NSFileManager.defaultManager.URLForDirectory(
         directory = NSDocumentDirectory,
         inDomain = NSUserDomainMask,
         appropriateForURL = null,
-        create = true,
+        create = false,
         error = null,
     )
-    return requireNotNull(url?.path) { "Documents ディレクトリが取れない" }
+    val file = checkNotNull(documents?.URLByAppendingPathComponent(APP_DATABASE_NAME)?.path) {
+        "Documents ディレクトリが取れない"
+    }
+    return file
 }

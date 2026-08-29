@@ -40,10 +40,6 @@ kotlin {
             implementation(kotlin("test"))
         }
 
-        // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い
-        getByName("androidHostTest").dependencies {
-            implementation(kotlin("test"))
-        }
     }
 }
 

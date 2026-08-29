@@ -1,6 +1,5 @@
 package io.github.obaya884.rebuy.data
 
-import io.github.obaya884.rebuy.data.ItemStatusConverter
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import kotlin.test.Test
 import kotlin.test.assertEquals

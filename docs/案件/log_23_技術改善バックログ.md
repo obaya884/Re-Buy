@@ -11,6 +11,7 @@
 | 2026-08-30 | Compose Multiplatform は 1.12.0 を選ぶ | 最新の安定版。Kotlin 2.2.20 でビルドされているが、Kotlin コンパイラは古いメタデータを読めるので 2.4.10 から使える |
 | 2026-08-30 | KMP 化したモジュールでは `jvmTarget` をモジュール側で指定する | `rebuy.android.base` の `compileOptions` は KMP モジュールに当たらず、書かないとバイトコード版がビルド環境の JDK で決まる。手元の JBR 25 と CI の Temurin 21 で別物が出る状態だった。T-28b で convention plugin へ運ぶまでの暫定 |
 | 2026-08-30 | KMP の android ターゲットは `targets.withType` で型から引く | `KotlinMultiplatformAndroidLibraryTarget` は `KotlinTarget` を継承しているので `targets` から型で拾える。拡張名で引いて未チェックキャストする形より、DSL 名が変わったときにコンパイルで気づける。非 KMP 側を `extensions.configure<CommonExtension>` にしたのと同じ理屈 |
+| 2026-08-30 | iOS でも setQueryCoroutineContext は Dispatchers.IO にする | Native の `Dispatchers.IO` は internal ではなく、`Dispatchers` のメンバではなく拡張プロパティ。`import kotlinx.coroutines.IO` が要るだけだった。「internal だから使えない」と誤診して coroutines の版を上げ下げしたが、原因は import の不足 |
 | 2026-08-30 | iosMain には使っていない compose.* も書く | `compose.material3` が自分より古い `foundation` を推移的に引くため、未使用として外すと版が 1.12.0 から 1.9.1 へ下がる。CMP の互換検査の警告で気づいた |
 | 2026-08-30 | タイムゾーン固定の検査だけ androidHostTest に残す | 既定タイムゾーンを差し替える API が common に無い。CI は TZ=UTC で走るので、この検査を捨てるとタイムゾーン依存の混入が見えなくなる。共通の 20 件とは別クラスにして 2 件だけ JVM 側に置いた |
 | 2026-08-30 | iOS の DB は Documents ディレクトリに置く | バックアップ対象で、アプリを消すまで残る。Android の `getDatabasePath` と対になる場所 |

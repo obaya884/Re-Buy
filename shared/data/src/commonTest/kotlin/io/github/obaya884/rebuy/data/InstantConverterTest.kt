@@ -12,7 +12,7 @@ import kotlin.time.Instant
  * - ミリ秒未満は切り捨てる（0 方向ではなく過去方向）
  *
  * **タイムゾーンに依存しないことの検査はここには無い。** 既定タイムゾーンを差し替える
- * API が common に無いため、[InstantConverterTimeZoneTest]（`androidHostTest`）に置いてある。
+ * API が common に無いため、`InstantConverterTimeZoneTest`（`androidHostTest`）に置いてある。
  */
 class InstantConverterTest {
 
@@ -20,7 +20,7 @@ class InstantConverterTest {
 
     @Test
     fun fromInstant_エポックからのミリ秒になる() {
-        // JST の 2024-01-01 09:00:00 は UTC では同日 00:00:00
+        // オフセット付きの表記が正しいエポックミリ秒になること
         val instant = Instant.parse("2024-01-01T09:00:00+09:00")
 
         val actual = InstantConverter.fromInstant(instant)
@@ -44,24 +44,39 @@ class InstantConverterTest {
 
     @Test
     fun fromInstant_エポック前でも切り捨ては過去方向() {
-        // エポックの 1 マイクロ秒前。0 方向の切り捨てなら -999 になる
+        // エポックの 999 ミリ秒ほど前。0 方向の切り捨てなら -999 になる
         val actual = InstantConverter.fromInstant(Instant.fromEpochSeconds(-1, 999_999))
 
         assertEquals(-1_000L, actual)
     }
 
+    /**
+     * `Instant` は ±約 10 億年まで表現できるが、`Long` のミリ秒は ±約 29 万年しか持てない。
+     * 収まらない値は**例外ではなく上限・下限に張り付く**。往復しても戻らないので、
+     * 「収まらない値を渡すと落ちる」と考えないための固定。
+     */
     @Test
-    fun fromInstant_表現できる最も遠い未来もLongに収まる() {
-        val actual = InstantConverter.fromInstant(Instant.DISTANT_FUTURE)
+    fun fromInstant_Longに収まらない未来は上限に張り付く() {
+        val actual = InstantConverter.fromInstant(Instant.fromEpochSeconds(Long.MAX_VALUE))
 
-        assertEquals(3_093_527_980_800_000L, actual)
+        assertEquals(Long.MAX_VALUE, actual)
     }
 
     @Test
-    fun fromInstant_表現できる最も遠い過去もLongに収まる() {
-        val actual = InstantConverter.fromInstant(Instant.DISTANT_PAST)
+    fun fromInstant_Longに収まらない過去は下限に張り付く() {
+        val actual = InstantConverter.fromInstant(Instant.fromEpochSeconds(Long.MIN_VALUE))
 
-        assertEquals(-3_217_862_419_200_001L, actual)
+        assertEquals(Long.MIN_VALUE, actual)
+    }
+
+    /** 張り付く手前、`Long` のミリ秒に収まる境界そのものは往復する。 */
+    @Test
+    fun Longに収まる境界の日時は往復する() {
+        val boundary = Instant.fromEpochMilliseconds(Long.MAX_VALUE)
+
+        val actual = InstantConverter.toInstant(InstantConverter.fromInstant(boundary))
+
+        assertEquals(boundary, actual)
     }
 
     // ---- 読み出し方向（Long → Instant） ----

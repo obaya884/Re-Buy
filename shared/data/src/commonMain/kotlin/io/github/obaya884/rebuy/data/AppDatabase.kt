@@ -28,8 +28,7 @@ abstract class AppDatabase : RoomDatabase() {
 /**
  * `actual` は Room の KSP がターゲットごとに生成する。
  *
- * 単一性は Koin の `single` が保証するので、ここにインスタンスのキャッシュは持たない
- * （`synchronized` は JVM 専用で common に置けないという事情もある）。
+ * **単一性は Koin の `single` が保証する。** ここにも [AppDatabase] にもキャッシュは持たない。
  */
 @Suppress("KotlinNoActualForExpect")
 expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
