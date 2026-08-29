@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
     // バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
     id("org.jetbrains.kotlin.plugin.serialization")
     alias(libs.plugins.aboutLibraries)
@@ -28,17 +27,14 @@ android {
             useSupportLibrary = true
         }
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
-            }
-        }
     }
 
     sourceSets {
         // Adds exported schema location as test app assets.
         named("androidTest") {
-            assets.directories.add("$projectDir/schemas")
+            // :shared:data が出力するスキーマを RoomMigrationTest の assets として渡す。
+            // config cache が有効なので project(":shared:data").projectDir とは書かない
+            assets.directories.add("$projectDir/../shared/data/schemas")
         }
     }
 
@@ -77,13 +73,10 @@ android {
     }
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-    arg("room.generateKotlin", "true")
-}
-
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
+
+    implementation(project(":shared:data"))
 
     implementation(libs.androidx.core.ktx)
 
@@ -94,14 +87,6 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.compose.viewmodel)
-
-    /**
-     * Data Layer
-     */
-    // Room
-    implementation(libs.androidx.room.runtime)
-    implementation(libs.androidx.room.ktx)
-    ksp(libs.androidx.room.compiler)
 
     /**
      * UI Layer

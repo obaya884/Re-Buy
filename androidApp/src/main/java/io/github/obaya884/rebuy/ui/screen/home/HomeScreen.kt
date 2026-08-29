@@ -292,12 +292,14 @@ fun HomeListItemRow(
                 text = item.item.name,
                 style = MaterialTheme.typography.titleMedium,
             )
-            if (item.item.lastBoughtAt != null) {
+            // ローカルに束ねているのは、別モジュールのプロパティがスマートキャストできないため
+            val lastBoughtAt = item.item.lastBoughtAt
+            if (lastBoughtAt != null) {
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
                     text = stringResource(
                         id = R.string.home_last_bought_at,
-                        item.item.lastBoughtAt.atZone(ZoneId.systemDefault()).format(
+                        lastBoughtAt.atZone(ZoneId.systemDefault()).format(
                             DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
                         )
                     ),
