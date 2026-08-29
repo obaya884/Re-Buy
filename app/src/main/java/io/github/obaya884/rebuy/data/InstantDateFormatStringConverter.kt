@@ -5,6 +5,7 @@ import java.time.Instant
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeFormatterBuilder
+import java.time.format.ResolverStyle
 import java.time.temporal.ChronoField
 
 
@@ -13,6 +14,11 @@ import java.time.temporal.ChronoField
 object InstantDateFormatStringConverter {
     /**
      * [String] を [Instant] に変換する。
+     *
+     * 非準拠の文字列は黙って別の日時として読まず、例外にする。
+     * 存在しない日付（`2024-02-30`）や 24 時も丸めずに例外。
+     *
+     * @throws java.time.format.DateTimeParseException 形式に合わない場合。
      */
     @TypeConverter
     fun toInstant(from: String): Instant {
@@ -24,7 +30,7 @@ object InstantDateFormatStringConverter {
      *
      * 秒未満の値は切り捨てられる。
      *
-     * @throws DateTimeParseException  0 年未満や 10,000 年以上の場合。
+     * @throws java.time.DateTimeException  0 年未満や 10,000 年以上の場合。
      */
     @TypeConverter
     fun toString(from: Instant): String {
@@ -56,4 +62,7 @@ object InstantDateFormatStringConverter {
             .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
             .toFormatter()
             .withZone(ZoneOffset.UTC) // タイムゾーンを UTC にする。
+            .withResolverStyle(ResolverStyle.STRICT)
+    // ^ 既定の SMART だと 2024-02-30 が 2024-02-29 に、24:00:00 が翌日に丸められ、
+    //   壊れた値が黙って別の日時として読まれる。落ちて気づけるほうを採る。
 }

@@ -55,6 +55,7 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 - `AppDatabase`: Room。エンティティは `Item` と `Category` の 2 つ。`exportSchema = true` で `app/schemas/` に JSON を出力する
 - `Item.categoryId` → `Category.id` の外部キー（`onDelete = SET_NULL`）。JOIN 済みの読み出しは `ItemWithCategory`（`@Embedded` + `@Relation`）を使う
 - 日時は `Instant` で保持し、`InstantDateFormatStringConverter` が `YYYY-MM-DD HH:MM:SS`（UTC）文字列として保存する。0 年未満・10000 年以上は例外になる仕様（テスト済み）
+- **読み出しは非準拠の文字列を黙って別の日時として読まない**。存在しない日付（`2024-02-30`）や 24 時は丸めずに例外にする（`ResolverStyle.STRICT`）。壊れた値を近い日付として読むより、落ちて気づけるほうを採る
 - `ItemStatus` は `NO_DEAL(0)` / `IN_SHOPPING_LIST(1)` / `CHECKED_IN_SHOPPING_LIST(2)` の 3 状態。`ItemStatusConverter` で Int に変換して保存するため、**enum の `value` は既存 DB と互換を壊さない限り変更しない**
 - DAO の更新系クエリは `updatedAt = Instant.now()` をデフォルト引数で受け取り、更新のたびにタイムスタンプを書き換える
 
