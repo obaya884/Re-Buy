@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy.ui.activity
+package io.github.obaya884.rebuy
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity

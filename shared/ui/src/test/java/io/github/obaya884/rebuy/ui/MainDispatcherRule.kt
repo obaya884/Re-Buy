@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy
+package io.github.obaya884.rebuy.ui
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher

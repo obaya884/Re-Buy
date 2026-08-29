@@ -8,7 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.ui.R
 
 @Composable
 fun TextFieldEditDialog(

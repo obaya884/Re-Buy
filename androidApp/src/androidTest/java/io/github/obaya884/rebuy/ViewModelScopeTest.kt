@@ -1,12 +1,12 @@
-package io.github.obaya884.rebuy.ui
+package io.github.obaya884.rebuy
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import io.github.obaya884.rebuy.R
-import io.github.obaya884.rebuy.ui.activity.MainActivity
+import io.github.obaya884.rebuy.ui.R
+import io.github.obaya884.rebuy.ui.TestTags
 import org.junit.Rule
 import org.junit.Test
 

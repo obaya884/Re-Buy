@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy
+package io.github.obaya884.rebuy.data
 
 import io.github.obaya884.rebuy.data.InstantConverter
 import org.junit.After

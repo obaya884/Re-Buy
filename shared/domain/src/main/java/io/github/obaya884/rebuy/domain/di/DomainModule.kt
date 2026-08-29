@@ -1,5 +1,6 @@
-package io.github.obaya884.rebuy.di
+package io.github.obaya884.rebuy.domain.di
 
+import io.github.obaya884.rebuy.data.di.dataModule
 import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
 import org.koin.core.module.dsl.singleOf

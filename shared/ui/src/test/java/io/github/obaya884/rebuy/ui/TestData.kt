@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy
+package io.github.obaya884.rebuy.ui
 
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.Item

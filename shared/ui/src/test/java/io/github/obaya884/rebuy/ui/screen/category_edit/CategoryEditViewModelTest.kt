@@ -1,11 +1,11 @@
 package io.github.obaya884.rebuy.ui.screen.category_edit
 
-import io.github.obaya884.rebuy.MainDispatcherRule
-import io.github.obaya884.rebuy.category
-import io.github.obaya884.rebuy.data.FakeDatabase
+import io.github.obaya884.rebuy.ui.MainDispatcherRule
+import io.github.obaya884.rebuy.ui.category
+import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.domain.CategoryRepository
-import io.github.obaya884.rebuy.item
+import io.github.obaya884.rebuy.ui.item
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals

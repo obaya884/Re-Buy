@@ -9,7 +9,7 @@ repositories {
 }
 
 android {
-    namespace = "io.github.obaya884.rebuy.app"
+    namespace = "io.github.obaya884.rebuy"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {

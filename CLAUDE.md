@@ -32,7 +32,9 @@ Re-Buy（仮称）は「くりかえし使える買い物リスト」。品目�
 
 Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` / `:shared:domain` / `:shared:data`（③ の段 3 で KMP へ）。Room / Koin / Navigation 3 / AboutLibraries。
 
-- `applicationId`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）。**`namespace` はモジュールごとに分けており、`:shared:ui` が `io.github.obaya884.rebuy` を引き継ぐ**——`android.nonTransitiveRClass=true` なので、画面文言の `R` を持つモジュールがこの FQN を名乗る必要がある
+- `applicationId`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
+- **`namespace` は Kotlin package と揃え、モジュールごとに分ける**（`:androidApp` = `io.github.obaya884.rebuy` ＝ `applicationId` ／ `:shared:data` = `...rebuy.data` ／ `:shared:domain` = `...rebuy.domain` ／ `:shared:ui` = `...rebuy.ui`）。Gradle のパスにある `shared` は入れ物を示す語なので package にも namespace にも入れない
+- **リソースを使う側は所有モジュールの `R` を import する**（画面文言は `:shared:ui` にあるので `io.github.obaya884.rebuy.ui.R`）。非推移的 `R` は AGP 8 以降の既定で、各モジュールの `R` は自分のリソースだけを持つ
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
 - AGP 9 / Gradle 9。JDK は 17 以上（Android Studio 同梱の JBR 25 で動作確認済み）
 - ビルドスクリプトは Kotlin DSL。依存は必ず `gradle/libs.versions.toml` 経由で追加する

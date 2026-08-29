@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy.ui
+package io.github.obaya884.rebuy
 
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -6,8 +6,8 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
-import io.github.obaya884.rebuy.R
-import io.github.obaya884.rebuy.ui.activity.MainActivity
+import io.github.obaya884.rebuy.ui.R
+import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import org.junit.Assert.assertTrue
 import org.junit.Rule

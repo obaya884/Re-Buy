@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy.di
+package io.github.obaya884.rebuy.ui.di
 
 import android.content.Context
 import org.junit.Test

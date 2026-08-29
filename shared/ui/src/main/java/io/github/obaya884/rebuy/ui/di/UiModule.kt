@@ -1,5 +1,6 @@
-package io.github.obaya884.rebuy.di
+package io.github.obaya884.rebuy.ui.di
 
+import io.github.obaya884.rebuy.domain.di.domainModule
 import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditViewModel
 import io.github.obaya884.rebuy.ui.screen.home.HomeViewModel
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditViewModel

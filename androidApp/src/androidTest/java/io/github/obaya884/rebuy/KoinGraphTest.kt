@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy.di
+package io.github.obaya884.rebuy
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.obaya884.rebuy.data.AppDatabase
