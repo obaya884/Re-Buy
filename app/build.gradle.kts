@@ -32,7 +32,7 @@ android {
     sourceSets {
         // Adds exported schema location as test app assets.
         named("androidTest") {
-            assets.srcDir("$projectDir/schemas")
+            assets.directories.add("$projectDir/schemas")
         }
     }
 
@@ -66,6 +66,8 @@ ksp {
 }
 
 dependencies {
+    val composeBom = platform(libs.androidx.compose.bom)
+
 
     implementation(libs.androidx.core.ktx)
 
@@ -101,7 +103,7 @@ dependencies {
     implementation(libs.androidx.activity.ktx)
 
     // Compose
-    implementation(platform(libs.androidx.compose.bom))
+    implementation(composeBom)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
@@ -115,7 +117,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
-    androidTestImplementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(composeBom)
     androidTestImplementation(libs.androidx.compose.ui.test.junit)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
