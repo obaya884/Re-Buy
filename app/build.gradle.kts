@@ -6,6 +6,11 @@ plugins {
     alias(libs.plugins.aboutLibraries)
 }
 
+repositories {
+    google()
+    mavenCentral()
+}
+
 android {
     namespace = "io.github.obaya884.favbasket"
     compileSdk = 37
@@ -67,7 +72,6 @@ ksp {
 
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
-
 
     implementation(libs.androidx.core.ktx)
 
