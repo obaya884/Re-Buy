@@ -10,11 +10,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.BuildConfig
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.ui.Screen
+import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
@@ -26,7 +28,10 @@ fun SettingScreen(
     ReBuyAppScaffold(
         topBarTitle = stringResource(id = R.string.setting_title),
         topBarNavigationIcon = {
-            IconButton(onClick = { navigator.goBack() }) {
+            IconButton(
+                modifier = Modifier.testTag(TestTags.BACK_BUTTON),
+                onClick = { navigator.goBack() }
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null

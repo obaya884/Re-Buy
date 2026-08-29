@@ -8,19 +8,22 @@ import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
+import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.ui.activity.MainActivity
+import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
 /**
- * 画面遷移の特性テスト。
+ * 画面遷移の特性テスト。**遷移の仕様そのものを変えない限り書き換えない**——
+ * ナビゲーション基盤を差し替えたときに挙動が変わっていないことを、ここで機械的に確かめる。
  *
- * Navigation 3 への移行（T-18）で挙動が変わっていないことを確かめるために、移行前の挙動を写し取っている。
- * **移行後もこのファイルを 1 行も変えずに緑であること**が移行の合否判定になるので、
- * 移行で赤くなった場合に直すのはテストではなく実装。
+ * 遷移規則そのもの（スタックの積み方・タブごとの履歴保持）は JVM 段の `NavigatorTest` が持つ。
+ * ここが見るのは「UI の操作がその規則に正しく結線されているか」。
  *
- * DB の中身に依存する遷移（買い物終了でホームへ戻る）は、データを用意する必要があるためここでは扱わない。
+ * DB の中身に依存する遷移（買い物終了でホームへ戻る）は、データを用意する必要があるため扱わない。
  */
 @HiltAndroidTest
 class NavigationTest {
@@ -36,9 +39,20 @@ class NavigationTest {
         hiltRule.inject()
     }
 
+    private fun string(resId: Int): String = composeRule.activity.getString(resId)
+
+    private val homeTitle get() = string(R.string.home_title)
+    private val shoppingTitle get() = string(R.string.shopping_title)
+    private val settingTitle get() = string(R.string.setting_title)
+    private val itemEditTitle get() = string(R.string.item_edit_title)
+    private val categoryEditTitle get() = string(R.string.category_edit_title)
+
+    /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
+    private val licenseLabel = "ライセンス"
+
     /** 現在表示されている画面を TopAppBar のタイトルで判定する。 */
     private fun assertCurrentScreenIs(title: String) {
-        composeRule.onNodeWithTag("top_app_bar_title").assertTextEquals(title)
+        composeRule.onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals(title)
     }
 
     private fun pressBack() {
@@ -46,54 +60,126 @@ class NavigationTest {
         composeRule.waitForIdle()
     }
 
+    private fun tapBackArrow() {
+        composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+    }
+
+    private fun tapTab(item: BottomNavigationItem) {
+        composeRule.onNodeWithTag(TestTags.bottomNavItem(item)).performClick()
+    }
+
     @Test
     fun 起動直後はホームが表示される() {
-        assertCurrentScreenIs("ホーム")
+        assertCurrentScreenIs(homeTitle)
     }
 
     @Test
     fun ホームから設定へ遷移して端末の戻るでホームに帰る() {
-        composeRule.onNodeWithTag("home_settings_button").performClick()
-        assertCurrentScreenIs("設定")
+        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        assertCurrentScreenIs(settingTitle)
 
         pressBack()
-        assertCurrentScreenIs("ホーム")
+        assertCurrentScreenIs(homeTitle)
     }
 
     @Test
-    fun 設定からライセンスへ遷移して端末の戻るで設定に帰る() {
-        composeRule.onNodeWithTag("home_settings_button").performClick()
-        composeRule.onNodeWithText("ライセンス").performClick()
-        assertCurrentScreenIs("ライセンス")
+    fun ホームから設定へ遷移して戻る矢印でホームに帰る() {
+        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        assertCurrentScreenIs(settingTitle)
+
+        tapBackArrow()
+        assertCurrentScreenIs(homeTitle)
+    }
+
+    @Test
+    fun 設定からライセンスへ遷移して端末の戻るで1段ずつホームまで帰る() {
+        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithText(licenseLabel).performClick()
+        assertCurrentScreenIs(licenseLabel)
 
         pressBack()
-        assertCurrentScreenIs("設定")
+        assertCurrentScreenIs(settingTitle)
+
+        pressBack()
+        assertCurrentScreenIs(homeTitle)
+    }
+
+    @Test
+    fun ライセンスの戻る矢印で設定に帰る() {
+        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithText(licenseLabel).performClick()
+        assertCurrentScreenIs(licenseLabel)
+
+        tapBackArrow()
+        assertCurrentScreenIs(settingTitle)
     }
 
     @Test
     fun ホームからアイテム一覧へ遷移して端末の戻るでホームに帰る() {
-        composeRule.onNodeWithTag("home_item_edit_button").performClick()
-        assertCurrentScreenIs("アイテム")
+        composeRule.onNodeWithTag(TestTags.HOME_ITEM_EDIT_BUTTON).performClick()
+        assertCurrentScreenIs(itemEditTitle)
 
         pressBack()
-        assertCurrentScreenIs("ホーム")
+        assertCurrentScreenIs(homeTitle)
+    }
+
+    @Test
+    fun アイテム一覧の戻る矢印でホームに帰る() {
+        composeRule.onNodeWithTag(TestTags.HOME_ITEM_EDIT_BUTTON).performClick()
+        assertCurrentScreenIs(itemEditTitle)
+
+        tapBackArrow()
+        assertCurrentScreenIs(homeTitle)
     }
 
     @Test
     fun ホームからカテゴリー一覧へ遷移して端末の戻るでホームに帰る() {
-        composeRule.onNodeWithTag("home_category_edit_button").performClick()
-        assertCurrentScreenIs("カテゴリー")
+        composeRule.onNodeWithTag(TestTags.HOME_CATEGORY_EDIT_BUTTON).performClick()
+        assertCurrentScreenIs(categoryEditTitle)
 
         pressBack()
-        assertCurrentScreenIs("ホーム")
+        assertCurrentScreenIs(homeTitle)
+    }
+
+    @Test
+    fun カテゴリー一覧の戻る矢印でホームに帰る() {
+        composeRule.onNodeWithTag(TestTags.HOME_CATEGORY_EDIT_BUTTON).performClick()
+        assertCurrentScreenIs(categoryEditTitle)
+
+        tapBackArrow()
+        assertCurrentScreenIs(homeTitle)
     }
 
     @Test
     fun ボトムナビでホームと買い物を往復できる() {
-        composeRule.onNodeWithText("買い物").performClick()
-        assertCurrentScreenIs("買い物")
+        tapTab(BottomNavigationItem.Shopping)
+        assertCurrentScreenIs(shoppingTitle)
 
-        composeRule.onNodeWithText("ホーム").performClick()
-        assertCurrentScreenIs("ホーム")
+        tapTab(BottomNavigationItem.Home)
+        assertCurrentScreenIs(homeTitle)
+    }
+
+    @Test
+    fun 買い物タブから端末の戻るでホームに帰る() {
+        tapTab(BottomNavigationItem.Shopping)
+        assertCurrentScreenIs(shoppingTitle)
+
+        pressBack()
+        assertCurrentScreenIs(homeTitle)
+    }
+
+    @Test
+    fun ホームで戻るとアプリが終了する() {
+        assertCurrentScreenIs(homeTitle)
+
+        // Activity が破棄されると composeRule.activity は取得自体が落ちるので、先に掴んでおく
+        val activity = composeRule.activity
+
+        // pressBack だとアプリ終了時に NoActivityResumedException になるので無条件版を使う
+        Espresso.pressBackUnconditionally()
+        // composeRule.waitForIdle() は composition が消えた後だと当てにならないので Espresso 側で待つ
+        Espresso.onIdle()
+
+        assertTrue(activity.isFinishing || activity.isDestroyed)
     }
 }

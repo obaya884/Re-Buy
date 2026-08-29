@@ -9,6 +9,7 @@ import androidx.navigation3.ui.NavDisplay
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.navigation.rememberNavigationState
 import io.github.obaya884.rebuy.ui.navigation.toEntries
+import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditScreen
 import io.github.obaya884.rebuy.ui.screen.home.HomeScreen
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditScreen
@@ -24,17 +25,19 @@ fun ReBuyApp() {
 
     val navigationState = rememberNavigationState(
         startRoute = Screen.Home,
-        topLevelRoutes = setOf(Screen.Home, Screen.Shopping)
+        topLevelRoutes = BottomNavigationItem.topLevelRoutes
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
 
-    val entryProvider = entryProvider<NavKey> {
-        entry<Screen.Home> { HomeScreen(navigator, snackbarHostState) }
-        entry<Screen.Shopping> { ShoppingScreen(navigator, snackbarHostState) }
-        entry<Screen.Setting> { SettingScreen(navigator, snackbarHostState) }
-        entry<Screen.CategoryEdit> { CategoryEditScreen(navigator, snackbarHostState) }
-        entry<Screen.ItemEdit> { ItemEditScreen(navigator, snackbarHostState) }
-        entry<Screen.License> { LicenseScreen(navigator, snackbarHostState) }
+    val entryProvider = remember(navigator, snackbarHostState) {
+        entryProvider<NavKey> {
+            entry<Screen.Home> { HomeScreen(navigator, snackbarHostState) }
+            entry<Screen.Shopping> { ShoppingScreen(navigator, snackbarHostState) }
+            entry<Screen.Setting> { SettingScreen(navigator, snackbarHostState) }
+            entry<Screen.CategoryEdit> { CategoryEditScreen(navigator, snackbarHostState) }
+            entry<Screen.ItemEdit> { ItemEditScreen(navigator, snackbarHostState) }
+            entry<Screen.License> { LicenseScreen(navigator, snackbarHostState) }
+        }
     }
 
     ReBuyTheme {
@@ -45,22 +48,12 @@ fun ReBuyApp() {
     }
 }
 
+/** 画面のルート。宣言順は [entryProvider] の登録順（トップレベルが先）に揃える。 */
 sealed class Screen : NavKey {
-    @Serializable
-    data object Home : Screen()
-
-    @Serializable
-    data object Setting : Screen()
-
-    @Serializable
-    data object CategoryEdit : Screen()
-
-    @Serializable
-    data object ItemEdit : Screen()
-
-    @Serializable
-    data object Shopping : Screen()
-
-    @Serializable
-    data object License : Screen()
+    @Serializable data object Home : Screen()
+    @Serializable data object Shopping : Screen()
+    @Serializable data object Setting : Screen()
+    @Serializable data object CategoryEdit : Screen()
+    @Serializable data object ItemEdit : Screen()
+    @Serializable data object License : Screen()
 }

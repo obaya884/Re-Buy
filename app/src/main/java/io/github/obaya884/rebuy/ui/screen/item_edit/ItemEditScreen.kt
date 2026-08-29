@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +28,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
@@ -44,7 +46,10 @@ fun ItemEditScreen(
     ReBuyAppScaffold(
         topBarTitle = stringResource(id = R.string.item_edit_title),
         topBarNavigationIcon = {
-            IconButton(onClick = { navigator.goBack() }) {
+            IconButton(
+                modifier = Modifier.testTag(TestTags.BACK_BUTTON),
+                onClick = { navigator.goBack() }
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null

@@ -11,9 +11,11 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
@@ -28,7 +30,10 @@ fun LicenseScreen(
     ReBuyAppScaffold(
         topBarTitle = "ライセンス",
         topBarNavigationIcon = {
-            IconButton(onClick = { navigator.goBack() }) {
+            IconButton(
+                modifier = Modifier.testTag(TestTags.BACK_BUTTON),
+                onClick = { navigator.goBack() }
+            ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null

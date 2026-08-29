@@ -2,7 +2,10 @@ package io.github.obaya884.rebuy.ui.screen
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
+import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 
 @Composable
@@ -10,13 +13,10 @@ fun BottomNavigationBar(
     navigator: Navigator,
     shoppingTabBadgeCount: Int
 ) {
-    val items = listOf(
-        BottomNavigationItem.Home,
-        BottomNavigationItem.Shopping
-    )
     NavigationBar {
-        items.forEach { item ->
+        BottomNavigationItem.entries.forEach { item ->
             NavigationBarItem(
+                modifier = Modifier.testTag(TestTags.bottomNavItem(item)),
                 icon = {
                     BadgedBox(
                         badge = {
@@ -33,9 +33,9 @@ fun BottomNavigationBar(
                     }
                 },
                 label = { Text(stringResource(item.titleId)) },
-                selected = item.key == navigator.state.topLevelRoute,
+                selected = item.route == navigator.currentTopLevelRoute,
                 onClick = {
-                    navigator.navigate(item.key)
+                    navigator.navigate(item.route)
                 }
             )
         }

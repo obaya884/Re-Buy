@@ -8,10 +8,15 @@ import androidx.navigation3.runtime.NavKey
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.ui.Screen
 
-sealed class BottomNavigationItem(val key: NavKey, val icon: ImageVector, val titleId: Int) {
-    data object Home :
-        BottomNavigationItem(Screen.Home, Icons.AutoMirrored.Filled.List, R.string.home_title)
+/**
+ * ボトムナビの項目。トップレベルルート（それぞれが独立した backstack を持つ）の単一の正。
+ * タブを増やすときはここに 1 行足せば、ナビゲーションバーと [topLevelRoutes] の両方に反映される。
+ */
+enum class BottomNavigationItem(val route: NavKey, val icon: ImageVector, val titleId: Int) {
+    Home(Screen.Home, Icons.AutoMirrored.Filled.List, R.string.home_title),
+    Shopping(Screen.Shopping, Icons.Default.ShoppingCart, R.string.shopping_title);
 
-    data object Shopping :
-        BottomNavigationItem(Screen.Shopping, Icons.Default.ShoppingCart, R.string.shopping_title)
+    companion object {
+        val topLevelRoutes: Set<NavKey> = entries.map { it.route }.toSet()
+    }
 }

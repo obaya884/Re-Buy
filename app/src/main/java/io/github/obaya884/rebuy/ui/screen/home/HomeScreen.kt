@@ -26,6 +26,7 @@ import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
 import io.github.obaya884.rebuy.ui.Screen
+import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
@@ -53,7 +54,7 @@ fun HomeScreen(
         topBarTitle = stringResource(R.string.home_title),
         topBarActions = {
             IconButton(
-                modifier = Modifier.testTag("home_item_edit_button"),
+                modifier = Modifier.testTag(TestTags.HOME_ITEM_EDIT_BUTTON),
                 onClick = {
                     navigator.navigate(Screen.ItemEdit)
                 }
@@ -64,7 +65,7 @@ fun HomeScreen(
                 )
             }
             IconButton(
-                modifier = Modifier.testTag("home_category_edit_button"),
+                modifier = Modifier.testTag(TestTags.HOME_CATEGORY_EDIT_BUTTON),
                 onClick = {
                     navigator.navigate(Screen.CategoryEdit)
                 }
@@ -75,7 +76,7 @@ fun HomeScreen(
                 )
             }
             IconButton(
-                modifier = Modifier.testTag("home_settings_button"),
+                modifier = Modifier.testTag(TestTags.HOME_SETTINGS_BUTTON),
                 onClick = {
                     navigator.navigate(Screen.Setting)
                 }
