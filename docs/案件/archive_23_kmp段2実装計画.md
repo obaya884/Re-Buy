@@ -54,6 +54,8 @@
 
 ## namespace とリソース — ここが合否の分岐点
 
+> **この節の方針はのちに覆った（2026-08-29、T-29）。** 本節は「既存の `R` の import を 1 行も変えない」ことを優先して `:shared:ui` にルート namespace を渡す形を採ったが、調査の結果このやり方は実例が無く、`:shared:ui` に androidTest を足すとテスト APK の applicationId が衝突するという実害もあった。現在の方針は [KMP 化検討](../検討/32_KMP化検討.md) §3 が正。以下は段 2 当時の記録として残す。
+
 `gradle.properties` に `android.nonTransitiveRClass=true` があり、AGP 9.3.2 ではアプリモジュールの `R` も非推移的（`NON_TRANSITIVE_APP_R_CLASS` が `Enforced(VERSION_7_0)`）。**`:androidApp` の `R` には、ライブラリへ移した `strings.xml` の項目は入らない。**
 
 一方 `NavigationTest` / `ViewModelScopeTest` は `import io.github.obaya884.rebuy.R` を持ち、`R.string.home_title` を引いている。`home_title` は `:shared:ui` へ移る。**この 2 ファイルを 1 行も変えずに通すには、`io.github.obaya884.rebuy.R` が `:shared:ui` の `R` である必要がある。**
