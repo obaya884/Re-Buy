@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -20,7 +22,7 @@ fun ReBuyAppScaffold(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(topBarTitle) },
+                title = { Text(topBarTitle, modifier = Modifier.testTag("top_app_bar_title")) },
                 navigationIcon = topBarNavigationIcon,
                 actions = topBarActions
             )
