@@ -101,7 +101,7 @@
 
 - 背景: ③ で iOS の外枠を SwiftUI が持つため、共有側は backstack を自分で持つ形である必要がある。現行の `NavHost` は backstack を内部に隠しており、SwiftUI の `NavigationStack` と二重管理になる
 - 対応方針: Android 単体のまま Navigation 3 へ移行する。KMP 移植と同時にやると落ちたときに切り分けられないので段を分ける
-- 関連: [KMP 化検討](../検討/32_KMP化検討.md) §10 ／ [実装計画](./26_KMP化実装計画.md)
+- 関連: [KMP 化検討](../検討/32_KMP化検討.md) §10 ／ [実装計画](./archive_26_KMP化実装計画.md)
 
 ### T-14
 
