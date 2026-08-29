@@ -15,10 +15,10 @@ android {
     // 画面文言が入る R をアプリと同じ FQN で持つ。android.nonTransitiveRClass=true なので
     // ここを分けると本番 9 ファイルと instrumented 2 ファイルの import が変わる
     namespace = "io.github.obaya884.rebuy"
-    compileSdk = 37
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 31
+        minSdk = libs.versions.minSdk.get().toInt()
         // ライブラリの BuildConfig には versionName が生えないので、自分で持たせる
         buildConfigField(
             "String",
@@ -45,35 +45,38 @@ dependencies {
 
     api(project(":shared:domain"))
 
-    // Koin
-    implementation(platform(libs.koin.bom))
-    implementation(libs.koin.android)
-    api(libs.koin.compose.viewmodel)
+    // uiModule を :androidApp へ公開する。koinViewModel() は画面の内側だけ
+    api(libs.koin.core)
+    implementation(libs.koin.compose.viewmodel)
 
     // Lifecycle
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
-    // Navigation
-    implementation(libs.androidx.navigation3.runtime)
+    // Navigation。Screen が NavKey を継ぎ、Navigator も NavKey を公開する
+    api(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
     implementation(libs.kotlinx.serialization.json)
 
     // Compose
+    // 公開シグネチャに出る型があるものを api にする
+    //   compose.ui: BottomNavigationItem の ImageVector
+    //   material3: 画面 Composable が受け取る SnackbarHostState
     api(composeBom)
     api(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.foundation)
     implementation(libs.androidx.compose.ui.tooling.preview)
     api(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.material3.windowsizeclass)
     implementation(libs.androidx.compose.material.icons.core)
 
     // OSS ライセンス表示
     implementation(libs.aboutlibraries.core)
     implementation(libs.aboutlibraries.compose.core)
     implementation(libs.aboutlibraries.compose.m3)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
 
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)

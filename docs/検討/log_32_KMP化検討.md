@@ -19,3 +19,4 @@
 | 2026-08-29 | DI の差し替え（Hilt → Koin）を分割より前の段にする | オーナー判断。Hilt のまま分割すると、各モジュールへの KSP 配線という段 3 で捨てる作業を書くことになる。ViewModel テストは DI に触れていないので、差し替えの網はすでにある |
 | 2026-08-29 | `namespace` をモジュールごとに分け、`:shared:ui` が `io.github.obaya884.rebuy` を引き継ぐ | 調査で `android.nonTransitiveRClass=true` によりアプリの `R` にライブラリのリソースが入らないことが分かった。段 2 の合否判定は「既存テストが 1 行も変わらず緑」で、instrumented 2 ファイルが `io.github.obaya884.rebuy.R` を参照している。`applicationId` は不変なので実害は無い |
 | 2026-08-29 | AboutLibraries プラグインを `:shared:ui` へ移す | 生成物は適用先モジュール自身の res になるため、`LicenseScreen` と同じモジュールでないと `R.raw.aboutlibraries` が引けない |
+| 2026-08-29 | convention plugin の導入を段 3 の最初に置く | オーナー判断。段 2 までの重複は自己修正する（書き忘れるとビルドが落ちる）ので割に合わない。段 3 の KMP ターゲット定義は書き忘れが静かに効くうえ、いま書くと Android 専用の convention を段 3 で書き直すことになる |

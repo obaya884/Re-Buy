@@ -1,4 +1,9 @@
 [versions]
+# SDK レベルは 4 モジュールで揃える（数値リテラルを散らすと更新時に取りこぼす）
+compileSdk = "37"
+minSdk = "31"
+targetSdk = "35"
+
 kotlin = "2.4.10"
 ksp = "2.3.11"
 android-gradle-plugin = "9.3.2"

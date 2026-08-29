@@ -10,12 +10,12 @@ repositories {
 
 android {
     namespace = "io.github.obaya884.rebuy.app"
-    compileSdk = 37
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "io.github.obaya884.rebuy"
-        minSdk = 31
-        targetSdk = 35
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = providers.gradleProperty("rebuy.versionName").get()
 
@@ -31,7 +31,7 @@ android {
         named("androidTest") {
             // :shared:data が出力するスキーマを RoomMigrationTest の assets として渡す。
             // config cache が有効なので project(":shared:data").projectDir とは書かない
-            assets.directories.add("$projectDir/../shared/data/schemas")
+            assets.directories.add("$rootDir/shared/data/schemas")
         }
     }
 
@@ -75,26 +75,18 @@ dependencies {
 
     implementation(project(":shared:ui"))
 
-    implementation(libs.androidx.core.ktx)
-
-    // Koin（startKoin と androidContext）
-    implementation(platform(libs.koin.bom))
+    // startKoin と androidContext
     implementation(libs.koin.android)
 
-    // Activity（MainActivity の setContent）
-    implementation(composeBom)
+    // MainActivity の setContent
     implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.activity.ktx)
 
-    /**
-     * Test
-     */
+    // Test
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.androidx.compose.ui.test.junit)
-    debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.room.testing)
 }

@@ -9,10 +9,10 @@ repositories {
 
 android {
     namespace = "io.github.obaya884.rebuy.domain"
-    compileSdk = 37
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 31
+        minSdk = libs.versions.minSdk.get().toInt()
     }
 
     compileOptions {
@@ -25,6 +25,6 @@ dependencies {
     // エンティティと DAO を上の層へ通すので api
     api(project(":shared:data"))
 
-    implementation(platform(libs.koin.bom))
-    implementation(libs.koin.core)
+    // domainModule を上の層へ公開する
+    api(libs.koin.core)
 }

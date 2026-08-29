@@ -10,10 +10,10 @@ repositories {
 
 android {
     namespace = "io.github.obaya884.rebuy.data"
-    compileSdk = 37
+    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = 31
+        minSdk = libs.versions.minSdk.get().toInt()
     }
 
     compileOptions {
@@ -36,8 +36,10 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // Koin（DataModule が androidContext を使う）
-    implementation(platform(libs.koin.bom))
+    // dataModule（Koin の Module 型）を上の層へ公開する
+    api(platform(libs.koin.bom))
+    api(libs.koin.core)
+    // androidContext() は DataModule の内側だけで使う
     implementation(libs.koin.android)
 
     testImplementation(libs.junit)
