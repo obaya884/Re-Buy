@@ -49,13 +49,13 @@
 
 ## 着手前に潰す未確認事項
 
-優先順。1 はステップ 1 の最初の 10 分で判明する。
+優先順。実測で潰したものは結果を残す。
 
-1. **Gradle 9.7.1 の埋め込み Kotlin 2.2 で、KGP 2.4.10 を使う convention plugin をコンパイルできるか。** `kotlin-dsl` プラグインは Gradle 埋め込みのコンパイラを使う。KGP の jar が Kotlin 2.4 メタデータで publish されていると `class file was compiled by a newer version of Kotlin` で落ちる。**ダメだった場合の退避は本書「落とし穴」の 2 番**
-2. AGP 9.3.2 の KMP ライブラリ DSL のブロック名（`kotlin { android { } }` か `kotlin { androidLibrary { } }` か）と host test の source set 名（`androidHostTest` か `androidUnitTest` か）。`./gradlew :shared:data:sourceSets` と `tasks --all` で確定させる
-3. `kotlin.time.Instant` が Kotlin 2.4.10 で stable か。まだ `@ExperimentalTime` なら、エンティティ・DAO・ViewModel・テストの広範囲に `@OptIn` が伝播する。その場合は `-opt-in=kotlin.time.ExperimentalTime` を convention plugin の `freeCompilerArgs` に一括で入れる
+1. ~~Gradle の埋め込み Kotlin で KGP 2.4.10 を使う convention plugin をコンパイルできるか~~ → **できる**（2026-08-29）。Gradle 9.7.1 の埋め込み Kotlin は 2.2 ではなく **2.4.0** で、KGP と同じマイナーだった。退避策は不要
+2. AGP 9.3.2 の KMP ライブラリ DSL のブロック名と host test の source set 名（`androidHostTest` か `androidUnitTest` か）。プラグイン id は **`com.android.kotlin.multiplatform.library`**、host test の口は **`withHostTestBuilder {}`**（既定 off）まで jar から確定済み。残りは `./gradlew :shared:data:sourceSets` と `tasks --all` で確定させる
+3. ~~`kotlin.time.Instant` が Kotlin 2.4.10 で stable か~~ → **stable**（2026-08-30）。`Clock.System.now()` と `Instant.fromEpochMilliseconds()` を使う捨てファイルを `:shared:data` でコンパイルし、警告もエラーも出ないことを確認した。`@OptIn` の伝播は起きない
 4. `androidx.room` Gradle プラグインの `schemaDirectory` がバリアント別サブディレクトリを掘らないか。掘られると `shared/data/schemas/io.github.obaya884.rebuy.data.AppDatabase/2.json` の場所が変わり、`androidApp/build.gradle.kts` の assets 指定と `RoomMigrationTest` が同時に壊れる
-5. Compose Multiplatform のどの版が Kotlin 2.4.10 と Compose BOM 2026.08.00 に対応するか
+5. ~~Compose Multiplatform のどの版が Kotlin 2.4.10 に対応するか~~ → **1.12.0**（2026-08-30）。Kotlin 2.2.20 でビルドされているが、Kotlin は古いメタデータを読めるので 2.4.10 から使える。Compose BOM 2026.08.00 との突き合わせはステップ 12 で行う
 
 ## build-logic（T-28a / T-28b）
 

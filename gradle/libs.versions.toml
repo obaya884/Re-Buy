@@ -9,6 +9,8 @@ ksp = "2.3.11"
 android-gradle-plugin = "9.3.2"
 androidx-core = "1.19.0"
 androidx-room = "2.8.4"
+# Room 2.8.4 が引いてくる sqlite に合わせる（ずれると driver の実装が二重になる）
+androidx-sqlite = "2.6.2"
 androidx-lifecycle = "2.11.0"
 androidx-compose-bom = "2026.08.00"
 androidx-navigation3 = "1.1.6"
@@ -20,6 +22,8 @@ androidx-espresso = "3.7.0"
 junit = "4.13.2"
 koin = "4.1.0"
 aboutLibraries = "15.2.0"
+# Compose Multiplatform。Kotlin 2.2.20 でビルドされているが、Kotlin は古いメタデータを読めるので 2.4.10 から使える
+compose-multiplatform = "1.12.0"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-gradle-plugin" }
@@ -32,6 +36,8 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "androidx-room" }
 androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "androidx-room" }
 androidx-room-testing = { group = "androidx.room", name = "room-testing", version.ref = "androidx-room" }
+# KMP の Room は driver を自分で渡す。同梱 SQLite を全ターゲットで使う
+androidx-sqlite-bundled = { group = "androidx.sqlite", name = "sqlite-bundled", version.ref = "androidx-sqlite" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "androidx-lifecycle" }
@@ -73,4 +79,9 @@ android-application = { id = "com.android.application", version.ref = "android-g
 android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android-gradle-plugin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+# ksp arg の room.schemaLocation は KMP では効かないので、Room の Gradle プラグインで schemaDirectory を渡す
+androidx-room = { id = "androidx.room", version.ref = "androidx-room" }
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
