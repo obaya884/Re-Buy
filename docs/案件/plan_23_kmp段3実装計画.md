@@ -303,7 +303,8 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
 16. **`iosMain` の関数名を Objective-C の method family で始めない。** `init` / `new` / `copy` / `mutableCopy` / `alloc` の 5 つが該当し、いずれも Swift 側で `do` が付く（`initKoin()` → `doInitKoin()`）
 17. **AboutLibraries が KMP の android ターゲットから依存を拾えない。** 15.2.0（最新）の KMP 経路は AGP の KMP android ライブラリに追随しておらず、`:shared:ui` を KMP 化すると `aboutlibraries.json` が **0 件**になる（`collect { all = true }` でも `commonMain` に依存を置いても変わらない）。**ビルドもテストも緑のまま、ライセンス画面だけが空になる。** ステップ 5〜14 の間は空を許容し、ステップ 14 で戻す（2026-08-30 オーナー判断）。あわせて `aboutlibraries.json` が生成物なのにソースツリー内に出る点もここで片づける
-18. **Linux CI は iOS のタスクを黙って無効化する。** 落ちるのではなく `Native task 'iosSimulatorArm64Test' is disabled` / `cannot run on the current host (linux-x86_64)` の警告を出して素通りする（ステップ 6 で実測）。ステップ 6 の時点では `commonMain` が空なので害が無いが、**ステップ 8 以降は `compileKotlinIosArm64` に実際のソースが入り、iOS 側のコンパイルエラーが CI をすり抜ける**。ステップ 16 で macOS ランナーの `ios` ジョブを足すまで、**各ステップでローカルの `linkDebugFrameworkIosSimulatorArm64` を自分で回すこと**が唯一の網になる
+18. **CMP は `Info.plist` に `CADisableMinimumFrameDurationOnPhone` を要求する。** 無いと `PlistSanityCheck` が例外を投げて `SIGABRT` で落ちる。**チェックが走るのは 1 フレーム描画した後**なので、スクリーンショットには正常な画面が写る。**iOS の確認でスクリーンショットは「動いた」証拠にならない**——`xcrun simctl spawn booted launchctl list | grep -i <app>` でプロセスが生き続けているかを見ること（ステップ 7 で実際に踏んだ）
+19. **Linux CI は iOS のタスクを黙って無効化する。** 落ちるのではなく `Native task 'iosSimulatorArm64Test' is disabled` / `cannot run on the current host (linux-x86_64)` の警告を出して素通りする（ステップ 6 で実測）。ステップ 6 の時点では `commonMain` が空なので害が無いが、**ステップ 8 以降は `compileKotlinIosArm64` に実際のソースが入り、iOS 側のコンパイルエラーが CI をすり抜ける**。ステップ 16 で macOS ランナーの `ios` ジョブを足すまで、**各ステップでローカルの `linkDebugFrameworkIosSimulatorArm64` を自分で回すこと**が唯一の網になる
 
 ## spec §11「③ で壊れる開発基盤」の仕分け
 
