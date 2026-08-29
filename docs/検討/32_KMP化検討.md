@@ -50,7 +50,7 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 - ビルダーには `setDriver(BundledSQLiteDriver())` と **`setQueryCoroutineContext(Dispatchers.IO)`** を必ず対で指定する
 - DB ファイルのパス解決だけ `expect/actual`（Android は `Context` 経由、iOS は `NSDocumentDirectory`）
 - `app/schemas/` の JSON は `shared/data/schemas/` へ移す。移すだけで中身は変えない
-- **`InstantEpochMilliConverter` の `java.time` 依存を外す**。`kotlinx-datetime` または `kotlin.time.Instant` へ置き換える。保存形式はエポックミリ秒の `INTEGER` で、どの実装でも同じ値になるため置き換えで壊れない（T-24 で文字列保存をやめた）
+- **`InstantConverter` の `java.time` 依存を外す**。`kotlinx-datetime` または `kotlin.time.Instant` へ置き換える。保存形式はエポックミリ秒の `INTEGER` で、どの実装でも同じ値になるため置き換えで壊れない（T-24 で文字列保存をやめた）
 - `ItemStatusConverter` の `value`（0 / 1 / 2）も変えない
 
 ## 5. DI（C）
