@@ -31,15 +31,25 @@ Android 単一モジュールの現構造を、iOS と共有できる構造へ�
 ```
 :shared:data     Room（Item / Category / DAO / Converter / AppDatabase）とドライバの expect/actual
 :shared:domain   ItemRepository / CategoryRepository
-:shared:ui       Compose 画面・ViewModel・Navigation・theme
-:androidApp      MainActivity / Application / マニフェスト / AboutLibraries 生成
+:shared:ui       Compose 画面・ViewModel・Navigation・theme・画面文言・AboutLibraries 生成
+:androidApp      MainActivity / Application / マニフェスト / ランチャーアイコン
 iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホスト。Gradle モジュールではない）
 ```
 
 - 依存の向きは `:androidApp`・`iosApp` → `:shared:ui` → `:shared:domain` → `:shared:data` の一方向。Gradle が機械的に強制する
 - **`:androidApp` は KMP モジュールにしない**。AGP 9 は KMP モジュールへの Android application プラグイン適用を打ち切っており、分離は選択ではなく前提（[JetBrains の新デフォルト構成](https://blog.jetbrains.com/kotlin/2026/05/new-kmp-default-structure/)と同じ形）
 - `Item` / `Category` は `:shared:data` に置いたまま `:shared:domain` と `:shared:ui` が参照する。Room の `@Entity` を UI まで流している現構造をそのまま移す。domain モデルを別に立ててマッピングを挟むのは ③ の範囲外（④ 以降）
-- `applicationId` / `namespace` は `io.github.obaya884.rebuy` のまま変えない
+- **`applicationId` は `io.github.obaya884.rebuy` のまま変えない。`namespace` はモジュールごとに分ける**
+
+| モジュール | `namespace` |
+|---|---|
+| `:shared:data` | `io.github.obaya884.rebuy.data` |
+| `:shared:domain` | `io.github.obaya884.rebuy.domain` |
+| `:shared:ui` | **`io.github.obaya884.rebuy`**（現在の `R` を引き継ぐ） |
+| `:androidApp` | `io.github.obaya884.rebuy.app` |
+
+  `gradle.properties` の `android.nonTransitiveRClass=true` により、アプリの `R` にライブラリのリソースは入らない。画面文言は `:shared:ui` へ移るので、`io.github.obaya884.rebuy.R` を参照している本番 9 ファイルと **instrumented テスト 2 ファイル**をそのまま通すには、`:shared:ui` が `io.github.obaya884.rebuy` を名乗るしかない。`applicationId` は変わらないので、端末上のパッケージ名・`context.packageName`・DB のファイルパスは不変
+- **AboutLibraries プラグインは `:shared:ui` に適用する**。プラグインは生成した `res/raw/aboutlibraries.json` を適用先モジュール自身の res ソースとして登録するため、`LicenseScreen` と同じモジュールに置く必要がある。ただし収集範囲は適用先モジュールの依存グラフなので、`:androidApp` にしか宣言していない依存はライセンス一覧から落ちる——移設の前後で `aboutlibraries.json` を diff して確かめる
 - convention plugin（`build-logic`）は作らない。モジュール 4 つで重複が問題になっていないため。必要が出たら T-XX で起票する
 
 ## 4. データ層（B）
