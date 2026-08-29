@@ -12,6 +12,7 @@
 | T-02 | docs の番号付き構造と台帳の新設 | ツール整備 | 高 | 完了 2026-08-29 | [詳細](#t-02) |
 | T-03 | docs-check.sh の移植 | ツール整備 | 高 | 完了 2026-08-29 | [詳細](#t-03) |
 | T-04 | ledger-move.sh の移植 | ツール整備 | 中 | 完了 2026-08-29 | [詳細](#t-04) |
+| T-05 | Gradle Managed Device の導入 | テスト | 高 | 完了 2026-08-29 | [詳細](#t-05) |
 
 ## 詳細
 
@@ -38,3 +39,9 @@
 - 背景: 台帳の完了エントリを一覧と詳細の 2 か所から `closed_` へ移す作業を手でやると片方を置き忘れる
 - 対応方針: hitosuji の `scripts/ledger-move.sh` を移植し、対象を T-XX（23）のみにする
 - 関連: [開発基盤検討](../検討/31_開発基盤検討.md) §7
+
+### T-05
+
+- 背景: インストルメンテーションテスト（`RoomMigrationTest`）を回すのに手動でエミュレータを起動する必要があり、CI で回せない
+- 対応方針: `app/build.gradle.kts` に Gradle Managed Device `pixel6Api35`（aosp-atd）を定義し、`./gradlew pixel6Api35DebugAndroidTest` の 1 コマンドにする
+- 関連: [開発基盤検討](../検討/31_開発基盤検討.md) §8

@@ -63,6 +63,17 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    testOptions {
+        managedDevices {
+            localDevices {
+                create("pixel6Api35") {
+                    device = "Pixel 6"
+                    apiLevel = 35
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
+    }
 }
 
 ksp {
