@@ -334,11 +334,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlin-serialization-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin" }
 ```
 
-`[plugins]` に足す。
-
-```toml
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-```
+`[plugins]` には足さない。プラグインは buildscript classpath から供給するので、適用側で版を指定してはいけない（Step 3 を見よ）。
 
 - [ ] **Step 2: ルート `build.gradle.kts` の buildscript classpath に serialization プラグインを足す**
 
@@ -352,10 +348,11 @@ classpath(libs.kotlin.serialization.gradle.plugin)
 
 - [ ] **Step 3: `app/build.gradle.kts` にプラグインと依存を足す**
 
-`plugins` ブロックに足す。
+`plugins` ブロックに足す。**版を指定しない**——Step 2 で buildscript classpath に載せているため、`alias(...)` のように版付きで要求すると `Error resolving plugin ... the plugin is already on the classpath with an unknown version` で落ちる（実測）。Kotlin・KSP と同じ扱いになる。
 
 ```kotlin
-alias(libs.plugins.kotlin.serialization)
+// バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
+id("org.jetbrains.kotlin.plugin.serialization")
 ```
 
 `dependencies` の Navigation ブロックを差し替える（Nav2 の削除は Task 5 で行うので、この時点では**両方入っている**）。
@@ -845,11 +842,13 @@ git commit -m "Navigation 2 の直接依存を外す（T-18）"
 
 自動テストで見ていない挙動を手で確認する。**ここが段 0 の最後の関門。**
 
-1. ホームで品目を買い物リストに追加 → 買い物タブ → 品目をチェック → 「買い物を終わる」→ 確定。**ホームタブに戻り、買い物タブの履歴がルートに戻っていること**
+1. ホームで品目を買い物リストに追加 → 買い物タブ → 品目をチェック → 「買い物を終わる」→ 確定。**ホームタブに戻り、買い物タブの履歴がルートに戻っていること**（自動化は T-21）
 2. ホーム → 設定 → 端末を回転。**設定画面のままであること**（`rememberSerializable` による状態保存）
 3. ホーム → 設定 → アプリをバックグラウンドへ → プロセスが殺された後に復帰。**設定画面に戻ること**
 4. 買い物タブでスクロールした位置がホームタブへ往復しても保たれること
-5. ホームで戻るを押すとアプリが終了すること
+5. ホーム → 設定 → **戻るジェスチャを途中でキャンセル**して設定画面のままであること（predictive back。Espresso の戻るはこの経路を踏まないので自動テストでは見ていない）
+
+「ホームで戻るとアプリが終了する」は自動テストに入れたので手動確認から外した。
 
 - [ ] **Step 4: 台帳の T-18 を完了にする**
 

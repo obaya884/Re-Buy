@@ -28,7 +28,7 @@ Re-Buy（仮称）は「くりかえし使える買い物リスト」。品目�
 
 ## 技術スタックとビルド
 
-Kotlin + Jetpack Compose、単一モジュール `:app`（③ で KMP＋マルチモジュールへ）。Room / Hilt / Navigation Compose / AboutLibraries。
+Kotlin + Jetpack Compose、単一モジュール `:app`（③ で KMP＋マルチモジュールへ）。Room / Hilt / Navigation 3 / AboutLibraries。
 
 - `applicationId` / `namespace`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
@@ -72,8 +72,9 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 
 ### UI 層 (`ui/`)
 
-- 画面遷移は `ui/ReBuyApp.kt` の `NavHost` に集約。ルートは `sealed class Screen` で定義し、画面追加時はここに `data object` と `composable(...)` を両方足す
-- 画面 Composable のシグネチャは `(navController: NavController, snackbarHostState: SnackbarHostState)` で統一。ViewModel は `hiltViewModel<XxxViewModel>()` で画面内から取得する（引数で渡さない）
+- 画面遷移は Navigation 3。`ui/ReBuyApp.kt` の `NavDisplay` と `entryProvider` に集約し、ルートは `sealed class Screen : NavKey` で定義する。画面追加時はここに `@Serializable data object` と `entry<...>` を両方足す
+- backstack は `ui/navigation/NavigationState.kt` がトップレベルルート（ホーム・買い物）ごとに保持し、遷移イベントは `Navigator`（`navigate` / `goBack` / `navigateAsRoot`）が受けて状態を更新する。UI は状態を見るだけ
+- 画面 Composable のシグネチャは `(navigator: Navigator, snackbarHostState: SnackbarHostState)` で統一。ViewModel は `hiltViewModel<XxxViewModel>()` で画面内から取得する（引数で渡さない）
 - 全画面が `ReBuyAppScaffold` を使い、TopAppBar / BottomBar / Snackbar / FAB の構成を共通化している
 - ViewModel は「複数の `MutableStateFlow` を `combine` して 1 つの `XxxScreenUiState` にまとめ、`stateIn(viewModelScope, SharingStarted.Eagerly, 初期値)` で公開する」パターンで統一。Repository の Flow は `init` の `viewModelScope.launch` で collect して private StateFlow に流し込む
 - Kotlin 標準の `combine` は 5 引数までなので、6 個をまとめるときはルートの `FlowExt.kt` の自作 `combine` を使う（`ItemEditViewModel` が例）

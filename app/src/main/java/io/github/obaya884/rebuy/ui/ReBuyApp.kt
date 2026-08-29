@@ -3,10 +3,13 @@ package io.github.obaya884.rebuy.ui
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.NavDisplay
+import io.github.obaya884.rebuy.ui.navigation.Navigator
+import io.github.obaya884.rebuy.ui.navigation.rememberNavigationState
+import io.github.obaya884.rebuy.ui.navigation.toEntries
+import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditScreen
 import io.github.obaya884.rebuy.ui.screen.home.HomeScreen
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditScreen
@@ -14,60 +17,43 @@ import io.github.obaya884.rebuy.ui.screen.license.LicenseScreen
 import io.github.obaya884.rebuy.ui.screen.setting.SettingScreen
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingScreen
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
+import kotlinx.serialization.Serializable
 
 @Composable
 fun ReBuyApp() {
-    val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    val navigationState = rememberNavigationState(
+        startRoute = Screen.Home,
+        topLevelRoutes = BottomNavigationItem.topLevelRoutes
+    )
+    val navigator = remember(navigationState) { Navigator(navigationState) }
+
+    val entryProvider = remember(navigator, snackbarHostState) {
+        entryProvider<NavKey> {
+            entry<Screen.Home> { HomeScreen(navigator, snackbarHostState) }
+            entry<Screen.Shopping> { ShoppingScreen(navigator, snackbarHostState) }
+            entry<Screen.Setting> { SettingScreen(navigator, snackbarHostState) }
+            entry<Screen.CategoryEdit> { CategoryEditScreen(navigator, snackbarHostState) }
+            entry<Screen.ItemEdit> { ItemEditScreen(navigator, snackbarHostState) }
+            entry<Screen.License> { LicenseScreen(navigator, snackbarHostState) }
+        }
+    }
+
     ReBuyTheme {
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Home.route
-        ) {
-            composable(Screen.Home.route) {
-                HomeScreen(navController, snackbarHostState)
-            }
-            composable(Screen.Setting.route) {
-                SettingScreen(navController, snackbarHostState)
-            }
-            composable(Screen.CategoryEdit.route) {
-                CategoryEditScreen(navController, snackbarHostState)
-            }
-            composable(Screen.ItemEdit.route) {
-                ItemEditScreen(navController, snackbarHostState)
-            }
-            composable(Screen.Shopping.route) {
-                ShoppingScreen(navController, snackbarHostState)
-            }
-            composable(Screen.License.route) {
-                LicenseScreen(navController, snackbarHostState)
-            }
-        }
+        NavDisplay(
+            entries = navigationState.toEntries(entryProvider),
+            onBack = { navigator.goBack() }
+        )
     }
 }
 
-sealed class Screen(val route: String) {
-    data object Home : Screen("home")
-    data object Setting : Screen("setting")
-    data object CategoryEdit : Screen("category_edit")
-    data object ItemEdit : Screen("item_edit")
-    data object Shopping : Screen("shopping")
-    data object License : Screen("license")
-}
-
-fun NavController.navigateAsRoot(screen: Screen) {
-    // 現在のナビゲーションスタックをクリア
-    popBackStack(graph.startDestinationId, inclusive = false)
-
-    // 指定したルートに新しいインスタンスを生成して移動
-    navigate(screen.route) {
-        // スタックをリセットするための設定
-        popUpTo(graph.startDestinationId) {
-            saveState = true
-        }
-        launchSingleTop = true
-        restoreState = true
-        graph.setStartDestination(screen.route)
-    }
+/** 画面のルート。宣言順は [entryProvider] の登録順（トップレベルが先）に揃える。 */
+sealed class Screen : NavKey {
+    @Serializable data object Home : Screen()
+    @Serializable data object Shopping : Screen()
+    @Serializable data object Setting : Screen()
+    @Serializable data object CategoryEdit : Screen()
+    @Serializable data object ItemEdit : Screen()
+    @Serializable data object License : Screen()
 }

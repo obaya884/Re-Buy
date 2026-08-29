@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.dagger.hilt)
     alias(libs.plugins.ksp)
+    // バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
+    id("org.jetbrains.kotlin.plugin.serialization")
     alias(libs.plugins.aboutLibraries)
 }
 
@@ -22,7 +24,7 @@ android {
         versionCode = 1
         versionName = "0.0.1"
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner = "io.github.obaya884.rebuy.HiltTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -111,7 +113,10 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
     // Navigation
-    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.kotlinx.serialization.json)
 
     // Activity
     implementation(libs.androidx.activity.compose)
@@ -138,6 +143,8 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.google.dagger.hilt.android.testing)
+    kspAndroidTest(libs.google.dagger.hilt.compiler)
 
     /**
      * OSS Libraries

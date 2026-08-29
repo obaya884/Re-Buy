@@ -16,18 +16,17 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.Screen
-import io.github.obaya884.rebuy.ui.navigateAsRoot
+import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
 @Composable
 fun ShoppingScreen(
-    navController: NavController,
+    navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
     val viewModel = hiltViewModel<ShoppingViewModel>()
@@ -36,7 +35,7 @@ fun ShoppingScreen(
     ReBuyAppScaffold(
         topBarTitle = stringResource(id = R.string.shopping_title),
         bottomBar = {
-            BottomNavigationBar(navController, uiState.inShoppingListItems.size)
+            BottomNavigationBar(navigator, uiState.inShoppingListItems.size)
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
@@ -96,7 +95,7 @@ fun ShoppingScreen(
                 onTapConfirm = {
                     viewModel.hideFinishShoppingAlertDialog()
                     viewModel.changeBoughtConfirm {
-                        navController.navigateAsRoot(Screen.Home)
+                        navigator.navigateAsRoot(Screen.Home)
                     }
                 },
                 onTapCancel = {

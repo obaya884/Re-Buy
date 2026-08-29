@@ -2,24 +2,21 @@ package io.github.obaya884.rebuy.ui.screen
 
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
+import io.github.obaya884.rebuy.ui.TestTags
+import io.github.obaya884.rebuy.ui.navigation.Navigator
 
 @Composable
 fun BottomNavigationBar(
-    navController: NavController,
+    navigator: Navigator,
     shoppingTabBadgeCount: Int
 ) {
-    val items = listOf(
-        BottomNavigationItem.Home,
-        BottomNavigationItem.Shopping
-    )
     NavigationBar {
-        val navBackStackEntry = navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry.value?.destination?.route
-        items.forEach { item ->
+        BottomNavigationItem.entries.forEach { item ->
             NavigationBarItem(
+                modifier = Modifier.testTag(TestTags.bottomNavItem(item)),
                 icon = {
                     BadgedBox(
                         badge = {
@@ -36,15 +33,9 @@ fun BottomNavigationBar(
                     }
                 },
                 label = { Text(stringResource(item.titleId)) },
-                selected = currentRoute == item.route,
+                selected = item.route == navigator.currentTopLevelRoute,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navigator.navigate(item.route)
                 }
             )
         }
