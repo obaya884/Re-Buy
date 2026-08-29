@@ -3,12 +3,12 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
-    // repositories・compileSdk・minSdk・jvmTarget・ホストテストの有効化を入れる
+    // Android の土台（内訳は plugin 側）
     id("rebuy.android.base")
 }
 
 kotlin {
-    androidLibrary {
+    android {
         namespace = "io.github.obaya884.rebuy.data"
     }
 

@@ -48,6 +48,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - `ksp {}` と `android.sourceSets {}` はトップレベル / `android {}` 直下に置くこと。Groovy DSL 時代は `defaultConfig {}` の中に書いても暗黙の委譲で動いていたが、Kotlin DSL では解決できない。
 - リポジトリ・SDK レベル・`compileOptions`（KMP モジュールでは `jvmTarget`）・KMP のホストテストの有効化は `build-logic` の convention plugin `rebuy.android.base` が入れる。**モジュールを増やしたら `plugins {}` に `id("rebuy.android.base")` を足す**と、これらを各モジュールに書かなくてよくなる。ただし `rebuy.android.base` は AGP を適用せず、適用済みかどうかを見て設定するだけなので、`alias(libs.plugins.android.application)` / `alias(libs.plugins.android.library)` は引き続きモジュール側に要る。プラグインの解決は `settings.gradle.kts` の `pluginManagement {}` で宣言している。ルートの `settings.gradle.kts` では `dependencyResolutionManagement {}` を使わない（Gradle 9.7 時点でも `@Incubating` で Kotlin DSL だと警告が出る）。
 - **`build-logic` は included build なので、ルートの `buildscript { classpath }` を継承しない。** convention plugin のコンパイルに要る AGP / KGP は `build-logic/build.gradle.kts` で自前に宣言する。**実行時に効くのはルート側の版**なので、`compileOnly` にしたうえで catalog と同じ版に固定する——ずれるとコンパイルは通って実行時に `NoSuchMethodError` になる。同じ理由で、convention plugin の中では `plugins { id(...) }` ではなく `plugins.withId(...)` で書く。
+- **`clean` の直後の 1 回目の `build` が `lintAnalyzeDebug` で落ちることがある**（`partialResultsDirectory` の `NoSuchFileException`）。`clean` が消したディレクトリを、それ以前に作られた設定キャッシュのエントリが参照するために起きる。もう一度叩けば通る。
 - AGP 10 以降に上げるときは、`gradle.properties` に `android.builtInKotlin` / `android.newDsl` を足して退避する手は使えなくなる（すでに移行済みなので問題ない）。
 
 ## アーキテクチャ
