@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
@@ -12,6 +14,12 @@ kotlin {
         namespace = "io.github.obaya884.rebuy.data"
         compileSdk = libs.versions.compileSdk.get().toInt()
         minSdk = libs.versions.minSdk.get().toInt()
+
+        // KMP 化すると rebuy.android.base の compileOptions が当たらなくなる。
+        // 指定しないと JDK の既定（25）で吐かれるので、ここで 17 に戻す
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_17
+        }
 
         // ホストテストは既定で無効。開けないとユニットテストが 0 件のままビルドが緑になる
         withHostTestBuilder { }.configure { }
