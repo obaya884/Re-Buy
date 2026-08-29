@@ -1,27 +1,26 @@
 [versions]
-kotlin = "2.1.10"
-ksp = "2.1.10-1.0.30"
-android-gradle-plugin = "8.8.1"
+kotlin = "2.4.10"
+ksp = "2.3.11"
+android-gradle-plugin = "9.3.2"
 androidx-core = "1.15.0"
 androidx-hilt = "1.2.0"
-androidx-room = "2.6.1"
+androidx-room = "2.8.4"
 androidx-lifecycle = "2.8.7"
 androidx-compose-bom = "2025.02.00"
 androidx-navigation = "2.8.7"
 androidx-activity = "1.10.0"
 androidx-junit = "1.2.1"
 androidx-espresso = "3.6.1"
-google-dagger-hilt = "2.51.1"
-jetbrains-kotlin = "1.9.10"
+google-dagger-hilt = "2.60.1"
 junit = "4.13.2"
-aboutLibraries = "11.6.3"
+aboutLibraries = "15.2.0"
 
 [libraries]
-jetbrains-kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "jetbrains-kotlin" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
 
 google-dagger-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "google-dagger-hilt" }
 google-dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "google-dagger-hilt" }
-google-dagger-hilt-android-gradle-plugin = { module = "com.google.dagger:hilt-android-gradle-plugin", version.ref = "google-dagger-hilt" }
 
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "androidx-core" }
 androidx-hilt-navigation-compose = { group = "androidx.hilt", name = "hilt-navigation-compose", version.ref = "androidx-hilt" }
@@ -50,12 +49,11 @@ androidx-junit = { module = "androidx.test.ext:junit", version.ref = "androidx-j
 junit = { module = "junit:junit", version.ref = "junit" }
 
 aboutlibraries-core = { module = "com.mikepenz:aboutlibraries-core", version.ref = "aboutLibraries" }
-aboutlibraries-compose-core = { module = "com.mikepenz:aboutlibraries-compose", version.ref = "aboutLibraries" }
+aboutlibraries-compose-core = { module = "com.mikepenz:aboutlibraries-compose-core", version.ref = "aboutLibraries" }
 aboutlibraries-compose-m3 = { module = "com.mikepenz:aboutlibraries-compose-m3", version.ref = "aboutLibraries" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android-gradle-plugin" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 google-dagger-hilt = { id = "com.google.dagger.hilt.android", version.ref = "google-dagger-hilt" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }

@@ -1,16 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.dagger.hilt)
     alias(libs.plugins.ksp)
-    id 'dagger.hilt.android.plugin'
     alias(libs.plugins.aboutLibraries)
 }
 
 android {
     namespace 'io.github.obaya884.favbasket'
-    compileSdk 35
+    compileSdk 37
 
     defaultConfig {
         applicationId "io.github.obaya884.favbasket"
@@ -50,20 +48,14 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
     buildFeatures {
         compose true
         buildConfig true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.3'
-    }
-    packagingOptions {
+    packaging {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
         }
