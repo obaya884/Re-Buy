@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
@@ -33,7 +33,7 @@ fun CategoryEditScreen(
     navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
-    val viewModel = hiltViewModel<CategoryEditViewModel>()
+    val viewModel = koinViewModel<CategoryEditViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val editingCategory = uiState.editingCategory
 

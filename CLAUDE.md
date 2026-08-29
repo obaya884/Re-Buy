@@ -30,7 +30,7 @@ Re-Buy（仮称）は「くりかえし使える買い物リスト」。品目�
 
 ## 技術スタックとビルド
 
-Kotlin + Jetpack Compose、単一モジュール `:app`（③ で KMP＋マルチモジュールへ）。Room / Hilt / Navigation 3 / AboutLibraries。
+Kotlin + Jetpack Compose、単一モジュール `:app`（③ で KMP＋マルチモジュールへ）。Room / Koin / Navigation 3 / AboutLibraries。
 
 - `applicationId` / `namespace`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
@@ -50,7 +50,7 @@ Kotlin + Jetpack Compose、単一モジュール `:app`（③ で KMP＋マル�
 
 > ③ で `docs/仕様/15_アーキテクチャ定義書.md` へ移す。それまでは本節が正。
 
-UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room の単方向レイヤ構成。DI は Hilt。
+UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room の単方向レイヤ構成。DI は Koin。
 
 ### データ層 (`data/`)
 
@@ -73,13 +73,17 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 
 ### DI (`di/`)
 
-`SingletonComponent` にインストールされた `@Provides` モジュールが 1 依存 1 ファイルで並んでいる（`AppDatabaseModule` → `ItemDaoModule` / `CategoryDaoModule` → `ItemRepositoryModule` / `CategoryRepositoryModule`）。新しい依存を足すときもこの粒度に合わせる。
+Koin モジュールを**層ごとに 1 ファイル**置く（`DataModule` / `DomainModule` / `UiModule`）。`SharedModules.kt` の `sharedModules` がそれを束ね、`ReBuyApplication` が `startKoin` で合成する。新しい依存は該当する層のモジュールに足す。
+
+粒度が「1 依存 1 ファイル」でないのは、Koin では宣言が 1 行で済み、依存ごとにファイルを分けると層の境界が読めなくなるため。この 3 ファイルは ③ の段 2 でそれぞれ `:shared:data` / `:shared:domain` / `:shared:ui` へ移る。
+
+**Koin は依存グラフをコンパイル時に検証しない。** 配線ミスは起動時まで分からないので、DI に触れたら `pixel6Api35DebugAndroidTest` を必ず回す（`NavigationTest` が全画面を開くので、ViewModel がすべて解決できることを実質的に確かめている）。
 
 ### UI 層 (`ui/`)
 
 - 画面遷移は Navigation 3。`ui/ReBuyApp.kt` の `NavDisplay` と `entryProvider` に集約し、ルートは `sealed class Screen : NavKey` で定義する。画面追加時はここに `@Serializable data object` と `entry<...>` を両方足す
 - backstack は `ui/navigation/NavigationState.kt` がトップレベルルート（ホーム・買い物）ごとに保持し、遷移イベントは `Navigator`（`navigate` / `goBack` / `navigateAsRoot`）が受けて状態を更新する。UI は状態を見るだけ
-- 画面 Composable のシグネチャは `(navigator: Navigator, snackbarHostState: SnackbarHostState)` で統一。ViewModel は `hiltViewModel<XxxViewModel>()` で画面内から取得する（引数で渡さない）
+- 画面 Composable のシグネチャは `(navigator: Navigator, snackbarHostState: SnackbarHostState)` で統一。ViewModel は `koinViewModel<XxxViewModel>()` で画面内から取得する（引数で渡さない）
 - 全画面が `ReBuyAppScaffold` を使い、TopAppBar / BottomBar / Snackbar / FAB の構成を共通化している
 - ViewModel は「複数の `MutableStateFlow` を `combine` して 1 つの `XxxScreenUiState` にまとめ、`stateIn(viewModelScope, SharingStarted.Eagerly, 初期値)` で公開する」パターンで統一。Repository の Flow は `init` の `viewModelScope.launch` で collect して private StateFlow に流し込む
 - Kotlin 標準の `combine` は 5 引数までなので、6 個をまとめるときはルートの `FlowExt.kt` の自作 `combine` を使う（`ItemEditViewModel` が例）
@@ -148,7 +152,7 @@ AboutLibraries プラグインでビルド時にライセンス情報を生成�
 - `./gradlew testDebugUnitTest` — ユニットテスト（JVM）。単一クラス: `--tests "io.github.obaya884.rebuy.InstantConverterTest"`
 - `./gradlew pixel6Api35DebugAndroidTest` — インストルメンテーションテスト（Gradle Managed Device。エミュレータの手動起動は不要。初回はイメージのダウンロードで数分）
 - `./gradlew installDebug` — 端末・エミュレータへインストール
-- `./gradlew clean` — KSP（Hilt / Room）の生成コードが壊れたとき
+- `./gradlew clean` — KSP（Room）の生成コードが壊れたとき
 - `sh scripts/docs-check.sh` — docs・本書・README・`.claude/` の機械検査
 - `sh scripts/ledger-move.sh T-XX [--status '完了 YYYY-MM-DD']` — 台帳 23 のエントリを完了記録へ移す
 - `android emulator list` / `android emulator start <name>` — エミュレータ（`android` CLI）

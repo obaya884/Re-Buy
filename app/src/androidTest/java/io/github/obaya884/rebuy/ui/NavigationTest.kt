@@ -6,13 +6,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
-import dagger.hilt.android.testing.HiltAndroidRule
-import dagger.hilt.android.testing.HiltAndroidTest
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.ui.activity.MainActivity
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import org.junit.Assert.assertTrue
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 
@@ -25,19 +22,10 @@ import org.junit.Test
  *
  * DB の中身に依存する遷移（買い物終了でホームへ戻る）は、データを用意する必要があるため扱わない。
  */
-@HiltAndroidTest
 class NavigationTest {
 
-    @get:Rule(order = 0)
-    val hiltRule = HiltAndroidRule(this)
-
-    @get:Rule(order = 1)
+    @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
-
-    @Before
-    fun setUp() {
-        hiltRule.inject()
-    }
 
     private fun string(resId: Int): String = composeRule.activity.getString(resId)
 

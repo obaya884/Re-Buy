@@ -20,7 +20,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import org.koin.compose.viewmodel.koinViewModel
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
@@ -41,7 +41,7 @@ fun HomeScreen(
     navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
-    val viewModel = hiltViewModel<HomeViewModel>()
+    val viewModel = koinViewModel<HomeViewModel>()
     val uiState by viewModel.uiState.collectAsState()
 
     val tabs = remember(uiState.categories) { HomeTab.homeTabs(uiState.categories) }

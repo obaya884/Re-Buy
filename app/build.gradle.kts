@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.google.dagger.hilt)
     alias(libs.plugins.ksp)
     // バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
     id("org.jetbrains.kotlin.plugin.serialization")
@@ -24,7 +23,7 @@ android {
         versionCode = 1
         versionName = "0.0.1"
 
-        testInstrumentationRunner = "io.github.obaya884.rebuy.HiltTestRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
@@ -91,10 +90,11 @@ dependencies {
     /**
      * DI
      */
-    // Dagger Hilt
-    ksp(libs.google.dagger.hilt.compiler)
-    implementation(libs.google.dagger.hilt.android)
-    implementation(libs.androidx.hilt.navigation.compose)
+    // Koin
+    val koinBom = platform(libs.koin.bom)
+    implementation(koinBom)
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose.viewmodel)
 
     /**
      * Data Layer
@@ -144,8 +144,6 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.room.testing)
-    androidTestImplementation(libs.google.dagger.hilt.android.testing)
-    kspAndroidTest(libs.google.dagger.hilt.compiler)
 
     /**
      * OSS Libraries

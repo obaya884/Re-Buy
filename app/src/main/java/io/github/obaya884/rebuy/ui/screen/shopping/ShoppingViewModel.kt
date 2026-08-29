@@ -2,7 +2,6 @@ package io.github.obaya884.rebuy.ui.screen.shopping
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dagger.hilt.android.lifecycle.HiltViewModel
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
 import io.github.obaya884.rebuy.domain.ItemRepository
@@ -10,10 +9,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-@HiltViewModel
-class ShoppingViewModel @Inject constructor(
+class ShoppingViewModel(
     private val itemRepository: ItemRepository
 ) : ViewModel() {
     private val _items = MutableStateFlow<List<ItemWithCategory>>(listOf())
