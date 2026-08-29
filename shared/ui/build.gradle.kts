@@ -1,10 +1,17 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose.compiler)
+    // iosMain の Compose。androidMain は androidx の BOM のままにする
+    alias(libs.plugins.compose.multiplatform)
     // バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
     id("org.jetbrains.kotlin.plugin.serialization")
     alias(libs.plugins.aboutLibraries)
+    // iOS ターゲット（宣言は build-logic に 1 か所）
+    id("rebuy.kmp.ios")
     // Android の土台（内訳は plugin 側）
     id("rebuy.android.base")
 }
@@ -39,6 +46,16 @@ val generateVersionKt = tasks.register("generateVersionKt") {
 }
 
 kotlin {
+    // iOS 側へ出す framework。Swift から見える名前になる。
+    // debug だけ作る——release のリンクは重く（段 3 では 1 回で数分）、シミュレータで
+    // 動かすのに要らない。実機・配布で要るようになる段 4 で release を足す
+    targets.withType<KotlinNativeTarget>().configureEach {
+        binaries.framework(listOf(NativeBuildType.DEBUG)) {
+            baseName = "ReBuyUi"
+            isStatic = true
+        }
+    }
+
     android {
         // R の FQN になる。package と揃えることで、
         // 画面文言を使う側が「どのモジュールのリソースか」を import で読める
@@ -91,6 +108,15 @@ kotlin {
                 implementation(libs.aboutlibraries.compose.core)
                 implementation(libs.aboutlibraries.compose.m3)
             }
+        }
+
+        iosMain.dependencies {
+            // iOS 側は Compose Multiplatform を使う。androidMain の androidx とは
+            // 別系統なので、両方を同じ source set に混ぜないこと
+            implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.material3)
+            implementation(compose.ui)
         }
 
         // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い
