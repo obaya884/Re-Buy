@@ -334,11 +334,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 kotlin-serialization-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin" }
 ```
 
-`[plugins]` に足す。
-
-```toml
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-```
+`[plugins]` には足さない。プラグインは buildscript classpath から供給するので、適用側で版を指定してはいけない（Step 3 を見よ）。
 
 - [ ] **Step 2: ルート `build.gradle.kts` の buildscript classpath に serialization プラグインを足す**
 
@@ -352,10 +348,11 @@ classpath(libs.kotlin.serialization.gradle.plugin)
 
 - [ ] **Step 3: `app/build.gradle.kts` にプラグインと依存を足す**
 
-`plugins` ブロックに足す。
+`plugins` ブロックに足す。**版を指定しない**——Step 2 で buildscript classpath に載せているため、`alias(...)` のように版付きで要求すると `Error resolving plugin ... the plugin is already on the classpath with an unknown version` で落ちる（実測）。Kotlin・KSP と同じ扱いになる。
 
 ```kotlin
-alias(libs.plugins.kotlin.serialization)
+// バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
+id("org.jetbrains.kotlin.plugin.serialization")
 ```
 
 `dependencies` の Navigation ブロックを差し替える（Nav2 の削除は Task 5 で行うので、この時点では**両方入っている**）。

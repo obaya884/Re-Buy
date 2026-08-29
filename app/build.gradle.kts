@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.google.dagger.hilt)
     alias(libs.plugins.ksp)
+    // バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
+    id("org.jetbrains.kotlin.plugin.serialization")
     alias(libs.plugins.aboutLibraries)
 }
 
@@ -112,6 +114,10 @@ dependencies {
 
     // Navigation
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    implementation(libs.kotlinx.serialization.json)
 
     // Activity
     implementation(libs.androidx.activity.compose)
