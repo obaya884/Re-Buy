@@ -4,21 +4,15 @@ plugins {
     // バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
     id("org.jetbrains.kotlin.plugin.serialization")
     alias(libs.plugins.aboutLibraries)
-}
-
-repositories {
-    google()
-    mavenCentral()
+    id("rebuy.android.base")
 }
 
 android {
     // R と BuildConfig の FQN になる。package と揃えることで、
     // 画面文言を使う側が「どのモジュールのリソースか」を import で読める
     namespace = "io.github.obaya884.rebuy.ui"
-    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
-        minSdk = libs.versions.minSdk.get().toInt()
         // ライブラリの BuildConfig には versionName が生えないので、自分で持たせる
         buildConfigField(
             "String",
@@ -30,10 +24,6 @@ android {
         }
     }
 
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
-    }
     buildFeatures {
         compose = true
         buildConfig = true

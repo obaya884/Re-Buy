@@ -1,4 +1,6 @@
 pluginManagement {
+    // convention plugin（T-28a）。included build なのでルートの buildscript classpath は見ない
+    includeBuild("build-logic")
     repositories {
         google()
         mavenCentral()

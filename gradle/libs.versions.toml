@@ -1,5 +1,5 @@
 [versions]
-# SDK レベルは 4 モジュールで揃える（数値リテラルを散らすと更新時に取りこぼす）
+# SDK レベルは build-logic の rebuy.android.base が読んで 4 モジュールに入れる
 compileSdk = "37"
 minSdk = "31"
 targetSdk = "35"
@@ -22,6 +22,7 @@ koin = "4.1.0"
 aboutLibraries = "15.2.0"
 
 [libraries]
+android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-gradle-plugin" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradle-plugin = { group = "com.google.devtools.ksp", name = "symbol-processing-gradle-plugin", version.ref = "ksp" }
 kotlin-serialization-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-serialization", version.ref = "kotlin" }

@@ -71,8 +71,7 @@ included build は**別の Gradle ビルド**なのでこの classpath を見な
 
 ```
 build-logic/
-  settings.gradle.kts   pluginManagement { repositories { ... } }
-                        dependencyResolutionManagement {
+  settings.gradle.kts   dependencyResolutionManagement {
                             versionCatalogs { create("libs") { from(files("../gradle/libs.versions.toml")) } }
                         }
   build.gradle.kts      plugins { `kotlin-dsl` }
@@ -81,11 +80,17 @@ build-logic/
   src/main/kotlin/rebuy.android.base.gradle.kts など
 ```
 
+`kotlin-dsl` は Gradle 同梱なので、build-logic 側の `pluginManagement { repositories }` は要らない。
+
 ルート `settings.gradle.kts` の先頭に `pluginManagement { includeBuild("build-logic") }` を足す。
 
 **CLAUDE.md の「`dependencyResolutionManagement` を使わない」は root の settings の話**で、build-logic は独立したビルドなので影響しない。ここでは使う——使わないと版が二重管理になる。
 
-**`compileOnly` を使う。** 実行時は root の classpath が勝つので、`implementation` にすると build-logic の推移依存が子 classloader に流れ込み、どちらが効いているのか読めなくなる。ただし precompiled script plugin の `plugins {}` に書いた id は実行時に解決できる必要があるので、**convention plugin の中では `plugins { id(...) }` ではなく `apply(plugin = "...")` ＋ `extensions.configure<...>` で書く**。root が既に全プラグインを classpath に持っているこのリポジトリでは、こちらのほうが構成と整合する。
+**`compileOnly` を使う。** 実行時は root の classpath が勝つので、`implementation` にすると build-logic の推移依存が子 classloader に流れ込み、どちらが効いているのか読めなくなる。ただし precompiled script plugin の `plugins {}` に書いた id は build-logic の `implementation` 依存として要求されるため、`compileOnly` と両立しない。そこで **convention plugin は AGP を適用せず、`plugins.withId(...)` で「適用されたら設定する」形にする**（モジュール側の `alias(libs.plugins.android.*)` は残る）。
+
+AGP 9 の `CommonExtension` は型引数を持たないので、`extensions.configure<CommonExtension>` 1 つで application と library の両方に効く。**T-28a の実装はこの形**（`build-logic/src/main/kotlin/rebuy.android.base.gradle.kts`）。
+
+**KMP 化するとこのプラグインは当たらなくなる。** `com.android.kotlin.multiplatform.library` は android 拡張を project ではなく kotlin 拡張の下に登録するため、`:shared:*` を KMP 化した時点で `rebuy.android.base` は何もしなくなる。`compileSdk` 未設定でビルドが落ちるので気づけるが、**T-28b では KMP ライブラリ用の口を足す**こと。
 
 precompiled script plugin から `libs` を型安全に参照することはできない。`project.extensions.getByType<VersionCatalogsExtension>().named("libs")` で取るヘルパーを 1 本書く。
 
