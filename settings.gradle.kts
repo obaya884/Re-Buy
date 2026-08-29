@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "FavBasket"
-include ':app'
+include(":app")
