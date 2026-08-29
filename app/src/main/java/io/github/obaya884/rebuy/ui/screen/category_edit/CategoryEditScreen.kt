@@ -53,6 +53,7 @@ fun CategoryEditScreen(
         snackbarHostState = snackbarHostState,
         floatingActionButton = {
             FloatingActionButton(
+                modifier = Modifier.testTag(TestTags.CATEGORY_EDIT_ADD_BUTTON),
                 onClick = {
                     viewModel.showCategoryAddDialog()
                 }

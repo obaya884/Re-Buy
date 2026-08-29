@@ -84,6 +84,7 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 - ダイアログの開閉フラグも UiState に持たせ、`showXxxDialog()` / `hideXxxDialog()` を ViewModel に生やす
 - 派生値（フィルタ済みリストなど）は UiState の `get()` プロパティで計算する（`HomeScreenUiState.inBasketItems` など）
 - BottomNavigation を持つ画面の UiState は `BottomNavigationScreenUiState` を実装し、買い物リストのバッジ件数を提供する
+- ViewModel のテストは Repository を本物のまま使い、その下の DAO だけを `FakeDatabase`（`app/src/test`）に差し替える。ステータス遷移の早期 return など Repository のルールも一緒に網へ入る。`viewModelScope` が要求する `Dispatchers.Main` は `MainDispatcherRule` で差し替える
 
 ### OSS ライセンス表示
 
