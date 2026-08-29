@@ -4,7 +4,6 @@ import io.github.obaya884.rebuy.data.InstantDateFormatStringConverter
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import java.time.DateTimeException
@@ -36,67 +35,70 @@ class InstantDateFormatStringConverterTest {
         TimeZone.setDefault(originalTimeZone)
     }
 
-    /** 境界値テスト。 */
-    @Test
-    fun test_instantToString_boundaryValue() {
-        // 下限
-        OffsetDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
-            .toInstant()
-            .let { InstantDateFormatStringConverter.toString(it) }
-            .also { assertEquals("0000-01-01 00:00:00", it) }
-        // 上限（秒未満は切り捨て）
-        OffsetDateTime.of(9999, 12, 31, 23, 59, 59, 999_999_999, ZoneOffset.UTC)
-            .toInstant()
-            .let { InstantDateFormatStringConverter.toString(it) }
-            .also { assertEquals("9999-12-31 23:59:59", it) }
+    private fun instantOf(
+        year: Int,
+        month: Int,
+        day: Int,
+        hour: Int,
+        minute: Int,
+        second: Int,
+        nano: Int = 0,
+        offset: ZoneOffset = ZoneOffset.UTC
+    ) = OffsetDateTime.of(year, month, day, hour, minute, second, nano, offset).toInstant()
 
-        // 下限より下
-        OffsetDateTime.of(-1, 12, 31, 23, 59, 59, 0, ZoneOffset.UTC)
-            .toInstant()
-            .let {
-                runCatching {
-                    InstantDateFormatStringConverter.toString(it)
-                }
-            }.also {
-                assertTrue(it.exceptionOrNull() is DateTimeException)
-            }
-        // 上限より上
-        OffsetDateTime.of(10000, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
-            .toInstant()
-            .let {
-                runCatching {
-                    InstantDateFormatStringConverter.toString(it)
-                }
-            }.also {
-                assertTrue(it.exceptionOrNull() is DateTimeException)
-            }
+    // ---- 書き出し方向（Instant → String）の境界 ----
+
+    @Test
+    fun test_instantToString_下限() {
+        val actual = InstantDateFormatStringConverter.toString(instantOf(0, 1, 1, 0, 0, 0))
+
+        assertEquals("0000-01-01 00:00:00", actual)
     }
 
     @Test
-    fun test_stringToInstant() {
-        // 下限
-        InstantDateFormatStringConverter.toInstant("0000-01-01 00:00:00")
-            .also {
-                assertEquals(
-                    OffsetDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toInstant(),
-                    it
-                )
-            }
-        // 上限
-        InstantDateFormatStringConverter.toInstant("9999-12-31 23:59:59")
-            .also {
-                assertEquals(
-                    OffsetDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneOffset.UTC).toInstant(),
-                    it
-                )
-            }
+    fun test_instantToString_上限は秒未満を切り捨てる() {
+        val actual = InstantDateFormatStringConverter.toString(
+            instantOf(9999, 12, 31, 23, 59, 59, nano = 999_999_999)
+        )
+
+        // 切り捨てなので、年 10000 へ繰り上がらない
+        assertEquals("9999-12-31 23:59:59", actual)
     }
 
-    /**
-     * 読み出し方向（DB から読む向き）の異常系。
-     *
-     * 旧バージョンや手書きで非準拠の文字列が入っていた場合に、黙って別の日時として読まずに落ちること。
-     */
+    @Test
+    fun test_instantToString_下限より下は例外() {
+        assertThrows(DateTimeException::class.java) {
+            InstantDateFormatStringConverter.toString(instantOf(-1, 12, 31, 23, 59, 59))
+        }
+    }
+
+    @Test
+    fun test_instantToString_上限より上は例外() {
+        assertThrows(DateTimeException::class.java) {
+            InstantDateFormatStringConverter.toString(instantOf(10000, 1, 1, 0, 0, 0))
+        }
+    }
+
+    // ---- 読み出し方向（String → Instant）の境界 ----
+
+    @Test
+    fun test_stringToInstant_下限() {
+        val actual = InstantDateFormatStringConverter.toInstant("0000-01-01 00:00:00")
+
+        assertEquals(instantOf(0, 1, 1, 0, 0, 0), actual)
+    }
+
+    @Test
+    fun test_stringToInstant_上限() {
+        val actual = InstantDateFormatStringConverter.toInstant("9999-12-31 23:59:59")
+
+        assertEquals(instantOf(9999, 12, 31, 23, 59, 59), actual)
+    }
+
+    // ---- 読み出し方向の異常系 ----
+    // 旧バージョンや手書きで非準拠の文字列が入っていた場合に、
+    // 黙って別の日時として読まずに落ちること。
+
     @Test
     fun test_stringToInstant_空文字() {
         assertThrows(DateTimeParseException::class.java) {
@@ -146,16 +148,12 @@ class InstantDateFormatStringConverterTest {
         }
     }
 
-    /**
-     * UTC で保存するという条項を固定する。
-     *
-     * 入力が UTC 由来の [Instant] だけだと、実装のタイムゾーンを systemDefault() に変えても
-     * TZ=UTC の環境（CI）では緑のまま通ってしまうので、非 UTC のオフセット由来の値で確かめる。
-     */
+    // ---- UTC で保存するという条項 ----
+
     @Test
     fun test_instantToString_UTCで書き出す() {
         // JST の 2024-01-01 09:00:00 は UTC では同日 00:00:00
-        val instant = OffsetDateTime.of(2024, 1, 1, 9, 0, 0, 0, ZoneOffset.ofHours(9)).toInstant()
+        val instant = instantOf(2024, 1, 1, 9, 0, 0, offset = ZoneOffset.ofHours(9))
 
         val actual = InstantDateFormatStringConverter.toString(instant)
 
@@ -164,18 +162,18 @@ class InstantDateFormatStringConverterTest {
 
     @Test
     fun test_stringToInstant_UTCとして読む() {
-        val expected = OffsetDateTime.of(2024, 1, 1, 9, 0, 0, 0, ZoneOffset.ofHours(9)).toInstant()
+        val expected = instantOf(2024, 1, 1, 9, 0, 0, offset = ZoneOffset.ofHours(9))
 
         val actual = InstantDateFormatStringConverter.toInstant("2024-01-01 00:00:00")
 
         assertEquals(expected, actual)
     }
 
-    /** 書き出して読み戻すと、秒未満を切り捨てた元の値に一致する。 */
+    // ---- 往復 ----
+
     @Test
     fun test_往復して秒未満の切り捨て以外は変わらない() {
-        val original =
-            OffsetDateTime.of(2024, 6, 15, 12, 34, 56, 789_000_000, ZoneOffset.UTC).toInstant()
+        val original = instantOf(2024, 6, 15, 12, 34, 56, nano = 789_000_000)
 
         val actual = InstantDateFormatStringConverter.toInstant(
             InstantDateFormatStringConverter.toString(original)

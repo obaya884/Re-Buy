@@ -20,6 +20,8 @@
 | T-10 | リポジトリの public 化 | ツール整備 | 高 | 完了 2026-08-29 | [詳細](#t-10) |
 | T-13 | assertEquals の引数順（期待値, 実測値） | テスト | 低 | 完了 2026-08-29 | [詳細](#t-13) |
 | T-18 | ③ 段 0 Navigation 3 化 | 内部設計 | 高 | 完了 2026-08-29 | [詳細](#t-18) |
+| T-14 | toInstant の異常系と UTC 保存条項のテスト | テスト | 中 | 完了 2026-08-29 | [詳細](#t-14) |
+| T-16 | InstantDateFormatStringConverterTest の構造 | テスト | 低 | 完了 2026-08-29 | [詳細](#t-16) |
 
 ## 詳細
 
@@ -95,3 +97,16 @@
 - 背景: ③ で iOS の外枠を SwiftUI が持つため、共有側は backstack を自分で持つ形である必要がある。現行の `NavHost` は backstack を内部に隠しており、SwiftUI の `NavigationStack` と二重管理になる
 - 対応方針: Android 単体のまま Navigation 3 へ移行する。KMP 移植と同時にやると落ちたときに切り分けられないので段を分ける
 - 関連: [KMP 化検討](../検討/32_KMP化検討.md) §10 ／ [実装計画](./26_KMP化実装計画.md)
+
+### T-14
+
+- 背景: `InstantDateFormatStringConverterTest` は書き出し方向（`toString`）だけを正常 2 件・例外 2 件で押さえており、読み出し方向（`toInstant`）は正常 2 件のみで異常系が 0 件。Room が DB から読むのはこちらの向きで、非準拠文字列が通る経路が未検証。さらにテスト入力の `OffsetDateTime` が全件 UTC 由来のため、実装の `withZone(ZoneOffset.UTC)` を `ZoneId.systemDefault()` に変えても TZ=UTC の CI では緑のまま通り、「UTC 文字列として保存する」条項がどのテストにも固定されていない
+- 対応方針: `toInstant` に空文字・時刻部欠落・末尾余剰・ゼロ埋めなし・月が範囲外・4 桁年の範囲外を足す。非 UTC オフセット由来の `Instant` を 1 件入れて UTC 変換を固定する。往復（`toInstant(toString(x)) == x`）も 1 件
+- 優先度の根拠: 条項が守られていない箇所があり、実装を壊してもテストが気づかない
+- 関連: T-13 のレビューで test-reviewer が指摘。CLAUDE.md「アーキテクチャ / データ層」
+
+### T-16
+
+- 背景: `InstantDateFormatStringConverterTest` は `.let {}.also {}` のチェーンで書かれており、実測値が `it` に隠れて期待値との区別が目で付かない（T-13 の引数順ミスが生まれた素地）。加えて 1 つの `@Test` に 4 ケースを直列に詰めているため最初の失敗で残りが走らず、例外系の `assertTrue(... is DateTimeException)` は失敗時に真偽しか出ない。テストメソッド名と KDoc の有無も 2 つの `@Test` で揃っていない
+- 対応方針: 実測値に名前を付ける素直な形へ直し、ケースごとに `@Test` を分け、例外系は `assertThrows` にする
+- 関連: T-13 のレビューで code-quality-reviewer と test-reviewer が指摘
