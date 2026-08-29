@@ -50,7 +50,7 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 
   `gradle.properties` の `android.nonTransitiveRClass=true` により、アプリの `R` にライブラリのリソースは入らない。画面文言は `:shared:ui` へ移るので、`io.github.obaya884.rebuy.R` を参照している本番 9 ファイルと **instrumented テスト 2 ファイル**をそのまま通すには、`:shared:ui` が `io.github.obaya884.rebuy` を名乗るしかない。`applicationId` は変わらないので、端末上のパッケージ名・`context.packageName`・DB のファイルパスは不変
 - **AboutLibraries プラグインは `:shared:ui` に適用する**。プラグインは生成した `res/raw/aboutlibraries.json` を適用先モジュール自身の res ソースとして登録するため、`LicenseScreen` と同じモジュールに置く必要がある。ただし収集範囲は適用先モジュールの依存グラフなので、`:androidApp` にしか宣言していない依存はライセンス一覧から落ちる——移設の前後で `aboutlibraries.json` を diff して確かめる
-- convention plugin（`build-logic`）は作らない。モジュール 4 つで重複が問題になっていないため。必要が出たら T-XX で起票する
+- **convention plugin（`build-logic` の included build）は段 3 の最初に導入する**（T-28）。段 2 までの重複は `repositories` と SDK レベルと `compileOptions` の 4 行程度で、しかも書き忘れると必ずビルドが落ちる自己修正する重複なので割に合わない。段 3 で各 `:shared:*` に KMP のターゲット定義と `commonMain` / `androidMain` / `iosMain` の source set が入ると、**書き忘れが静かに効く**（ターゲットが 1 つ足りなくてもビルドは通り、iOS で動かないことに後で気づく）ため、そこが導入点になる。Android 専用の convention を先に書くと段 3 で書き直しになる
 
 ## 4. データ層（B）
 
@@ -59,7 +59,7 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 - ドライバは `BundledSQLiteDriver`。両 OS に同じ SQLite 実装が載るので挙動差が出ない
 - ビルダーには `setDriver(BundledSQLiteDriver())` と **`setQueryCoroutineContext(Dispatchers.IO)`** を必ず対で指定する
 - DB ファイルのパス解決だけ `expect/actual`（Android は `Context` 経由、iOS は `NSDocumentDirectory`）
-- `app/schemas/` の JSON は `shared/data/schemas/` へ移す。移すだけで中身は変えない
+- `androidApp/schemas/` の JSON は `shared/data/schemas/` へ移す。移すだけで中身は変えない
 - **`InstantConverter` の `java.time` 依存を外す**。`kotlinx-datetime` または `kotlin.time.Instant` へ置き換える。保存形式はエポックミリ秒の `INTEGER` で、どの実装でも同じ値になるため置き換えで壊れない（T-24 で文字列保存をやめた）
 - `ItemStatusConverter` の `value`（0 / 1 / 2）も変えない
 
@@ -126,8 +126,8 @@ iOS のホストを移植の段に置いて後ろへ送らないのは、§13 �
 
 - `./gradlew build` が全モジュール対象になり、Linux の CI で iOS ターゲットのタスクが落ちる
 - Gradle Managed Device のタスク名に `:androidApp:` 修飾が要る。`.claude/settings.json` の allow は完全一致なので現行の記述が外れる
-- `app/build/` 決め打ちのレポートパス（`ci.yml`・`verifier`・`test-reviewer`）
-- `test-reviewer` の起動契機が `app/src/test/**` なので `commonTest` に効かない
+- `androidApp/build/` 決め打ちのレポートパス（`ci.yml`・`verifier`・`test-reviewer`）
+- `test-reviewer` の起動契機が `androidApp/src/test/**` なので `commonTest` に効かない
 - CLAUDE.md のアーキテクチャ節を `docs/仕様/15_アーキテクチャ定義書.md` へ移すとき、`.claude/agents/` 2 本の参照を同時に直す（inline code のパスは `docs-check` の網の外）
 - KMP のタスク名を `.claude/settings.json` の allow に足す
 

@@ -11,8 +11,8 @@ model: sonnet
 
 呼び出し時に対象範囲の指定があればそれに絞る。指定がなければ以下を順に実行:
 
-1. `./gradlew build`（lint・unit test・debug/release の assemble を含む。`app/build/reports/lint-results-debug.html` に Lint の結果が出る）
-2. `./gradlew pixel6Api35DebugAndroidTest`（Gradle Managed Device でインストルメンテーションテスト。エミュレータの手動起動は不要。初回はシステムイメージのダウンロードで数分かかる。結果は `app/build/outputs/androidTest-results/managedDevice/` の XML）
+1. `./gradlew build`（lint・unit test・debug/release の assemble を含む。`androidApp/build/reports/lint-results-debug.html` に Lint の結果が出る。ユニットテストのレポートはモジュールごとに `shared/*/build/reports/tests/` に出る）
+2. `./gradlew pixel6Api35DebugAndroidTest`（Gradle Managed Device でインストルメンテーションテスト。エミュレータの手動起動は不要。初回はシステムイメージのダウンロードで数分かかる。結果は `androidApp/build/outputs/androidTest-results/managedDevice/` の XML）
 3. `sh scripts/docs-check.sh`（`docs/` / CLAUDE.md / README / `.claude/` に差分があるときのみ。CI の `docs` ジョブと同じ検査。**警告行は落ちないが報告に含める**）
 
 ## 制約
