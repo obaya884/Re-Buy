@@ -21,7 +21,7 @@ model: sonnet
 
 - `ItemStatus` の `value`（0 / 1 / 2）を変えていないか（DB に Int で保存されており互換が壊れる）
 - 更新系の DAO クエリが `updatedAt` を更新しているか
-- スキーマ変更なら `AppDatabase.version` の加算・`Migration` の追加・`RoomMigrationTest.ALL_MIGRATIONS` への登録・`androidApp/schemas/` の新 JSON が揃っているか
+- スキーマ変更なら `AppDatabase.version` の加算・`Migration` の追加・`RoomMigrationTest.ALL_MIGRATIONS` への登録・`shared/data/schemas/` の新 JSON が揃っているか
 - 新しい画面が `Screen`（sealed class）と `NavHost` の両方に登録されているか
 - ステータス遷移が Repository に集約されているか（ViewModel や Composable で直接 DAO を叩いていないか）
 - 憲章のスコープ外（共有・同期・バックエンド・レシピ・家計簿・バーコード・地図）に踏み込む実装が入っていないか

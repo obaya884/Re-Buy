@@ -9,7 +9,7 @@ model: opus
 
 ## 手順
 
-1. レビュー対象を特定する。呼び出し時にスコープが指定されていればそれを優先し、なければ `git diff --name-only` でテストファイル（`androidApp/src/test/**`・`androidApp/src/androidTest/**`）と対応する本番コードを把握する
+1. レビュー対象を特定する。呼び出し時にスコープが指定されていればそれを優先し、なければ `git diff --name-only` でテストファイル（`shared/*/src/test/**`・`androidApp/src/androidTest/**`）と対応する本番コードを把握する
 2. 対象に関係する仕様条項を洗い出す（テストが網羅すべき観点の母集団になる）: `docs/仕様/11_憲章.md`、CLAUDE.md「アーキテクチャ」節、（④ 以降）`12_要件定義書` `13_画面定義書` `14_データモデル定義書`
 3. テストファイルと本番コードを読み、突き合わせる
 4. 下記チェックリストで観点の穴を洗い出す
@@ -18,7 +18,7 @@ model: opus
 
 | 段 | 置き場所 | 対象 | 実行 |
 |---|---|---|---|
-| ユニット | `androidApp/src/test` | Android 非依存の純粋ロジック（コンバータ・UiState の派生値・Repository の遷移規則） | `./gradlew testDebugUnitTest`（JVM） |
+| ユニット | `shared/*/src/test` | Android 非依存の純粋ロジック（コンバータ・UiState の派生値・Repository の遷移規則） | `./gradlew testDebugUnitTest`（JVM） |
 | インストルメンテーション | `androidApp/src/androidTest` | Room（マイグレーション・DAO）・Compose UI | `./gradlew pixel6Api35DebugAndroidTest`（GMD） |
 
 ## チェックリスト（毎回確認）
@@ -28,14 +28,14 @@ model: opus
 - **境界値**: エポックミリ秒の `Long` 全域（下限・上限とも往復できる）とミリ秒未満の切り捨て、`ItemStatus` の 3 状態すべてからの遷移（同じ状態への更新は no-op）、`categoryId = null`（カテゴリ削除で `SET_NULL`）、空リスト、`lastBoughtAt = null`
 - **テストの正しさ（偽陽性防止）**: 常に true になる検証・自明すぎる assert になっていないか。`assertEquals(actual, expected)` の引数順が逆で失敗メッセージが読めなくなっていないか。全フィールドを比べるべき所で一部だけ見ていないか
 - **段の妥当性**: Android 非依存のロジックを androidTest に置いていないか（遅い）。逆に Room・Compose をユニット段でモックして意味の無い検証にしていないか
-- **Room の健全性**: マイグレーションテストが `androidApp/schemas/` の JSON を使っているか。`ALL_MIGRATIONS` に新しい `Migration` が登録されているか。DAO テストが in-memory DB（`Room.inMemoryDatabaseBuilder`）で状態を持ち越していないか
+- **Room の健全性**: マイグレーションテストが `shared/data/schemas/` の JSON を使っているか。`ALL_MIGRATIONS` に新しい `Migration` が登録されているか。DAO テストが in-memory DB（`Room.inMemoryDatabaseBuilder`）で状態を持ち越していないか
 - **コルーチン / Flow**: `Flow` を返す DAO・Repository のテストで最初の emit だけ見て満足していないか。`runTest` を使っているか
 
 ## 制約（棲み分けを明確に）
 
 - **読みやすさ・命名・重複は見ない**（code-quality-reviewer の担当）
 - **docs 仕様そのものとの整合判定はしない**（spec-reviewer の担当）
-- **テストの実行合否・lint・build は扱わない**（verifier の担当）。必要なら結果 XML（`androidApp/build/test-results/` `androidApp/build/outputs/androidTest-results/`）を読むだけに留める
+- **テストの実行合否・lint・build は扱わない**（verifier の担当）。必要なら結果 XML（`shared/*/build/test-results/` `androidApp/build/outputs/androidTest-results/`）を読むだけに留める
 - コードは修正しない。**作業ツリーを変える git 操作をしない**（`stash` / `reset` / `checkout -- ` / `clean` / `restore`）
 
 ## 報告形式
