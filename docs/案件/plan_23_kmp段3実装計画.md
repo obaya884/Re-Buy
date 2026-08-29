@@ -109,7 +109,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
 | 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **101 件が `commonTest` で両ターゲット緑**、`KoinModulesTest` 1 件が `androidHostTest` で緑。合計 122 件。**アサーションの中身は 1 行も変えていない** |
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一。instrumented 20 件緑。`shared/ui/src/main/res` が消えている |
-| 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑 |
+| 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑。**iOS で TopAppBar がステータスバーに重ならず、余白も二重になっていない**（下の「セーフエリアは Compose 側で処理する」） |
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が両ターゲット緑 |
 | 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 131 件以上が出る**（ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**同じことを見る instrumented テストを 1 本足す**——いまこの退行を検出できるのは人がこの表を読むことだけなので、戻したら機械の網に載せる。Android のライセンス一覧の表示が移設前と同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
 | 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。Android 無変更 |
@@ -259,6 +259,12 @@ xcrun simctl install booted <DerivedData>/Build/Products/Debug-iphonesimulator/R
 xcrun simctl launch booted io.github.obaya884.rebuy
 xcrun simctl io booted screenshot out.png
 ```**Koin を起動する関数はステップ 15 で足す**——ステップ 6 のスタブには要らない。
+
+### セーフエリアは Compose 側で処理する
+
+`ContentView` は `.ignoresSafeArea()` を付けて Compose に画面全体を渡し、インセットの処理は Material3 の `Scaffold`（`contentWindowInsets`）に任せる。**SwiftUI 側でセーフエリアを効かせると、SwiftUI が余白を入れたうえで `Scaffold` がさらに入れて二重になる。**
+
+ステップ 7 のスタブは `Text` 1 個で TopAppBar を持たないため、この選択が正しいかはまだ確かめられていない。**ステップ 12 で `ReBuyAppScaffold` が iOS に出た時点で確認する。**
 
 ### Swift から見える API 面はファイル名でも決まる
 
