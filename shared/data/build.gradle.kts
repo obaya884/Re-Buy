@@ -15,19 +15,23 @@ kotlin {
     }
 
     sourceSets {
-        androidMain.dependencies {
+        commonMain.dependencies {
             // DAO の戻り値が Flow なので、公開 API として上の層へ通す
             api(libs.kotlinx.coroutines.core)
 
-            // Room
+            // Room。KMP では room-ktx は room-runtime に統合されている
             implementation(libs.androidx.room.runtime)
-            implementation(libs.androidx.room.ktx)
+            // driver は自分で渡す。同梱 SQLite を全ターゲットで使う
+            implementation(libs.androidx.sqlite.bundled)
 
             // dataModule（Koin の Module 型）を上の層へ公開する。
             // sourceSets の中では platform() が生えないので project.dependencies から呼ぶ
             api(project.dependencies.platform(libs.koin.bom))
             api(libs.koin.core)
-            // androidContext() は DataModule の内側だけで使う
+        }
+
+        androidMain.dependencies {
+            // androidContext() は platformDataModule の内側だけで使う
             implementation(libs.koin.android)
         }
 
@@ -48,8 +52,11 @@ ksp {
 }
 
 dependencies {
-    // ターゲットごとに書く必要がある。書き忘れてもビルドは通り、そのターゲットだけリンク時に落ちる
+    // ターゲットごとに書く必要がある。ksp(...) 一発では効かず、
+    // 書き忘れてもビルドは通ってそのターゲットだけリンク時に落ちる
     add("kspAndroid", libs.androidx.room.compiler)
+    add("kspIosArm64", libs.androidx.room.compiler)
+    add("kspIosSimulatorArm64", libs.androidx.room.compiler)
 }
 
 // AGP の lint タスクが KSP の生成先を入力に取るのに依存を宣言しないので、自分で繋ぐ。
