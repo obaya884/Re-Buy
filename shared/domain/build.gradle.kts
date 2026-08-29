@@ -13,7 +13,7 @@ kotlin {
     }
 
     sourceSets {
-        androidMain.dependencies {
+        commonMain.dependencies {
             // エンティティと DAO を上の層へ通すので api
             api(project(":shared:data"))
 
