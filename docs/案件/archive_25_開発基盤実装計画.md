@@ -1355,7 +1355,7 @@ spec §11 の手順をそのまま提示する:
 
 1. Android Studio を閉じる
 2. `mv ~/FavBasket ~/Re-Buy`
-3. `cp -R ~/.claude/projects/-Users-obayashitakumi-FavBasket ~/.claude/projects/-Users-obayashitakumi-Re-Buy`
+3. `cp -R ~/.claude/projects/-Users-<user>-FavBasket ~/.claude/projects/-Users-<user>-Re-Buy`
 4. `cd ~/Re-Buy` で Claude Code を起動し、Android Studio で開き直す
 
 ---

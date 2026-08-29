@@ -31,7 +31,7 @@
 
 - **push・マージは常にオーナーの合図が前提**。自動マージ・ブランチ保護は設けない
 - マージ方式は squash のみ（merge commit / rebase はリポジトリ設定で無効）
-- CI（`docs` と `verify`）が緑でないものはマージしない
+- CI（`docs`・`build`・`instrumented`）が緑でないものはマージしない
 
 ## 2. 並行開発
 
