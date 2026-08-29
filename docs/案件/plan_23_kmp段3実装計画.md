@@ -245,7 +245,20 @@ Build Phases に Run Script を 1 本足す。
 cd "$SRCROOT/.." && ./gradlew :shared:ui:embedAndSignAppleFrameworkForXcode
 ```
 
-Kotlin 側は `:shared:ui` の `iosMain` に framework を宣言（`baseName = "ReBuyUi"`, `isStatic = true`）し、`ReBuyViewController()` を公開する。**Koin を起動する関数はステップ 15 で足す**——ステップ 6 のスタブには要らない。
+Kotlin 側は `:shared:ui` の `iosMain` に framework を宣言（`baseName = "ReBuyUi"`, `isStatic = true`）し、`ReBuyViewController()` を公開する。
+
+Xcode 側は `FRAMEWORK_SEARCH_PATHS` に `$(SRCROOT)/../shared/ui/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)` を、`OTHER_LDFLAGS` に `-framework ReBuyUi` を入れる。**`TEAM_ID` は空のままコミットする**——シミュレータで動かすだけなら要らず、このリポジトリは public なので各自が手元で入れる。
+
+コマンドラインからの確認は次のとおり（ステップ 15 でも使う）。
+
+```
+xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+xcrun simctl boot "iPhone 17 Pro"
+xcrun simctl install booted <DerivedData>/Build/Products/Debug-iphonesimulator/ReBuy.app
+xcrun simctl launch booted io.github.obaya884.rebuy
+xcrun simctl io booted screenshot out.png
+```**Koin を起動する関数はステップ 15 で足す**——ステップ 6 のスタブには要らない。
 
 ### Swift から見える API 面はファイル名でも決まる
 

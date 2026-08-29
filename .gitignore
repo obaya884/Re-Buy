@@ -15,6 +15,11 @@ local.properties
 # subagent-driven-development の作業領域
 .superpowers/
 
+# Xcode の生成物。project.pbxproj はコミットする
+xcuserdata/
+*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+DerivedData/
+
 # 署名鍵とその設定（public リポジトリなので値も所在もコミットしない）
 keystore.properties
 *.jks

@@ -1,0 +1,9 @@
+// Xcode の GUI で設定するとプロジェクトファイルに焼き込まれて読みにくくなるので、
+// 環境ごとに変わる値はここに出す。
+//
+// TEAM_ID は空のままにする。このリポジトリは public で、実機ビルドに要る値は
+// 各自が手元で入れる（Xcode の Signing & Capabilities から選ぶと自動で入る）。
+// シミュレータで動かすだけなら空で足りる
+TEAM_ID=
+BUNDLE_ID=io.github.obaya884.rebuy
+APP_NAME=ReBuy
