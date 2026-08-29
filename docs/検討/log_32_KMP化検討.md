@@ -22,3 +22,5 @@
 | 2026-08-29 | convention plugin の導入を段 3 の最初に置く | オーナー判断。段 2 までの重複は自己修正する（書き忘れるとビルドが落ちる）ので割に合わない。段 3 の KMP ターゲット定義は書き忘れが静かに効くうえ、いま書くと Android 専用の convention を段 3 で書き直すことになる |
 | 2026-08-29 | `namespace` を Kotlin package と揃え、`:androidApp` をルートに戻す | 段 2 では既存の `R` の import を守るために `:shared:ui` にルート namespace を渡したが、調査の結果このやり方は Now in Android・architecture-samples・Tivi・DroidKaigi・DuckDuckGo のいずれにも実例が無かった。実害もあり、`:shared:ui` に androidTest を足すとテスト APK の applicationId が `:androidApp` と衝突する。Google の想定する移行手段も「import を書き換える」（Android Studio の Migrate to Non-Transitive R Classes）である |
 | 2026-08-29 | Kotlin package に `shared` を入れない | 調査した 5 プロジェクトで `shared` が package に現れた例は 0 件。Gradle 上の入れ物を示す語でモジュールの性格を説明しないため。JetBrains 自身が「namespace にはモジュール名を入れ、Kotlin package には入れない」使い分けをしている |
+| 2026-08-29 | 段 3 で iOS を 2 回出す（スタブと全画面） | 最後に 1 回だけ出すと「Xcode の配線が悪いのか CMP が悪いのか」が同時に判明する。`Text` 1 個のスタブを先に接地させれば、そこで潰れるのはアプリと無関係な層（Xcode プロジェクト・framework 埋め込み・Gradle 連携）に限られる。追加コストは commit 1 本 |
+| 2026-08-29 | 日付の書式化を `expect/actual` にし、`androidMain` は `java.time` のまま残す | `DateTimeFormatter.ofLocalizedDate(SHORT)` はロケール依存で stdlib に等価物が無い。common で固定書式にすると Android の表示が変わり、段 3 の前提「Android 同一挙動」を崩す |

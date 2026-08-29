@@ -151,10 +151,19 @@ iOS のホストを移植の段に置いて後ろへ送らないのは、§13 �
 
 着手時に潰す。
 
-- **AboutLibraries が CMP で動くか**。`LicenseScreen` が依存しており、動かなければ iOS 側のライセンス表示を別手段にする
-- Navigation 3 の CMP 対応は 1.10 で入ったばかり。iOS 実機・シミュレータでの安定性
-- `kotlinx-datetime` と `kotlin.time.Instant` のどちらで `java.time` を置き換えるか
-- Room KMP と AGP 9 の built-in Kotlin の組み合わせ（このリポジトリは `org.jetbrains.kotlin.android` を適用していない。CLAUDE.md「ビルド構成の注意点」）
+段 3 の計画（[実装計画](../案件/plan_23_kmp段3実装計画.md)）を書くにあたって調べ、次の 4 点は結論が出た。
+
+- **AboutLibraries は CMP で動く。** 15.2.0 が Compose 1.12.x / AGP 9 / Kotlin 2.4 をサポート版として明記している。`aboutLibraries { export { outputFile = ... composeResources/files/... } }` に変え、`Res.readBytes` で読む
+- **Navigation 3 の CMP 対応は入っている。** ただし**多相シリアライズの明示登録が必須**で、`sealed class Screen : NavKey` を `@Serializable sealed interface` にし、`SavedStateConfiguration` に `polymorphic(NavKey::class)` を登録する。登録漏れは **Android では動いたまま iOS だけプロセス復元時に落ちる**
+- **`java.time` の置き換えは `kotlin.time.Instant`。** kotlinx-datetime 0.7 で `Instant` / `Clock` は stdlib へ移管され、`kotlinx.datetime.Instant` は typealias になった。選択の問題ではなくなっている。**日付の書式化（ロケール依存）だけ**は stdlib に等価物が無いので `expect/actual` にし、`androidMain` は現在の `java.time` の実装をそのまま使う（Android の表示を変えないため）
+- **KMP モジュールでは built-in Kotlin は関与しない。** KGP を明示適用するため。`:androidApp` だけが built-in Kotlin のまま残る
+
+残る未確認事項は着手時に潰す。
+
+- **Gradle 9.7.1 の埋め込み Kotlin 2.2 で、KGP 2.4.10 を使う convention plugin をコンパイルできるか**（T-28a の最初に判定。ダメなら precompiled script plugin をやめて素の `Plugin` クラスへ退避）
+- AGP 9.3.2 の KMP ライブラリ DSL のブロック名（`kotlin { android { } }` か `androidLibrary { }` か）と host test の source set 名
+- `androidx.room` Gradle プラグインの `schemaDirectory` がバリアント別サブディレクトリを掘らないか（掘られると既存 JSON の場所が変わり、`RoomMigrationTest` の assets 指定と同時に壊れる）
+- Compose Multiplatform のどの版が Kotlin 2.4.10 と Compose BOM 2026.08.00 に対応するか
 
 ## 14. 完了条件
 
