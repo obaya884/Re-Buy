@@ -14,6 +14,9 @@ object TestTags {
     /** TopAppBar の戻る矢印。同時に 1 つしか出ないので画面ごとに分けない。 */
     const val BACK_BUTTON = "back_button"
 
+    /** カテゴリー追加の FAB。画面を離れて戻ったときに ViewModel が作り直されるかを見るために使う。 */
+    const val CATEGORY_EDIT_ADD_BUTTON = "category_edit_add_button"
+
     const val HOME_ITEM_EDIT_BUTTON = "home_item_edit_button"
     const val HOME_CATEGORY_EDIT_BUTTON = "home_category_edit_button"
     const val HOME_SETTINGS_BUTTON = "home_settings_button"
