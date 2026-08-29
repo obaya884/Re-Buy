@@ -44,7 +44,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: build-reports
-          path: app/build/reports/
+          path: androidApp/build/reports/
 
   # Gradle Managed Device でのインストルメンテーションテスト。build とは独立に並列で走る
   instrumented:
@@ -77,5 +77,5 @@ jobs:
         with:
           name: instrumented-reports
           path: |
-            app/build/outputs/androidTest-results/
-            app/build/reports/androidTests/
+            androidApp/build/outputs/androidTest-results/
+            androidApp/build/reports/androidTests/

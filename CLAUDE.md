@@ -30,7 +30,7 @@ Re-Buy（仮称）は「くりかえし使える買い物リスト」。品目�
 
 ## 技術スタックとビルド
 
-Kotlin + Jetpack Compose、単一モジュール `:app`（③ で KMP＋マルチモジュールへ）。Room / Koin / Navigation 3 / AboutLibraries。
+Kotlin + Jetpack Compose、単一モジュール `:androidApp`（③ で KMP＋マルチモジュールへ）。Room / Koin / Navigation 3 / AboutLibraries。
 
 - `applicationId` / `namespace`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
@@ -39,7 +39,7 @@ Kotlin + Jetpack Compose、単一モジュール `:app`（③ で KMP＋マル�
 
 ### ビルド構成の注意点
 
-- **Kotlin は AGP の built-in Kotlin でコンパイルされる。** `org.jetbrains.kotlin.android` プラグインは適用していないので、`app/build.gradle.kts` に足さないこと。
+- **Kotlin は AGP の built-in Kotlin でコンパイルされる。** `org.jetbrains.kotlin.android` プラグインは適用していないので、`androidApp/build.gradle.kts` に足さないこと。
 - そのため Kotlin / KSP のバージョンは、ルート `build.gradle.kts` の `buildscript { dependencies { classpath ... } }` で引き上げている。AGP 同梱の KGP より新しいものを使いたい場合はここを直す（version catalog の `kotlin` / `ksp` が実体）。
 - `kotlinOptions {}` は使えない。コンパイラオプションが必要なら `kotlin { compilerOptions {} }` を使う。JVM target は `compileOptions.targetCompatibility` から引き継がれるので通常は指定不要。
 - `ksp {}` と `android.sourceSets {}` はトップレベル / `android {}` 直下に置くこと。Groovy DSL 時代は `defaultConfig {}` の中に書いても暗黙の委譲で動いていたが、Kotlin DSL では解決できない。
@@ -54,7 +54,7 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 
 ### データ層 (`data/`)
 
-- `AppDatabase`: Room。エンティティは `Item` と `Category` の 2 つ。`exportSchema = true` で `app/schemas/` に JSON を出力する
+- `AppDatabase`: Room。エンティティは `Item` と `Category` の 2 つ。`exportSchema = true` で `androidApp/schemas/` に JSON を出力する
 - `Item.categoryId` → `Category.id` の外部キー（`onDelete = SET_NULL`）。JOIN 済みの読み出しは `ItemWithCategory`（`@Embedded` + `@Relation`）を使う
 - 日時は `Instant` で保持し、`InstantConverter` がエポックミリ秒（`INTEGER`）として保存する。ミリ秒未満は切り捨てる（0 方向ではなく過去方向）
 - **日時をテキストで保存しない**。文字列にするとタイムゾーン・ゼロ埋め・存在しない日付の解決規則といった解釈の余地が保存形式に入り込む。エポックミリ秒なら読み方が 1 通りしかなく、壊れた値を別の日時として読む経路が消える
@@ -63,7 +63,7 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 
 ### スキーマ変更時の手順
 
-`AppDatabase` の `version` を上げ、`Migration` を追加し、`RoomMigrationTest.ALL_MIGRATIONS` に登録する。`app/schemas/` に生成された新しい JSON もコミットすること（`androidTest` はこのディレクトリを assets として参照している）。
+`AppDatabase` の `version` を上げ、`Migration` を追加し、`RoomMigrationTest.ALL_MIGRATIONS` に登録する。`androidApp/schemas/` に生成された新しい JSON もコミットすること（`androidTest` はこのディレクトリを assets として参照している）。
 
 **⑤ でストアに出すまでは `Migration` を書かない。** `version` を上げるだけにして、旧 DB を持つ端末は入れ直す。守るべき実データがまだ無い段階で移行コードを書いても、検証されないまま積み上がる。`fallbackToDestructiveMigration` も足さない——黙ってデータが消えるより、起動時に落ちて気づけるほうを採る。
 
@@ -92,7 +92,7 @@ Koin モジュールを**層ごとに 1 ファイル**置く（`DataModule` / `D
 - ダイアログの開閉フラグも UiState に持たせ、`showXxxDialog()` / `hideXxxDialog()` を ViewModel に生やす
 - 派生値（フィルタ済みリストなど）は UiState の `get()` プロパティで計算する（`HomeScreenUiState.inBasketItems` など）
 - BottomNavigation を持つ画面の UiState は `BottomNavigationScreenUiState` を実装し、買い物リストのバッジ件数を提供する
-- ViewModel のテストは Repository を本物のまま使い、その下の DAO だけを `FakeDatabase`（`app/src/test`）に差し替える。ステータス遷移の早期 return など Repository のルールも一緒に網へ入る。`viewModelScope` が要求する `Dispatchers.Main` は `MainDispatcherRule` で差し替える
+- ViewModel のテストは Repository を本物のまま使い、その下の DAO だけを `FakeDatabase`（`androidApp/src/test`）に差し替える。ステータス遷移の早期 return など Repository のルールも一緒に網へ入る。`viewModelScope` が要求する `Dispatchers.Main` は `MainDispatcherRule` で差し替える
 
 ### OSS ライセンス表示
 
@@ -128,7 +128,7 @@ AboutLibraries プラグインでビルド時にライセンス情報を生成�
 - **着手前** — 影響範囲が読み切れないとき: `Explore`
 - **実装方式で迷うとき** — トレードオフのある設計判断: `Plan`
 - **実装が一区切りしたら（コミット前）** — `verifier` と `code-quality-reviewer` を並列でバックグラウンド起動。軽微な変更では起動しない
-- **差分にテストファイル（`app/src/test/**`・`app/src/androidTest/**`）が含まれるとき** — `test-reviewer`
+- **差分にテストファイル（`androidApp/src/test/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
 - **差分が docs の条項に触れる／条項で定まる挙動を実装したとき** — `spec-reviewer`
 
 ## 実装完了後のフロー（レビュー → 動作確認 → コミット/push）

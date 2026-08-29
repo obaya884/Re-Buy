@@ -117,7 +117,7 @@ variant.sources.res?.addGeneratedSourceDirectory(task) { it.outputDirectory }
 
 `util/DependencyCollector.kt` は、適用モジュールの `<variant>RuntimeClasspath` / `<variant>CompileClasspath` を解決して依存グラフを歩く。`ProjectComponentIdentifier`（プロジェクト依存）は座標としてはスキップするがその先の依存はたどるので、`:shared:ui` に適用すれば `:shared:domain` → `:shared:data` 経由の Room や coroutines も拾える。
 
-**拾えなくなるのは `:androidApp` にしか宣言していない依存**（`activity-ktx`・`core-ktx` など）。ビルドは通り、ライセンス一覧の中身だけが静かに減る。**diff しないと気づけない類の劣化**なので、移設前に `app/build/generated/aboutLibraries/release/res/raw/aboutlibraries.json` を退避し、移設後の `shared/ui/build/generated/aboutLibraries/release/res/raw/aboutlibraries.json` と突き合わせる。差分が出た依存は `:shared:ui` 側に宣言を寄せるか、対象外でよいかをオーナー判断にする。
+**拾えなくなるのは `:androidApp` にしか宣言していない依存**（`activity-ktx`・`core-ktx` など）。ビルドは通り、ライセンス一覧の中身だけが静かに減る。**diff しないと気づけない類の劣化**なので、移設前に `androidApp/build/generated/aboutLibraries/release/res/raw/aboutlibraries.json` を退避し、移設後の `shared/ui/build/generated/aboutLibraries/release/res/raw/aboutlibraries.json` と突き合わせる。差分が出た依存は `:shared:ui` 側に宣言を寄せるか、対象外でよいかをオーナー判断にする。
 
 ## テストの置き場所
 
@@ -144,7 +144,7 @@ variant.sources.res?.addGeneratedSourceDirectory(task) { it.outputDirectory }
 
 ### `schemas` の移動
 
-`app/schemas/` → `shared/data/schemas/`。ディレクトリ名 `io.github.obaya884.rebuy.data.AppDatabase` は FQCN 由来で Kotlin パッケージは変わらないので、**中身も名前も無変更**。設定は 2 箇所。
+`androidApp/schemas/` → `shared/data/schemas/`。ディレクトリ名 `io.github.obaya884.rebuy.data.AppDatabase` は FQCN 由来で Kotlin パッケージは変わらないので、**中身も名前も無変更**。設定は 2 箇所。
 
 - `:shared:data` の `ksp { arg("room.schemaLocation", "$projectDir/schemas") }`
 - `:androidApp` の `sourceSets.named("androidTest") { assets.directories.add("$projectDir/../shared/data/schemas") }`
@@ -188,7 +188,7 @@ T-20 は起票済み（状態は `未着手`）。着手時に一覧の状態を
 - [ ] `.claude/agents/verifier.md`・`test-reviewer.md` のパス
 - [ ] CLAUDE.md の「開発コマンド」
 
-**完了条件:** `./gradlew build` 緑・`./gradlew pixel6Api35DebugAndroidTest` 緑（14 件）・`sh scripts/docs-check.sh` 緑・`grep -rn "app/" CLAUDE.md README.md .claude docs` で残存参照ゼロ（`docs/検討/31` の履歴記述は除外判断をオーナーに確認）。
+**完了条件:** `./gradlew build` 緑・`./gradlew pixel6Api35DebugAndroidTest` 緑（14 件）・`sh scripts/docs-check.sh` 緑・`grep -rn "\bapp/" CLAUDE.md README.md .claude docs` で残存参照ゼロ（`docs/検討/31` の履歴記述は除外判断をオーナーに確認）。
 
 ## Task 3: 空の `:shared:data` を作って配線だけ通す
 
@@ -204,7 +204,7 @@ T-20 は起票済み（状態は `未着手`）。着手時に一覧の状態を
 
 - [ ] `data/**`（`AppDatabase` / `Item` / `Category` / DAO / Converter）を移す
 - [ ] Room 依存 3 本と `ksp(room-compiler)`、`ksp { arg(...) }` を `:shared:data` へ
-- [ ] `app/schemas` → `shared/data/schemas`
+- [ ] `androidApp/schemas` → `shared/data/schemas`
 - [ ] Koin の `dataModule` を `:shared:data` へ
 - [ ] `:androidApp` から Room と KSP を外す
 - [ ] `:androidApp` の androidTest assets を `../shared/data/schemas` に向ける
@@ -245,10 +245,10 @@ namespace の入れ替え・res の移動・`R` の解決先の変化が**分割
 ## Task 7: 開発基盤の追随
 
 - [ ] `.claude/settings.json` の allow（GMD の修飾名・`--tests` の修飾名）
-- [ ] `.claude/agents/test-reviewer.md` の起動契機とテスト表（`app/src/test/**` → `shared/*/src/test/**` + `androidApp/src/androidTest/**`）
+- [ ] `.claude/agents/test-reviewer.md` の起動契機とテスト表（`androidApp/src/test/**` → `shared/*/src/test/**` + `androidApp/src/androidTest/**`）
 - [ ] `.claude/agents/verifier.md` のレポートパス
-- [ ] `.claude/agents/spec-reviewer.md` の `app/schemas/` → `shared/data/schemas/`
-- [ ] `docs/検討/31_開発基盤検討.md` の `app/schemas/` 参照
+- [ ] `.claude/agents/spec-reviewer.md` の `androidApp/schemas/` → `shared/data/schemas/`
+- [ ] `docs/検討/31_開発基盤検討.md` の `androidApp/schemas/` 参照
 - [ ] `ci.yml` の `build` ジョブのアーティファクトを `**/build/reports/` に（ユニットテストのレポートが `shared/*/build/reports/tests/` に分散するため）
 - [ ] CLAUDE.md の「技術スタックとビルド」「ビルド構成の注意点」「アーキテクチャ」「開発コマンド」
 - [ ] ルート `.gitignore` に `**/build/` を 1 行
@@ -267,12 +267,12 @@ namespace の入れ替え・res の移動・`R` の解決先の変化が**分割
 |---|---|---|---|
 | 1 | `./gradlew build` が全モジュール対象 | **段 3** | 段 2 では 4 モジュールになるだけで Linux CI は問題なし。iOS ターゲットを `build` から外す作業は段 3 |
 | 2 | GMD のタスク名 + allow | **段 2**（性質が違う） | 無修飾名は**そのまま動く**ので「外れる」は誤り。修飾名を推奨として allow に追加する形で塞ぐ |
-| 3 | `app/build/` 決め打ちのレポートパス | **段 2** | Task 2 で `androidApp/build/` へ。加えてユニットテストのレポートが分散するので CI は `**/build/reports/` のグロブに |
+| 3 | `androidApp/build/` 決め打ちのレポートパス | **段 2** | Task 2 で `androidApp/build/` へ。加えてユニットテストのレポートが分散するので CI は `**/build/reports/` のグロブに |
 | 4 | `test-reviewer` の起動契機 | **段 2 で半分** | `commonTest` への対応は段 3 |
 | 5 | CLAUDE.md アーキテクチャ節 → 15 へ | **段 2 は現状更新のみ** | 15 として切り出すのは構造が最終形になる段 3 が適切（段 3 でもう一度大きく書き換わる） |
 | 6 | KMP タスク名の allow | **段 3** | 段 2 では KMP タスクが存在しない |
 
-§11 に無いが段 2 で塞ぐ必要があるもの: 上記の `--tests` の件、`spec-reviewer` と `31` の `app/schemas/` 参照、`.gitignore`。
+§11 に無いが段 2 で塞ぐ必要があるもの: 上記の `--tests` の件、`spec-reviewer` と `31` の `androidApp/schemas/` 参照、`.gitignore`。
 
 ## 落とし穴
 

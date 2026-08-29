@@ -59,7 +59,7 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 - ドライバは `BundledSQLiteDriver`。両 OS に同じ SQLite 実装が載るので挙動差が出ない
 - ビルダーには `setDriver(BundledSQLiteDriver())` と **`setQueryCoroutineContext(Dispatchers.IO)`** を必ず対で指定する
 - DB ファイルのパス解決だけ `expect/actual`（Android は `Context` 経由、iOS は `NSDocumentDirectory`）
-- `app/schemas/` の JSON は `shared/data/schemas/` へ移す。移すだけで中身は変えない
+- `androidApp/schemas/` の JSON は `shared/data/schemas/` へ移す。移すだけで中身は変えない
 - **`InstantConverter` の `java.time` 依存を外す**。`kotlinx-datetime` または `kotlin.time.Instant` へ置き換える。保存形式はエポックミリ秒の `INTEGER` で、どの実装でも同じ値になるため置き換えで壊れない（T-24 で文字列保存をやめた）
 - `ItemStatusConverter` の `value`（0 / 1 / 2）も変えない
 
@@ -126,8 +126,8 @@ iOS のホストを移植の段に置いて後ろへ送らないのは、§13 �
 
 - `./gradlew build` が全モジュール対象になり、Linux の CI で iOS ターゲットのタスクが落ちる
 - Gradle Managed Device のタスク名に `:androidApp:` 修飾が要る。`.claude/settings.json` の allow は完全一致なので現行の記述が外れる
-- `app/build/` 決め打ちのレポートパス（`ci.yml`・`verifier`・`test-reviewer`）
-- `test-reviewer` の起動契機が `app/src/test/**` なので `commonTest` に効かない
+- `androidApp/build/` 決め打ちのレポートパス（`ci.yml`・`verifier`・`test-reviewer`）
+- `test-reviewer` の起動契機が `androidApp/src/test/**` なので `commonTest` に効かない
 - CLAUDE.md のアーキテクチャ節を `docs/仕様/15_アーキテクチャ定義書.md` へ移すとき、`.claude/agents/` 2 本の参照を同時に直す（inline code のパスは `docs-check` の網の外）
 - KMP のタスク名を `.claude/settings.json` の allow に足す
 

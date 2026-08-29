@@ -6,4 +6,4 @@ pluginManagement {
     }
 }
 rootProject.name = "ReBuy"
-include(":app")
+include(":androidApp")
