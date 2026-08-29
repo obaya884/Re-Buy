@@ -34,9 +34,14 @@
 | 段階 | ユニット | instrumented |
 |---|---|---|
 | 着手前 | 122（`:shared:ui` 102 ＋ `:shared:data` 20） | 20（`:androidApp`） |
-| 完了時 | 121 が `commonTest`（android と iosSimulatorArm64 の両方で走る）＋ 1 が `androidHostTest` | 20（変わらず） |
+| 完了時 | 122 が `commonTest`（android と iosSimulatorArm64 の両方で走る）＋ 5 が `androidHostTest` | 20（変わらず） |
 
-`commonTest` へ行けないのは `KoinModulesTest` 1 件だけ。`koin-test` の `verify()` が kotlin-reflect 依存で JVM 専用のため。
+`commonTest` へ行けないのは 5 件。
+
+- `KoinModulesTest` 1 件——`koin-test` の `verify()` が kotlin-reflect 依存で JVM 専用
+- `InstantConverterTimeZoneTest` 4 件——既定タイムゾーンを差し替える API が common に無い。**この検査を捨てると、CI が TZ=UTC で走るせいでタイムゾーン依存の混入が見えなくなる**（ステップ 8 で実測して分けた）
+
+**Android 側では 122 ＋ 5 = 127 件、iOS 側では 122 件が走る**ことになる。
 
 ## iOS は 2 回出す
 
@@ -105,9 +110,9 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 5 | **`:shared:domain` と `:shared:ui` を KMP 化（`androidMain` のまま）** | Android 同一挙動（**設定画面のバージョン表示が `0.0.1`**）。ホストテスト **102 件**緑。instrumented 20 件緑。`BuildConfig` → 生成 `Version.kt`。**唯一の例外がライセンス画面**——落とし穴 17 でステップ 14 まで空になる |
 | 6 | **3 モジュールに iOS ターゲットを足し、`:shared:ui` の `iosMain` に framework と `Text` 1 個のスタブを置く** | `./gradlew :shared:ui:linkDebugFrameworkIosSimulatorArm64` が通る。Android 側のテスト件数と挙動は不変。**`./gradlew build` の所要時間が段 3 着手前と同程度**——framework を debug に絞らないと 2 倍以上になる |
 | 7 | **`iosApp/` の Xcode プロジェクトを置き、シミュレータで Compose の 1 画面を出す** | **iOS シミュレータに `Text` が出る**。`.gitignore` に Xcode の生成物（`iosApp/build/` `xcuserdata/`）が入り、`project.pbxproj` はコミットされている。Android 無変更 |
-| 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**。**`ItemDao` / `CategoryDao` が `commonMain` にある**——ここに無いと `FakeDatabase` がステップ 10 で `commonTest` へ行けず往復になる。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
+| 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**、＋ TZ 固定の 4 件が `androidHostTest`（`:shared:data` は Android 25 件 / iOS 21 件）。**`shared/data/schemas` に git 差分が出ない**。**`ItemDao` / `CategoryDao` が `commonMain` にある**——ここに無いと `FakeDatabase` がステップ 10 で `commonTest` へ行けず往復になる。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
-| 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **101 件が `commonTest` で両ターゲット緑**、`KoinModulesTest` 1 件が `androidHostTest` で緑。合計 122 件。**アサーションの中身は 1 行も変えていない** |
+| 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **101 件が `commonTest` で両ターゲット緑**、`KoinModulesTest` 1 件が `androidHostTest` で緑（`:shared:ui` は Android 102 件 / iOS 101 件）。**アサーションの中身は 1 行も変えていない** |
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一。instrumented 20 件緑。`shared/ui/src/main/res` が消えている |
 | 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑 |
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が両ターゲット緑 |
@@ -145,14 +150,15 @@ expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
 }
 ```
 
-ビルダーには `setDriver(BundledSQLiteDriver())` と `setQueryCoroutineContext(Dispatchers.IO)` を対で指定する。DB ファイルパスだけ `expect/actual`（Android は `context.getDatabasePath("app_database")`、iOS は `NSDocumentDirectory`）。**Android 側は必ず `getDatabasePath("app_database")` の絶対パスを渡すこと**——名前の付け方を変えると既存端末の DB を見失う。
+ビルダーには `setDriver(BundledSQLiteDriver())` と `setQueryCoroutineContext(Dispatchers.IO)` を対で指定する。**Native では `Dispatchers.IO` が `Dispatchers` のメンバではなく拡張プロパティなので、`import kotlinx.coroutines.IO` が別途要る**（無いと「internal で触れない」というエラーになり、版のせいだと誤診しやすい）。DB ファイルパスだけ `expect/actual`（Android は `context.getDatabasePath("app_database")`、iOS は `NSDocumentDirectory`）。**Android 側は必ず `getDatabasePath("app_database")` の絶対パスを渡すこと**——名前の付け方を変えると既存端末の DB を見失う。
 
 **`AppDatabase` の `@Volatile` ＋ `synchronized` ＋ `INSTANCE` キャッシュは畳んで削除する。** `synchronized` は JVM 専用で common に置けない。Koin の `single` が既に単一性を保証しており、`KoinGraphTest` はまさにこの畳み込みを見越して書いてある。ついでに T-25 の「テスト用に DB 名を差せる口」も開く。
 
-### `RoomMigrationTest` は 2 か所壊れる
+### `RoomMigrationTest` は壊れないが、本番と違う経路を見ている
 
-1. `MigrationTestHelper` の Android 専用コンストラクタが KMP 版（`databaseFactory` ラムダと driver を取る形）に変わる
-2. **driver を設定した DB では `openHelper` が使えない**ので `openHelper.writableDatabase.close()` が例外になる。`db.close()` へ書き換える
+当初は「driver 導入で 2 か所壊れる」と見ていたが、**壊れなかった**（ステップ 8 で実測）。このテストは自前で `Room.databaseBuilder(context, klass, name)`（Android 専用の旧オーバーロード）を呼んでおり、driver を設定しないので `openHelper` 経路のまま動く。
+
+問題はむしろ**壊れなかったこと**にある。本番は `BundledSQLiteDriver` ＋ 絶対パスになったのに、このテストは framework SQLite ＋ 相対名を開いている。**driver とパスの決め方の退行はこのテストでは捕まらない。** T-34 で揃える。
 
 ### `java.time` → `kotlin.time`
 
@@ -316,7 +322,7 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 9. **Navigation 3 の多相シリアライズの登録漏れは iOS だけで出る**
 10. **`:shared:ui` の `BuildConfig` が消える。** 新プラグインは BuildConfig 非対応。`rebuy.versionName` から `Version.kt` を生成する小さなタスクを convention plugin に置く
 11. **`debugImplementation` が書けなくなる。** build type が無い
-12. **Compose の版が二重管理になる。** `:shared:ui` は CMP プラグインの `compose.*`、`:androidApp` は androidx の BOM。ずれると `NoSuchMethodError` か重複クラス
+12. **Compose の版が二重管理になる。** `:shared:ui` は CMP プラグインの `compose.*`、`:androidApp` は androidx の BOM。ずれると `NoSuchMethodError` か重複クラス。**`compose.*` は使っていなくても書く**——`compose.material3` は自分より古い `foundation` を推移的に引くので、`compose.foundation` を「未使用だから」と外すと版が 1.12.0 から 1.9.1 へ下がる（ステップ 8 で実際に踏み、`checkIos…ComposeLibrariesCompatibility` の警告で気づいた）。**依存には「使う」以外に「版を固定する」役目がある**
 13. **`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。** `dynamicColor` の既定が `false` なので、この分岐を `expect/actual` に切るか削るかを決めれば挙動は変わらない
 14. **`AppDatabase` の `synchronized` が common に置けない**
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める

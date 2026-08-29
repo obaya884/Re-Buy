@@ -64,7 +64,7 @@ UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room
 - 日時は `Instant` で保持し、`InstantConverter` がエポックミリ秒（`INTEGER`）として保存する。ミリ秒未満は切り捨てる（0 方向ではなく過去方向）
 - **日時をテキストで保存しない**。文字列にするとタイムゾーン・ゼロ埋め・存在しない日付の解決規則といった解釈の余地が保存形式に入り込む。エポックミリ秒なら読み方が 1 通りしかなく、壊れた値を別の日時として読む経路が消える
 - `ItemStatus` は `NO_DEAL(0)` / `IN_SHOPPING_LIST(1)` / `CHECKED_IN_SHOPPING_LIST(2)` の 3 状態。`ItemStatusConverter` で Int に変換して保存するため、**enum の `value` は既存 DB と互換を壊さない限り変更しない**
-- DAO の更新系クエリは `updatedAt = Instant.now()` をデフォルト引数で受け取り、更新のたびにタイムスタンプを書き換える
+- DAO の更新系クエリは `updatedAt = Clock.System.now()` をデフォルト引数で受け取り、更新のたびにタイムスタンプを書き換える
 
 ### スキーマ変更時の手順
 

@@ -2,7 +2,8 @@ package io.github.obaya884.rebuy.data.item
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Dao
 interface ItemDao {
@@ -19,27 +20,27 @@ interface ItemDao {
     suspend fun deleteItem(item: Item)
 
     @Query("UPDATE items SET name = :newName, updatedAt = :updatedAt WHERE id = :itemId")
-    suspend fun updateItemName(itemId: Int, newName: String, updatedAt: Instant = Instant.now())
+    suspend fun updateItemName(itemId: Int, newName: String, updatedAt: Instant = Clock.System.now())
 
     @Query("UPDATE items SET status = :newStatus, updatedAt = :updatedAt WHERE id = :itemId")
     suspend fun updateItemStatus(
         itemId: Int,
         newStatus: ItemStatus,
-        updatedAt: Instant = Instant.now()
+        updatedAt: Instant = Clock.System.now()
     )
 
     @Query("UPDATE items SET status = :newStatus, updatedAt = :updatedAt, lastBoughtAt = :updatedAt WHERE id = :itemId")
     suspend fun updateItemStatusWithLastBoughtAt(
         itemId: Int,
         newStatus: ItemStatus,
-        updatedAt: Instant = Instant.now()
+        updatedAt: Instant = Clock.System.now()
     )
 
     @Query("UPDATE items SET categoryId = :newCategoryId, updatedAt = :updatedAt WHERE id = :itemId")
     suspend fun updateItemCategoryId(
         itemId: Int,
         newCategoryId: Int?,
-        updatedAt: Instant = Instant.now()
+        updatedAt: Instant = Clock.System.now()
     )
 
     @Transaction

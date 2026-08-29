@@ -10,7 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
-import java.time.Instant
+import kotlin.time.Instant
 
 /**
  * Room の代わりに使うインメモリの実体。2 つの DAO が同じものを見る。

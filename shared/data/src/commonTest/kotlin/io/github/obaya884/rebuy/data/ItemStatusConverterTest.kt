@@ -1,10 +1,9 @@
 package io.github.obaya884.rebuy.data
 
-import io.github.obaya884.rebuy.data.ItemStatusConverter
 import io.github.obaya884.rebuy.data.item.ItemStatus
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 /**
  * DB に保存される [ItemStatus] の数値表現を固定する。
@@ -52,7 +51,7 @@ class ItemStatusConverterTest {
      */
     @Test
     fun test_toItemStatus_未知の値は例外() {
-        assertThrows(NoSuchElementException::class.java) {
+        assertFailsWith<NoSuchElementException> {
             ItemStatusConverter.toItemStatus(3)
         }
     }

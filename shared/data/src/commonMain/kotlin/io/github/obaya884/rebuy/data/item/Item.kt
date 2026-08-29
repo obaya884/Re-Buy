@@ -5,7 +5,8 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import io.github.obaya884.rebuy.data.category.Category
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Entity(
     tableName = "items",
@@ -25,8 +26,8 @@ data class Item(
     val status: ItemStatus = ItemStatus.NO_DEAL,
     val categoryId: Int? = null,
     val lastBoughtAt: Instant? = null,
-    val createdAt: Instant = Instant.now(),
-    val updatedAt: Instant = Instant.now()
+    val createdAt: Instant = Clock.System.now(),
+    val updatedAt: Instant = Clock.System.now()
 )
 
 enum class ItemStatus(val value: Int) {
