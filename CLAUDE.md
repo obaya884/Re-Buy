@@ -97,11 +97,13 @@ Koin モジュールを**層ごとに 1 ファイル**置く（`DataModule` / `D
 - ダイアログの開閉フラグも UiState に持たせ、`showXxxDialog()` / `hideXxxDialog()` を ViewModel に生やす
 - 派生値（フィルタ済みリストなど）は UiState の `get()` プロパティで計算する（`HomeScreenUiState.inBasketItems` など）
 - BottomNavigation を持つ画面の UiState は `BottomNavigationScreenUiState` を実装し、買い物リストのバッジ件数を提供する
-- ViewModel のテストは Repository を本物のまま使い、その下の DAO だけを `FakeDatabase`（`shared/ui/src/test`）に差し替える。ステータス遷移の早期 return など Repository のルールも一緒に網へ入る。`viewModelScope` が要求する `Dispatchers.Main` は `MainDispatcherRule` で差し替える
+- ViewModel のテストは Repository を本物のまま使い、その下の DAO だけを `FakeDatabase`（`shared/ui/src/androidHostTest`）に差し替える。ステータス遷移の早期 return など Repository のルールも一緒に網へ入る。`viewModelScope` が要求する `Dispatchers.Main` は `MainDispatcherRule` で差し替える
 
 ### OSS ライセンス表示
 
 AboutLibraries プラグインでビルド時にライセンス情報を生成し、`LicenseScreen` の `LibrariesContainer` が表示する。依存を追加したらここに自動反映されるので手動更新は不要。
+
+**いまは一覧が空になっている。** AboutLibraries 15.2.0 が AGP の KMP android ターゲットから依存を拾えないため（[段 3 実装計画](./docs/案件/plan_23_kmp段3実装計画.md) の落とし穴 17）。段 3 のステップ 14 で composeResources 経由に移して戻す。
 
 ## サブエージェント運用
 
@@ -156,7 +158,7 @@ AboutLibraries プラグインでビルド時にライセンス情報を生成�
 ## 開発コマンド
 
 - `./gradlew build` — lint・unit test・debug/release の assemble
-- `./gradlew testDebugUnitTest` — ユニットテスト（JVM）。**KMP 化したモジュールのタスク名は `testAndroidHostTest`**（`:shared:data`）。**単一クラスを指定するときはモジュールを修飾する**（`./gradlew :shared:data:testAndroidHostTest --tests "io.github.obaya884.rebuy.data.InstantConverterTest"`）。無修飾で `--tests` を渡すと、一致しない側のモジュールが `No tests found` でビルドを落とす
+- `./gradlew testAndroidHostTest` — 全モジュールのユニットテスト（JVM）。**`testDebugUnitTest` は使わない**——`:shared:*` が KMP になったので一致するモジュールが無くなり、**0 件のまま緑で終わる**。**単一クラスを指定するときはモジュールを修飾する**（`./gradlew :shared:data:testAndroidHostTest --tests "io.github.obaya884.rebuy.data.InstantConverterTest"`）。無修飾で `--tests` を渡すと、一致しない側のモジュールが `No tests found` でビルドを落とす
 - `./gradlew :androidApp:pixel6Api35DebugAndroidTest` — インストルメンテーションテスト（Gradle Managed Device。androidTest を持つのは `:androidApp` だけ。エミュレータの手動起動は不要。初回はイメージのダウンロードで数分）
 - `./gradlew installDebug` — 端末・エミュレータへインストール
 - `./gradlew clean` — KSP（Room。`:shared:data` だけで回る）の生成コードが壊れたとき

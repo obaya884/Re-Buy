@@ -22,7 +22,7 @@
 - **`:androidApp` は `com.android.application` ＋ built-in Kotlin のまま。** `org.jetbrains.kotlin.android` を足さない。KMP 化するのは `:shared:*` だけで、そちらは KGP を明示適用するので built-in Kotlin は関与しない
 - 依存は必ず `gradle/libs.versions.toml` 経由で追加する
 - namespace = Kotlin package。`shared` は package にも namespace にも入れない（[KMP 化検討](../検討/32_KMP化検討.md) §3）
-- git 運用: **1 ステップ 1 コミット**。ブランチは分けてよいが、**ステップ 5 と 8 は途中で切らない**（KMP 化とデータ層移送は中断すると赤のまま止まる）
+- git 運用: **1 ステップ 1 コミット**（PR は squash マージなので、`main` では 1 PR = 1 コミットにまとまる）。ブランチは分けてよいが、**ステップ 5 と 8 は途中で切らない**（KMP 化とデータ層移送は中断すると赤のまま止まる）
 - 表のセル内に `|` を書かない
 
 ## 合否判定
@@ -102,18 +102,18 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 2 | **catalog に KMP / CMP / Room-KMP / sqlite-bundled の版を足す（適用はしない）** | `./gradlew build` 緑。生成物に差分なし。root の `plugins { ... apply false }` に KMP と CMP と Android-KMP-library が並んでいる |
 | 3 | **`:shared:data` を KMP 化（android ターゲットのみ、コードは全部 `androidMain`）** | `:shared:data` のホストテストが**20 件**緑。`./gradlew build` 緑。`shared/data/schemas/**/2.json` の場所と中身が移行前と一致。instrumented 20 件緑。**`.claude/settings.json` の allow をここで追随させる**（タスク名が変わるので、待つと以降 12 commit ぶん許可プロンプトを踏む） |
 | 4 | **ターゲット定義を convention plugin へ抽出（T-28b）** | `./gradlew build` 緑。テスト件数不変。`shared/data/build.gradle.kts` からターゲット定義が消えている。**`jvmTarget` とホストテストの有効化も一緒に運ぶ**——運ばないとステップ 5 で `:shared:ui` と `:shared:domain` が落とし穴 1 と 6 を踏む |
-| 5 | **`:shared:domain` と `:shared:ui` を KMP 化（`androidMain` のまま）** | Android 同一挙動（**設定画面のバージョン表示が `0.0.1`**）。ホストテスト **102 件**緑。instrumented 20 件緑。`BuildConfig` → 生成 `Version.kt`、`debugImplementation` → `androidRuntimeClasspath` に置き換わっている |
+| 5 | **`:shared:domain` と `:shared:ui` を KMP 化（`androidMain` のまま）** | Android 同一挙動（**設定画面のバージョン表示が `0.0.1`**）。ホストテスト **102 件**緑。instrumented 20 件緑。`BuildConfig` → 生成 `Version.kt`。**唯一の例外がライセンス画面**——落とし穴 17 でステップ 14 まで空になる |
 | 6 | **3 モジュールに iOS ターゲットを足し、`:shared:ui` の `iosMain` に framework と `Text` 1 個のスタブを置く** | `./gradlew :shared:ui:linkDebugFrameworkIosSimulatorArm64` が通る。Android 側のテスト件数と挙動は不変 |
 | 7 | **`iosApp/` の Xcode プロジェクトを置き、シミュレータで Compose の 1 画面を出す** | **iOS シミュレータに `Text` が出る**。`.gitignore` に Xcode の生成物（`iosApp/build/` `xcuserdata/`）が入り、`project.pbxproj` はコミットされている。Android 無変更 |
-| 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
+| 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**。**`ItemDao` / `CategoryDao` が `commonMain` にある**——ここに無いと `FakeDatabase` がステップ 10 で `commonTest` へ行けず往復になる。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
 | 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **101 件が `commonTest` で両ターゲット緑**、`KoinModulesTest` 1 件が `androidHostTest` で緑。合計 122 件。**アサーションの中身は 1 行も変えていない** |
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一。instrumented 20 件緑。`shared/ui/src/main/res` が消えている |
 | 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑 |
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が両ターゲット緑 |
-| 14 | **AboutLibraries を composeResources 経由に** | `aboutlibraries.json` の diff が移設前と同じ。Android のライセンス一覧の表示が同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
+| 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 131 件以上が出る**（ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**同じことを見る instrumented テストを 1 本足す**——いまこの退行を検出できるのは人がこの表を読むことだけなので、戻したら機械の網に載せる。Android のライセンス一覧の表示が移設前と同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
 | 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。Android 無変更 |
-| 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など） |
+| 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている |
 
 ステップ 11（リソース 52 件）と 12（画面 6 枚）は commit が大きい。11 を「文言」「drawable」、12 を「theme」「画面ごと」に割ってよい。
 
@@ -184,6 +184,14 @@ kotlinx-datetime 0.7 で `Instant` / `Clock` は stdlib へ移管され、`kotli
 
 common で `yyyy/MM/dd` 固定にする案は採らない。実装は 3 行で済むが Android の表示が変わり、段 3 の前提を崩す。
 
+### `debugImplementation` の行き先
+
+KMP ライブラリには build type が無く、宣言できるのは `androidCompilationApi` / `androidCompilationCompileOnly` / `androidCompilationImplementation` / `androidCompilationRuntimeOnly` の 4 つだけ（`androidRuntimeClasspath` は解決用なので宣言先にできない）。
+
+`debugImplementation(compose.ui.tooling)` は**外す**。プレビューのレンダラなので `RuntimeOnly` にすると release にも載る。`@Preview` アノテーション自体は `ui-tooling-preview`（`implementation`）から来るのでコンパイルは通る。
+
+`defaultConfig` も無いので `vectorDrawables { useSupportLibrary = true }` が書けなくなる。minSdk 31 では実害が無いので落とす。
+
 ### テストの `commonTest` 移送
 
 `Dispatchers.setMain` / `resetMain` 自体は共通 API で K/N でも動く。壊れるのは JUnit4 の `TestWatcher` / `@get:Rule` のほう。基底クラスへ置き換える。
@@ -198,7 +206,9 @@ abstract class ViewModelTest {
 
 `StandardTestDispatcher` を選んだ意図（「まだ走っていない状態を観測できる」）は変わらないので、**`MainDispatcherRule` の KDoc をそのまま引き継ぐ**。`org.junit.Test` → `kotlin.test.Test`、`assertThrows` → `assertFailsWith<T>`。`assertEquals` の引数順は kotlin.test も `expected, actual` なので変わらない。
 
-`FakeDatabase` と `TestData` は `java.time` の import 以外に JVM 依存が無く、そのまま移せる。
+`FakeDatabase` と `TestData` は `java.time` の import 以外に JVM 依存が無く、そのまま移せる。ただし `FakeDatabase` は `ItemDao` / `CategoryDao` を実装しているので、**ステップ 8 で DAO 型が `commonMain` に居ることが前提**。
+
+**ステップ 10 まで、message 付きの assert を足さないこと。** `kotlin.test` は `(actual, message)`、`org.junit.Assert` は `(message, actual)` で引数順が逆になる。いま message 付きの呼び出しは 0 件なので、機械的な import 差し替えで安全に移せる。
 
 **iOS 側の Koin グラフは誰も検証しない。** `verify()` は JVM 専用で Android のグラフしか見ない。`:shared:ui` の `iosTest` に「起動して 5 つの型を `get()` する」テストを 1 本足し、`KoinGraphTest` の iOS 版に相当させる。
 
@@ -266,7 +276,7 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 14. **`AppDatabase` の `synchronized` が common に置けない**
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
 16. **`iosMain` の関数名を `init` で始めない。** `initKoin()` は Swift 側で `doInitKoin()` に化ける
-17. **`aboutlibraries.json` が生成物なのにソースツリー内**
+17. **AboutLibraries が KMP の android ターゲットから依存を拾えない。** 15.2.0（最新）の KMP 経路は AGP の KMP android ライブラリに追随しておらず、`:shared:ui` を KMP 化すると `aboutlibraries.json` が **0 件**になる（`collect { all = true }` でも `commonMain` に依存を置いても変わらない）。**ビルドもテストも緑のまま、ライセンス画面だけが空になる。** ステップ 5〜14 の間は空を許容し、ステップ 14 で戻す（2026-08-30 オーナー判断）。あわせて `aboutlibraries.json` が生成物なのにソースツリー内に出る点もここで片づける
 18. **`./gradlew build` が Linux CI で iOS 側に触る。** CI の `build` ジョブはタスクを明示列挙する形へ
 
 ## spec §11「③ で壊れる開発基盤」の仕分け

@@ -13,10 +13,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import io.github.obaya884.rebuy.ui.BuildConfig
 import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.TestTags
+import io.github.obaya884.rebuy.ui.VERSION_NAME
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
@@ -115,7 +115,7 @@ fun VersionCell() {
                 modifier = Modifier.weight(1f),
             )
             Text(
-                text = BuildConfig.VERSION_NAME,
+                text = VERSION_NAME,
                 style = MaterialTheme.typography.titleMedium,
             )
         }
