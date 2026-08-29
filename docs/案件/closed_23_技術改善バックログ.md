@@ -14,6 +14,7 @@
 | T-04 | ledger-move.sh の移植 | ツール整備 | 中 | 完了 2026-08-29 | [詳細](#t-04) |
 | T-05 | Gradle Managed Device の導入 | テスト | 高 | 完了 2026-08-29 | [詳細](#t-05) |
 | T-06 | CI と Dependabot | ツール整備 | 高 | 完了 2026-08-29 | [詳細](#t-06) |
+| T-07 | サブエージェント 4 本 | ツール整備 | 高 | 完了 2026-08-29 | [詳細](#t-07) |
 
 ## 詳細
 
@@ -52,3 +53,9 @@
 - 背景: CI が無い
 - 対応方針: GitHub Actions に `docs`（docs-check）と `verify`（build＋GMD）の 2 ジョブ。Dependabot は gradle と github-actions を weekly。**この作業だけは PR を通して CI の動作を検証する**
 - 関連: [開発基盤検討](../検討/31_開発基盤検討.md) §8
+
+### T-07
+
+- 背景: 検証・レビューをメインセッションが全部抱えるとコンテキストが実装に使えない
+- 対応方針: `.claude/agents/` に verifier / code-quality-reviewer / spec-reviewer / test-reviewer を Android 向けに書く
+- 関連: [開発基盤検討](../検討/31_開発基盤検討.md) §6
