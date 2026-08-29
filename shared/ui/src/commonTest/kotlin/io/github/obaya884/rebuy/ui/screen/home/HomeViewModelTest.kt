@@ -1,7 +1,7 @@
 package io.github.obaya884.rebuy.ui.screen.home
 
 import io.github.obaya884.rebuy.ui.CREATED_AT
-import io.github.obaya884.rebuy.ui.ViewModelTest
+import io.github.obaya884.rebuy.ui.ViewModelTestBase
 import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.item.ItemStatus
@@ -18,7 +18,7 @@ import kotlin.test.assertNull
 import kotlin.test.Test
 
 /** ホーム画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
-class HomeViewModelTest : ViewModelTest() {
+class HomeViewModelTest : ViewModelTestBase() {
 
     private val db = FakeDatabase()
 

@@ -1,6 +1,6 @@
 package io.github.obaya884.rebuy.ui.screen.item_edit
 
-import io.github.obaya884.rebuy.ui.ViewModelTest
+import io.github.obaya884.rebuy.ui.ViewModelTestBase
 import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.domain.CategoryRepository
@@ -15,7 +15,7 @@ import kotlin.test.assertTrue
 import kotlin.test.Test
 
 /** 品目編集画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
-class ItemEditViewModelTest : ViewModelTest() {
+class ItemEditViewModelTest : ViewModelTestBase() {
 
     private val db = FakeDatabase()
 

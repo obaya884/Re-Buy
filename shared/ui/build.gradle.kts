@@ -71,28 +71,27 @@ kotlin {
     sourceSets {
         // ステップ 12 で SettingScreen が commonMain へ行っても付け替えずに済むよう、
         // いま android ターゲットしか無いうちから commonMain に置く
-        commonMain { kotlin.srcDir(generateVersionKt) }
+        commonMain {
+            kotlin.srcDir(generateVersionKt)
 
-        commonMain.dependencies {
-            api(project(":shared:domain"))
+            dependencies {
+                api(project(":shared:domain"))
 
-            // uiModule を :androidApp へ公開する。koinViewModel() は画面の内側だけ
-            api(libs.koin.core)
+                // uiModule を :androidApp へ公開する。koinViewModel() は画面の内側だけ
+                api(libs.koin.core)
+                // 上流の api 頼みにせず、この source set でも版を固定する
+                implementation(project.dependencies.platform(libs.koin.bom))
+                // viewModelOf。koin-android のものは Android 専用
+                implementation(libs.koin.core.viewmodel)
 
-            // ViewModel の基底。-ktx と -compose は Android 専用なので androidMain 側
-            implementation(libs.androidx.lifecycle.viewmodel)
-            // viewModelOf。koin-android のものは Android 専用
-            implementation(libs.koin.core.viewmodel)
+                // ViewModel の基底。-ktx と -compose は Android 専用
+                implementation(libs.androidx.lifecycle.viewmodel)
+            }
         }
 
         androidMain {
             dependencies {
                 implementation(libs.koin.compose.viewmodel)
-
-                // Lifecycle
-                implementation(libs.androidx.lifecycle.runtime.ktx)
-                implementation(libs.androidx.lifecycle.viewmodel.compose)
-                implementation(libs.androidx.lifecycle.viewmodel.ktx)
 
                 // Navigation。Screen が NavKey を継ぎ、Navigator も NavKey を公開する
                 api(libs.androidx.navigation3.runtime)

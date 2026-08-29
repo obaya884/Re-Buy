@@ -1,7 +1,7 @@
 package io.github.obaya884.rebuy.ui.di
 
 import android.content.Context
-import org.junit.Test
+import kotlin.test.Test
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.test.verify.verify
 

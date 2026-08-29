@@ -210,7 +210,7 @@ KMP ライブラリには build type が無く、宣言できるのは `androidC
 `Dispatchers.setMain` / `resetMain` 自体は共通 API で K/N でも動く。壊れるのは JUnit4 の `TestWatcher` / `@get:Rule` のほう。基底クラスへ置き換える。
 
 ```kotlin
-abstract class ViewModelTest {
+abstract class ViewModelTestBase {
     protected val dispatcher = StandardTestDispatcher()
     @BeforeTest fun setUp() { Dispatchers.setMain(dispatcher) }
     @AfterTest fun tearDown() { Dispatchers.resetMain() }

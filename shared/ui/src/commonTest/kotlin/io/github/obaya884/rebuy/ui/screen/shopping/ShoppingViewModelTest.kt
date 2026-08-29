@@ -1,7 +1,7 @@
 package io.github.obaya884.rebuy.ui.screen.shopping
 
 import io.github.obaya884.rebuy.ui.CREATED_AT
-import io.github.obaya884.rebuy.ui.ViewModelTest
+import io.github.obaya884.rebuy.ui.ViewModelTestBase
 import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
@@ -20,7 +20,7 @@ import kotlin.test.assertTrue
 import kotlin.test.Test
 
 /** 買い物画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
-class ShoppingViewModelTest : ViewModelTest() {
+class ShoppingViewModelTest : ViewModelTestBase() {
 
     private val db = FakeDatabase()
 
