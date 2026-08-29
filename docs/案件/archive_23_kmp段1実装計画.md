@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 - 作成日: 2026-08-29
-- 位置づけ: [KMP 化検討](../検討/32_KMP化検討.md) §10 の**段 1（DI を Hilt から Koin へ差し替える）**の実装手順。台帳エントリは T-19（[技術改善バックログ](./23_技術改善バックログ.md)）。個々のタスクは台帳に起票せず本書のタスク番号で管理する
+- 位置づけ: [KMP 化検討](../検討/32_KMP化検討.md) §10 の**段 1（DI を Hilt から Koin へ差し替える）**の実装手順。台帳エントリは T-19（[技術改善バックログ](./23_技術改善バックログ.md)）。個々のタスクは台帳に起票せず本書のタスク番号で管理する **段 1（Koin 化）の完了（2026-08-29）により凍結。以後は書き換えない**
 - 前段: [段 0 実装計画](./archive_23_kmp段0実装計画.md)（Navigation 3 化・完了）
 
 **Goal:** DI を Hilt から Koin へ差し替える。**モジュールは分割しない**（段 2）。KMP 化もしない（段 3）。この段が終わった時点で、アプリの挙動は差し替え前と同一で、Hilt への依存が 1 つも残っていない。

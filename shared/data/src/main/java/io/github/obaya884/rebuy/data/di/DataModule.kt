@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy.di
+package io.github.obaya884.rebuy.data.di
 
 import io.github.obaya884.rebuy.data.AppDatabase
 import org.koin.android.ext.koin.androidContext

@@ -12,9 +12,9 @@ repositories {
 }
 
 android {
-    // 画面文言が入る R をアプリと同じ FQN で持つ。android.nonTransitiveRClass=true なので
-    // ここを分けると本番 9 ファイルと instrumented 2 ファイルの import が変わる
-    namespace = "io.github.obaya884.rebuy"
+    // R と BuildConfig の FQN になる。package と揃えることで、
+    // 画面文言を使う側が「どのモジュールのリソースか」を import で読める
+    namespace = "io.github.obaya884.rebuy.ui"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {

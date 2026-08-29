@@ -2,7 +2,7 @@ package io.github.obaya884.rebuy.ui.screen.item_edit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.github.obaya884.rebuy.combine
+import io.github.obaya884.rebuy.ui.combine
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemWithCategory

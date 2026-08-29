@@ -3,8 +3,8 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 - 作成日: 2026-08-29
-- 位置づけ: [KMP 化検討](../検討/32_KMP化検討.md) §10 の**段 2（モジュールを 4 つに分ける）**の実装手順。台帳エントリは T-20（[技術改善バックログ](./23_技術改善バックログ.md)）
-- 前段: [段 1 実装計画](./plan_23_kmp段1実装計画.md)（Koin 化）。**段 1 の完了が前提**
+- 位置づけ: [KMP 化検討](../検討/32_KMP化検討.md) §10 の**段 2（モジュールを 4 つに分ける）**の実装手順。台帳エントリは T-20（[技術改善バックログ](./23_技術改善バックログ.md)） **段 2（モジュール分割）の完了（2026-08-29）により凍結。以後は書き換えない**
+- 前段: [段 1 実装計画](./archive_23_kmp段1実装計画.md)（Koin 化）。**段 1 の完了が前提**
 - **本書は段 1 に入る前に書かれている。** 調査の結果を失わないための先行執筆で、着手時に段 1 の結果を踏まえて見直すこと。特に Koin モジュールの配置（段 1 Task 3。`uiModule` → `domainModule` → `dataModule` の `includes` 連鎖）が本書の前提
 
 **Goal:** 単一モジュール `:app` を `:androidApp` / `:shared:ui` / `:shared:domain` / `:shared:data` の 4 つに割る。**Android のまま**で、KMP 化はしない（段 3）。挙動は変えない。

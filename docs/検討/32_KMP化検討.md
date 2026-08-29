@@ -41,14 +41,18 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 - `Item` / `Category` は `:shared:data` に置いたまま `:shared:domain` と `:shared:ui` が参照する。Room の `@Entity` を UI まで流している現構造をそのまま移す。domain モデルを別に立ててマッピングを挟むのは ③ の範囲外（④ 以降）
 - **`applicationId` は `io.github.obaya884.rebuy` のまま変えない。`namespace` はモジュールごとに分ける**
 
-| モジュール | `namespace` |
-|---|---|
-| `:shared:data` | `io.github.obaya884.rebuy.data` |
-| `:shared:domain` | `io.github.obaya884.rebuy.domain` |
-| `:shared:ui` | **`io.github.obaya884.rebuy`**（現在の `R` を引き継ぐ） |
-| `:androidApp` | `io.github.obaya884.rebuy.app` |
+| モジュール | `namespace` | Kotlin package |
+|---|---|---|
+| `:androidApp` | `io.github.obaya884.rebuy` | `io.github.obaya884.rebuy` |
+| `:shared:data` | `io.github.obaya884.rebuy.data` | `io.github.obaya884.rebuy.data` |
+| `:shared:domain` | `io.github.obaya884.rebuy.domain` | `io.github.obaya884.rebuy.domain` |
+| `:shared:ui` | `io.github.obaya884.rebuy.ui` | `io.github.obaya884.rebuy.ui` |
 
-  `gradle.properties` の `android.nonTransitiveRClass=true` により、アプリの `R` にライブラリのリソースは入らない。画面文言は `:shared:ui` へ移るので、`io.github.obaya884.rebuy.R` を参照している本番 9 ファイルと **instrumented テスト 2 ファイル**をそのまま通すには、`:shared:ui` が `io.github.obaya884.rebuy` を名乗るしかない。`applicationId` は変わらないので、端末上のパッケージ名・`context.packageName`・DB のファイルパスは不変
+  **`namespace` は Kotlin package と揃え、`:androidApp` は `applicationId` とも揃える**（公式が「同じにしておけば心配ない」と書く形）。`namespace` はモジュール間で一意である必要があるが（AGP 9 は重複をビルドエラーにする）、`shared` を入れなくても一意になるので入れない。
+
+  **`shared` は Kotlin package に入れない。** Gradle 上の入れ物を示す語で、モジュールの性格を説明していないため。Ivy Wallet（`:shared:data:model` → `com.ivy.data.model`）・Tivi・DroidKaigi・JetBrains の KMP テンプレートのいずれも入れていない。
+
+  `R` と `BuildConfig` の FQN は `namespace` で決まるので、**リソースを使う側は所有モジュールの `R` を import する**（`io.github.obaya884.rebuy.ui.R`）。Now in Android も同じ形で、feature モジュールが別モジュールの `R` を import している。`applicationId` は `io.github.obaya884.rebuy` のまま変えないので、端末上のパッケージ名・`context.packageName`・DB のファイルパスは不変
 - **AboutLibraries プラグインは `:shared:ui` に適用する**。プラグインは生成した `res/raw/aboutlibraries.json` を適用先モジュール自身の res ソースとして登録するため、`LicenseScreen` と同じモジュールに置く必要がある。ただし収集範囲は適用先モジュールの依存グラフなので、`:androidApp` にしか宣言していない依存はライセンス一覧から落ちる——移設の前後で `aboutlibraries.json` を diff して確かめる
 - **convention plugin（`build-logic` の included build）は段 3 の最初に導入する**（T-28）。段 2 までの重複は `repositories` と SDK レベルと `compileOptions` の 4 行程度で、しかも書き忘れると必ずビルドが落ちる自己修正する重複なので割に合わない。段 3 で各 `:shared:*` に KMP のターゲット定義と `commonMain` / `androidMain` / `iosMain` の source set が入ると、**書き忘れが静かに効く**（ターゲットが 1 つ足りなくてもビルドは通り、iOS で動かないことに後で気づく）ため、そこが導入点になる。Android 専用の convention を先に書くと段 3 で書き直しになる
 

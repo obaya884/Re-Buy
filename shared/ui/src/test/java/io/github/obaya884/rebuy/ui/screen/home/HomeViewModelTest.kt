@@ -1,13 +1,13 @@
 package io.github.obaya884.rebuy.ui.screen.home
 
-import io.github.obaya884.rebuy.CREATED_AT
-import io.github.obaya884.rebuy.MainDispatcherRule
-import io.github.obaya884.rebuy.category
-import io.github.obaya884.rebuy.data.FakeDatabase
+import io.github.obaya884.rebuy.ui.CREATED_AT
+import io.github.obaya884.rebuy.ui.MainDispatcherRule
+import io.github.obaya884.rebuy.ui.category
+import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
-import io.github.obaya884.rebuy.item
+import io.github.obaya884.rebuy.ui.item
 import io.github.obaya884.rebuy.ui.screen.home.HomeViewModel.Companion.RIPPLE_DELAY_MS
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle

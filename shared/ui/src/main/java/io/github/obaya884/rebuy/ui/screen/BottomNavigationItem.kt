@@ -5,7 +5,7 @@ import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation3.runtime.NavKey
-import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.ui.Screen
 
 /**
