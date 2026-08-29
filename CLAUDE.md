@@ -148,7 +148,7 @@ AboutLibraries プラグインでビルド時にライセンス情報を生成�
 
 ## このリポジトリは public
 
-`obaya884/Re-Buy` は公開リポジトリ。**到達手段・実データ・資格情報につながる記述はコミットしない**。
+`obaya884/Re-Buy` は公開リポジトリ。**到達手段・実データ・資格情報につながる記述はコミットしない**。コミットの author（氏名・メールアドレス）だけは例外として受け入れている（憲章 §10）。
 
 - 署名鍵（`*.jks` `*.keystore`）・`keystore.properties`・Play Console / App Store Connect の内部 ID・API キーは値も所在も書かない（`.claude/settings.json` の deny で読み取りも塞いである）
 - オーナーの生活が読み取れる実データ（品目名・カテゴリ名）を docs の例示に使わない
