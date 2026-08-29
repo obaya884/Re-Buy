@@ -24,7 +24,7 @@ Android 単一モジュールの現構造を、iOS と共有できる構造へ�
 | 最低 iOS | iOS 26 |
 | テスト | 純粋ロジック・Repository・ViewModel を `commonTest` へ |
 | CI | macOS ランナーで共有フレームワークのコンパイルと `commonTest` まで。Xcode ビルドは入れない |
-| 段取り | 3 段に切る（§10） |
+| 段取り | 5 段に切る（§10） |
 
 ## 3. モジュール構成（A）
 
@@ -90,7 +90,7 @@ iosApp/          Xcode プロジェクト（SwiftUI の App と Compose ホス�
 ## 8. テスト（F）
 
 - `commonTest` に置くもの: Converter などの純粋ロジック、Repository、ViewModel
-- **ViewModel のテストは移植の前に Android 側で書く**（移植で挙動が変わっていないことを機械で確かめる唯一の手段）。T-26 で 71 件を追加済み
+- **ViewModel のテストは移植の前に Android 側で書く**（移植で挙動が変わっていないことを機械で確かめる唯一の手段）。T-26 で 90 件を追加済み
 - Room のマイグレーション検証は各プラットフォームの実機テストに残す。現行 `RoomMigrationTest` は Android 側で維持する（[技術改善バックログ](../案件/23_技術改善バックログ.md) T-17 と接続）
 - 起票済みの T-14〜T-16 は移植の網を厚くする作業でもある。③ の着手時に優先度を見直す
 
