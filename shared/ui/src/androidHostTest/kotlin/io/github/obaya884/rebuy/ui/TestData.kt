@@ -3,12 +3,13 @@ package io.github.obaya884.rebuy.ui
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 /**
- * 生成時刻。`Instant.now()` を既定値にすると同じ引数で作った 2 つが等しくならないので固定する。
+ * 生成時刻。`Clock.System.now()` を既定値にすると同じ引数で作った 2 つが等しくならないので固定する。
  *
- * DAO の更新系は `Instant.now()` で `updatedAt` を書き換えるため、この値のままかどうかで
+ * DAO の更新系は `Clock.System.now()` で `updatedAt` を書き換えるため、この値のままかどうかで
  * 「更新が走ったか」を判別できる。
  */
 val CREATED_AT: Instant = Instant.parse("2026-01-01T00:00:00Z")

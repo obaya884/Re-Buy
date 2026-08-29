@@ -2,7 +2,8 @@ package io.github.obaya884.rebuy.data.category
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
-import java.time.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 
 @Dao
 interface CategoryDao {
@@ -17,5 +18,5 @@ interface CategoryDao {
 
 
     @Query("UPDATE categories SET name = :newName, updatedAt = :updatedAt WHERE id = :id")
-    suspend fun updateCategoryName(id: Int, newName: String, updatedAt: Instant = Instant.now())
+    suspend fun updateCategoryName(id: Int, newName: String, updatedAt: Instant = Clock.System.now())
 }

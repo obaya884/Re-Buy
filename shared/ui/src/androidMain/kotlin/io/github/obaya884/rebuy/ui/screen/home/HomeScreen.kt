@@ -32,6 +32,8 @@ import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import kotlin.time.Instant
+import java.time.Instant as JavaInstant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
@@ -299,9 +301,7 @@ fun HomeListItemRow(
                     modifier = Modifier.padding(top = 4.dp),
                     text = stringResource(
                         id = R.string.home_last_bought_at,
-                        lastBoughtAt.atZone(ZoneId.systemDefault()).format(
-                            DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT)
-                        )
+                        formatShortDate(lastBoughtAt)
                     ),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
@@ -338,3 +338,15 @@ fun HomeListItemRow(
         color = MaterialTheme.colorScheme.outlineVariant
     )
 }
+
+/**
+ * 「最終購入」の日付をロケール依存の短い形式で書く。
+ *
+ * ロケール依存の書式化は stdlib にも kotlinx-datetime にも等価物が無いので、
+ * ステップ 12 で `expect/actual` に切り出す。いまは Android だけなので `java.time` のまま。
+ * 保存はエポックミリ秒なので、そこを経由しても表示は変わらない。
+ */
+private fun formatShortDate(instant: Instant): String =
+    JavaInstant.ofEpochMilli(instant.toEpochMilliseconds())
+        .atZone(ZoneId.systemDefault())
+        .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
