@@ -5,7 +5,8 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
-    // KMP モジュールには android 拡張が無いので、いま効くのは repositories だけ（T-28b で口を足す）
+    // KMP には android 拡張が無いので compileSdk / minSdk / jvmTarget は下で自前に指定する。
+    // ここで効いているのは repositories だけ（T-28b で KMP 用の口を足す）
     id("rebuy.android.base")
 }
 
@@ -21,7 +22,8 @@ kotlin {
             jvmTarget = JvmTarget.JVM_17
         }
 
-        // ホストテストは既定で無効。開けないとユニットテストが 0 件のままビルドが緑になる
+        // ホストテストは既定で無効。開けないとユニットテストが 0 件のままビルドが緑になる。
+        // 設定はすべて既定でよいのでラムダは空。呼ぶこと自体が有効化になる
         withHostTestBuilder { }.configure { }
     }
 
@@ -34,13 +36,15 @@ kotlin {
             implementation(libs.androidx.room.runtime)
             implementation(libs.androidx.room.ktx)
 
-            // dataModule（Koin の Module 型）を上の層へ公開する
+            // dataModule（Koin の Module 型）を上の層へ公開する。
+            // sourceSets の中では platform() が生えないので project.dependencies から呼ぶ
             api(project.dependencies.platform(libs.koin.bom))
             api(libs.koin.core)
             // androidContext() は DataModule の内側だけで使う
             implementation(libs.koin.android)
         }
 
+        // androidHostTest は withHostTestBuilder が動的に作るので型付きアクセサが無い
         getByName("androidHostTest").dependencies {
             implementation(libs.junit)
         }
@@ -62,6 +66,10 @@ dependencies {
 }
 
 // AGP の lint タスクが KSP の生成先を入力に取るのに依存を宣言しないので、自分で繋ぐ。
-// KMP ライブラリプラグインの host test でだけ起きる
+// KMP ライブラリプラグインの host test でだけ起きる。kspAndroidHostTest には processor が
+// 1 つも登録されていない（Room を回すのは kspAndroid だけ）が、空の生成先だけは作られる。
+// AGP 9.3.2 で確認。AGP を上げたら外して試すこと
+// lint タスクは評価後に登録されるので tasks.named では引けない。名前が変わってマッチが 0 件に
+// なっても黙って通ってしまうが、そのときは元の Property has implicit dependency に戻るだけで気づける
 tasks.matching { it.name == "lintAnalyzeAndroidHostTest" || it.name == "generateAndroidHostTestLintModel" }
     .configureEach { dependsOn("kspAndroidHostTest") }

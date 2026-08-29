@@ -101,7 +101,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 1 | **build-logic を included build として立てる（T-28a）** | `./gradlew build` 緑。`:shared:*` 3 本と `:androidApp` から `repositories {}` と `compileOptions {}` が消えている。ユニット 122・instrumented 20 が緑。`--configuration-cache` の 2 回目が `reused`。build-logic の AGP / KGP が catalog と同じ版で宣言されている |
 | 2 | **catalog に KMP / CMP / Room-KMP / sqlite-bundled の版を足す（適用はしない）** | `./gradlew build` 緑。生成物に差分なし。root の `plugins { ... apply false }` に KMP と CMP と Android-KMP-library が並んでいる |
 | 3 | **`:shared:data` を KMP 化（android ターゲットのみ、コードは全部 `androidMain`）** | `:shared:data` のホストテストが**20 件**緑。`./gradlew build` 緑。`shared/data/schemas/**/2.json` の場所と中身が移行前と一致。instrumented 20 件緑。**`.claude/settings.json` の allow をここで追随させる**（タスク名が変わるので、待つと以降 12 commit ぶん許可プロンプトを踏む） |
-| 4 | **ターゲット定義を convention plugin へ抽出（T-28b）** | `./gradlew build` 緑。テスト件数不変。`shared/data/build.gradle.kts` からターゲット定義が消えている |
+| 4 | **ターゲット定義を convention plugin へ抽出（T-28b）** | `./gradlew build` 緑。テスト件数不変。`shared/data/build.gradle.kts` からターゲット定義が消えている。**`jvmTarget` も一緒に運ぶ**——運ばないとステップ 5 で `:shared:ui` と `:shared:domain` が落とし穴 6 を踏む |
 | 5 | **`:shared:domain` と `:shared:ui` を KMP 化（`androidMain` のまま）** | Android 同一挙動（**設定画面のバージョン表示が `0.0.1`**）。ホストテスト **102 件**緑。instrumented 20 件緑。`BuildConfig` → 生成 `Version.kt`、`debugImplementation` → `androidRuntimeClasspath` に置き換わっている |
 | 6 | **3 モジュールに iOS ターゲットを足し、`:shared:ui` の `iosMain` に framework と `Text` 1 個のスタブを置く** | `./gradlew :shared:ui:linkDebugFrameworkIosSimulatorArm64` が通る。Android 側のテスト件数と挙動は不変 |
 | 7 | **`iosApp/` の Xcode プロジェクトを置き、シミュレータで Compose の 1 画面を出す** | **iOS シミュレータに `Text` が出る**。`.gitignore` に Xcode の生成物（`iosApp/build/` `xcuserdata/`）が入り、`project.pbxproj` はコミットされている。Android 無変更 |
@@ -113,7 +113,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が両ターゲット緑 |
 | 14 | **AboutLibraries を composeResources 経由に** | `aboutlibraries.json` の diff が移設前と同じ。Android のライセンス一覧の表示が同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
 | 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。Android 無変更 |
-| 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある |
+| 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など） |
 
 ステップ 11（リソース 52 件）と 12（画面 6 枚）は commit が大きい。11 を「文言」「drawable」、12 を「theme」「画面ごと」に割ってよい。
 
@@ -254,19 +254,20 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 2. **build-logic を Gradle 埋め込み Kotlin 2.2 でコンパイルできない場合の退避**（優先順）: (a) precompiled script plugin をやめて `java-gradle-plugin` ＋ 素の `Plugin` クラスにする——Kotlin コンパイラが KGP 側になるので版の縛りが外れる、(b) `kotlin { compilerOptions { languageVersion } }` を明示、(c) root の `subprojects {}` / `plugins.withId {}` に寄せる——T-28 の目的（ターゲット定義の書き忘れ防止）は達成できるので退避として成立する
 3. **build-logic の AGP / KGP 版が root とずれると、コンパイルは通って実行時に `NoSuchMethodError`**
 4. **Room の KSP をターゲットごとに書き忘れると、そのターゲットだけリンク時に落ちる。** Android では一切現れない
-4.5. **AGP の lint タスクが KSP の生成先を入力に取るのに依存を宣言しない。** KMP ライブラリプラグインの host test で `lintAnalyzeAndroidHostTest` と `generateAndroidHostTestLintModel` が `Property has implicit dependency` で落ちる。`dependsOn("kspAndroidHostTest")` を自分で繋ぐ（`:shared:data` に実例）
-5. **`room { schemaDirectory }` がバリアント別サブディレクトリを掘ると、assets 指定と `RoomMigrationTest` が同時に壊れる**
-6. **`RoomMigrationTest` は driver 導入で 2 か所壊れる**
-7. **Navigation 3 の多相シリアライズの登録漏れは iOS だけで出る**
-8. **`:shared:ui` の `BuildConfig` が消える。** 新プラグインは BuildConfig 非対応。`rebuy.versionName` から `Version.kt` を生成する小さなタスクを convention plugin に置く
-9. **`debugImplementation` が書けなくなる。** build type が無い
-10. **Compose の版が二重管理になる。** `:shared:ui` は CMP プラグインの `compose.*`、`:androidApp` は androidx の BOM。ずれると `NoSuchMethodError` か重複クラス
-11. **`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。** `dynamicColor` の既定が `false` なので、この分岐を `expect/actual` に切るか削るかを決めれば挙動は変わらない
-12. **`AppDatabase` の `synchronized` が common に置けない**
-13. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
-14. **`iosMain` の関数名を `init` で始めない。** `initKoin()` は Swift 側で `doInitKoin()` に化ける
-15. **`aboutlibraries.json` が生成物なのにソースツリー内**
-16. **`./gradlew build` が Linux CI で iOS 側に触る。** CI の `build` ジョブはタスクを明示列挙する形へ
+5. **AGP の lint タスクが KSP の生成先を入力に取るのに依存を宣言しない。** KMP ライブラリプラグインの host test で `lintAnalyzeAndroidHostTest` と `generateAndroidHostTestLintModel` が `Property has implicit dependency` で落ちる。`dependsOn("kspAndroidHostTest")` を自分で繋ぐ（`:shared:data` に実例）
+6. **KMP 化すると JVM target 17 が黙って外れる。** `rebuy.android.base` の `compileOptions` は KMP モジュールに当たらないので、`androidLibrary { compilerOptions { jvmTarget } }` を自分で書く。**書き忘れてもビルドもテストも緑のまま**で、バイトコード版がビルドした環境の JDK で決まる（手元の JBR 25 と CI の Temurin 21 で別物が出る）。`javap -v <class> | grep "major version"` が 61 かで確かめる
+7. **`room { schemaDirectory }` がバリアント別サブディレクトリを掘ると、assets 指定と `RoomMigrationTest` が同時に壊れる**
+8. **`RoomMigrationTest` は driver 導入で 2 か所壊れる**
+9. **Navigation 3 の多相シリアライズの登録漏れは iOS だけで出る**
+10. **`:shared:ui` の `BuildConfig` が消える。** 新プラグインは BuildConfig 非対応。`rebuy.versionName` から `Version.kt` を生成する小さなタスクを convention plugin に置く
+11. **`debugImplementation` が書けなくなる。** build type が無い
+12. **Compose の版が二重管理になる。** `:shared:ui` は CMP プラグインの `compose.*`、`:androidApp` は androidx の BOM。ずれると `NoSuchMethodError` か重複クラス
+13. **`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。** `dynamicColor` の既定が `false` なので、この分岐を `expect/actual` に切るか削るかを決めれば挙動は変わらない
+14. **`AppDatabase` の `synchronized` が common に置けない**
+15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
+16. **`iosMain` の関数名を `init` で始めない。** `initKoin()` は Swift 側で `doInitKoin()` に化ける
+17. **`aboutlibraries.json` が生成物なのにソースツリー内**
+18. **`./gradlew build` が Linux CI で iOS 側に触る。** CI の `build` ジョブはタスクを明示列挙する形へ
 
 ## spec §11「③ で壊れる開発基盤」の仕分け
 

@@ -41,7 +41,8 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 
 ### ビルド構成の注意点
 
-- **Kotlin は AGP の built-in Kotlin でコンパイルされる。** `org.jetbrains.kotlin.android` プラグインは適用していないので、どのモジュールにも足さないこと。
+- **Kotlin は AGP の built-in Kotlin でコンパイルされる**（KMP 化していないモジュール）。`org.jetbrains.kotlin.android` プラグインは適用していないので、足さないこと。**KMP 化したモジュール**（`:shared:data`）は `org.jetbrains.kotlin.multiplatform` を明示適用するので built-in Kotlin は関与しない。
+- **KMP モジュールでは `jvmTarget` を自分で書く。** `rebuy.android.base` の `compileOptions` が当たらないため、`androidLibrary { compilerOptions { jvmTarget = JvmTarget.JVM_17 } }` が要る。書き忘れてもビルドもテストも緑のままで、バイトコード版がビルド環境の JDK で決まってしまう（`javap -v <class> | grep "major version"` が 61 かで確かめる）。
 - そのため Kotlin / KSP のバージョンは、ルート `build.gradle.kts` の `buildscript { dependencies { classpath ... } }` で引き上げている。AGP 同梱の KGP より新しいものを使いたい場合はここを直す（version catalog の `kotlin` / `ksp` が実体）。
 - `kotlinOptions {}` は使えない。コンパイラオプションが必要なら `kotlin { compilerOptions {} }` を使う。JVM target は `compileOptions.targetCompatibility` から引き継がれるので通常は指定不要。
 - `ksp {}` と `android.sourceSets {}` はトップレベル / `android {}` 直下に置くこと。Groovy DSL 時代は `defaultConfig {}` の中に書いても暗黙の委譲で動いていたが、Kotlin DSL では解決できない。
@@ -131,7 +132,7 @@ AboutLibraries プラグインでビルド時にライセンス情報を生成�
 - **着手前** — 影響範囲が読み切れないとき: `Explore`
 - **実装方式で迷うとき** — トレードオフのある設計判断: `Plan`
 - **実装が一区切りしたら（コミット前）** — `verifier` と `code-quality-reviewer` を並列でバックグラウンド起動。軽微な変更では起動しない
-- **差分にテストファイル（`shared/*/src/test/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
+- **差分にテストファイル（`shared/*/src/{test,androidHostTest,commonTest}/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
 - **差分が docs の条項に触れる／条項で定まる挙動を実装したとき** — `spec-reviewer`
 
 ## 実装完了後のフロー（レビュー → 動作確認 → コミット/push）

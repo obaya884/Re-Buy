@@ -13,6 +13,8 @@ androidx-room = "2.8.4"
 androidx-sqlite = "2.6.2"
 androidx-lifecycle = "2.11.0"
 androidx-compose-bom = "2026.08.00"
+# Compose Multiplatform。Kotlin 2.2.20 でビルドされているが、Kotlin は古いメタデータを読めるので 2.4.10 から使える
+compose-multiplatform = "1.12.0"
 androidx-navigation3 = "1.1.6"
 kotlinx-coroutines = "1.9.0"
 kotlinx-serialization-json = "1.9.0"
@@ -22,8 +24,6 @@ androidx-espresso = "3.7.0"
 junit = "4.13.2"
 koin = "4.1.0"
 aboutLibraries = "15.2.0"
-# Compose Multiplatform。Kotlin 2.2.20 でビルドされているが、Kotlin は古いメタデータを読めるので 2.4.10 から使える
-compose-multiplatform = "1.12.0"
 
 [libraries]
 android-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "android-gradle-plugin" }
@@ -82,6 +82,6 @@ ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android-gradle-plugin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
-# ksp arg の room.schemaLocation は KMP では効かないので、Room の Gradle プラグインで schemaDirectory を渡す
+# schemaDirectory を渡すための Room の Gradle プラグイン
 androidx-room = { id = "androidx.room", version.ref = "androidx-room" }
 aboutLibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutLibraries" }
