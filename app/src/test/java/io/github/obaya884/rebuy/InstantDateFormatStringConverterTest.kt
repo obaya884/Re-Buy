@@ -16,12 +16,12 @@ class InstantDateFormatStringConverterTest {
         OffsetDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC)
             .toInstant()
             .let { InstantDateFormatStringConverter.toString(it) }
-            .also { assertEquals(it, "0000-01-01 00:00:00") }
+            .also { assertEquals("0000-01-01 00:00:00", it) }
         // 上限（秒未満は切り捨て）
         OffsetDateTime.of(9999, 12, 31, 23, 59, 59, 999_999_999, ZoneOffset.UTC)
             .toInstant()
             .let { InstantDateFormatStringConverter.toString(it) }
-            .also { assertEquals(it, "9999-12-31 23:59:59") }
+            .also { assertEquals("9999-12-31 23:59:59", it) }
 
         // 下限より下
         OffsetDateTime.of(-1, 12, 31, 23, 59, 59, 0, ZoneOffset.UTC)
@@ -51,16 +51,16 @@ class InstantDateFormatStringConverterTest {
         InstantDateFormatStringConverter.toInstant("0000-01-01 00:00:00")
             .also {
                 assertEquals(
-                    it,
-                    OffsetDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toInstant()
+                    OffsetDateTime.of(0, 1, 1, 0, 0, 0, 0, ZoneOffset.UTC).toInstant(),
+                    it
                 )
             }
         // 上限
         InstantDateFormatStringConverter.toInstant("9999-12-31 23:59:59")
             .also {
                 assertEquals(
-                    it,
-                    OffsetDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneOffset.UTC).toInstant()
+                    OffsetDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneOffset.UTC).toInstant(),
+                    it
                 )
             }
     }
