@@ -9,4 +9,5 @@
 | 2026-08-29 | build-logic では `dependencyResolutionManagement` を使う | 版の二重管理を避けてルートと同じ catalog を読むため。CLAUDE.md の「使わない」はルートの settings の話で、build-logic は独立したビルドなので影響しない |
 | 2026-08-30 | `androidx.sqlite` は Room が引いてくる 2.6.2 に合わせ、lint の「2.7.0 がある」警告は残す | 版を上げると Room が内部で使う driver と実装が二重になりうる。警告が 1 件増えるより、Room が実際に解決する版と一致しているほうが読み手に正確 |
 | 2026-08-30 | Compose Multiplatform は 1.12.0 を選ぶ | 最新の安定版。Kotlin 2.2.20 でビルドされているが、Kotlin コンパイラは古いメタデータを読めるので 2.4.10 から使える |
-| 2026-08-30 | KMP 化したモジュールでは `jvmTarget` をモジュール側で指定する | `rebuy.android.base` の `compileOptions` は KMP モジュールに当たらず、書かないとバイトコード版がビルド環境の JDK で決まる。手元の JBR 25 と CI の Temurin 21 で別物が出る状態だった。T-28b で convention plugin へ運ぶまでの暫定 |
+| 2026-08-30 | KMP モジュールの `jvmTarget` は convention plugin が入れる | `rebuy.android.base` の `compileOptions` は KMP モジュールに当たらず、書かないとバイトコード版がビルド環境の JDK で決まる。手元の JBR 25 と CI の Temurin 21 で別物が出る状態を一度踏んだので、モジュール側の記述に頼らず T-28b で plugin 側へ移した |
+| 2026-08-30 | KMP の android ターゲットは kotlin 拡張の下から名前で引く | `androidLibrary` はターゲットを作る関数ではなく、AGP が kotlin 拡張に登録した拡張オブジェクト。`KotlinMultiplatformExtension` を `ExtensionAware` として引けば convention plugin から設定できる |

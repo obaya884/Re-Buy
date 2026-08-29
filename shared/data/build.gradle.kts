@@ -1,30 +1,15 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.ksp)
     alias(libs.plugins.androidx.room)
-    // KMP には android 拡張が無いので compileSdk / minSdk / jvmTarget は下で自前に指定する。
-    // ここで効いているのは repositories だけ（T-28b で KMP 用の口を足す）
+    // repositories・compileSdk・minSdk・jvmTarget・ホストテストの有効化を入れる
     id("rebuy.android.base")
 }
 
 kotlin {
     androidLibrary {
         namespace = "io.github.obaya884.rebuy.data"
-        compileSdk = libs.versions.compileSdk.get().toInt()
-        minSdk = libs.versions.minSdk.get().toInt()
-
-        // KMP 化すると rebuy.android.base の compileOptions が当たらなくなる。
-        // 指定しないと JDK の既定（25）で吐かれるので、ここで 17 に戻す
-        compilerOptions {
-            jvmTarget = JvmTarget.JVM_17
-        }
-
-        // ホストテストは既定で無効。開けないとユニットテストが 0 件のままビルドが緑になる。
-        // 設定はすべて既定でよいのでラムダは空。呼ぶこと自体が有効化になる
-        withHostTestBuilder { }.configure { }
     }
 
     sourceSets {
