@@ -1,20 +1,14 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.compose.compiler)
-}
-
-repositories {
-    google()
-    mavenCentral()
+    id("rebuy.android.base")
 }
 
 android {
     namespace = "io.github.obaya884.rebuy"
-    compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
         applicationId = "io.github.obaya884.rebuy"
-        minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
         versionCode = 1
         versionName = providers.gradleProperty("rebuy.versionName").get()
@@ -43,10 +37,6 @@ android {
                 "proguard-rules.pro"
             )
         }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
