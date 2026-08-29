@@ -17,7 +17,8 @@ local.properties
 
 # Xcode の生成物。project.pbxproj はコミットする
 xcuserdata/
-*.xcworkspace/xcshareddata/IDEWorkspaceChecks.plist
+**/xcshareddata/IDEWorkspaceChecks.plist
+**/xcshareddata/WorkspaceSettings.xcsettings
 DerivedData/
 
 # 署名鍵とその設定（public リポジトリなので値も所在もコミットしない）

@@ -109,10 +109,10 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
 | 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **101 件が `commonTest` で両ターゲット緑**、`KoinModulesTest` 1 件が `androidHostTest` で緑。合計 122 件。**アサーションの中身は 1 行も変えていない** |
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一。instrumented 20 件緑。`shared/ui/src/main/res` が消えている |
-| 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑。**iOS で TopAppBar がステータスバーに重ならず、余白も二重になっていない**（下の「セーフエリアは Compose 側で処理する」） |
+| 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑 |
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が両ターゲット緑 |
 | 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 131 件以上が出る**（ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**同じことを見る instrumented テストを 1 本足す**——いまこの退行を検出できるのは人がこの表を読むことだけなので、戻したら機械の網に載せる。Android のライセンス一覧の表示が移設前と同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
-| 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。Android 無変更 |
+| 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。**TopAppBar がステータスバーに重ならず、余白も二重になっていない**（「セーフエリアは Compose 側で処理する」）。**起動して数秒後にプロセスが生きている**（落とし穴 18）。Android 無変更 |
 | 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている |
 
 ステップ 11（リソース 52 件）と 12（画面 6 枚）は commit が大きい。11 を「文言」「drawable」、12 を「theme」「画面ごと」に割ってよい。
@@ -245,7 +245,7 @@ Build Phases に Run Script を 1 本足す。
 cd "$SRCROOT/.." && ./gradlew :shared:ui:embedAndSignAppleFrameworkForXcode
 ```
 
-Kotlin 側は `:shared:ui` の `iosMain` に framework を宣言（`baseName = "ReBuyUi"`, `isStatic = true`）し、`ReBuyViewController()` を公開する。
+Kotlin 側は `:shared:ui` の `iosMain` に framework を宣言（`baseName = "ReBuyUi"`, `isStatic = true`）し、`ReBuyViewController()` を公開する。**Koin を起動する関数はステップ 15 で足す**——ステップ 6 のスタブには要らない。
 
 Xcode 側は `FRAMEWORK_SEARCH_PATHS` に `$(SRCROOT)/../shared/ui/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)` を、`OTHER_LDFLAGS` に `-framework ReBuyUi` を入れる。**`TEAM_ID` は空のままコミットする**——シミュレータで動かすだけなら要らず、このリポジトリは public なので各自が手元で入れる。
 
@@ -258,17 +258,30 @@ xcrun simctl boot "iPhone 17 Pro"
 xcrun simctl install booted <DerivedData>/Build/Products/Debug-iphonesimulator/ReBuy.app
 xcrun simctl launch booted io.github.obaya884.rebuy
 xcrun simctl io booted screenshot out.png
-```**Koin を起動する関数はステップ 15 で足す**——ステップ 6 のスタブには要らない。
+```
+
+### iOS 固有の未決事項（段 4 で決める）
+
+段 3 では Android の挙動を変えないことが制約なので、**iOS だけに現れる選択**は決め切らずに送る。いずれも `iosApp/` の中で完結し、Android には影響しない。
+
+| 項目 | いまの値 | Android 側 |
+|---|---|---|
+| ホーム画面のアプリ名 | `ReBuy`（`PRODUCT_NAME`） | くりかえし使える買い物リスト |
+| 画面の向き | 縦固定 | 指定なし（回転する） |
+| 対応デバイス | iPhone のみ | タブレットにも入る（最適化はしない） |
+| 配備下限 | iOS 17.0 | minSdk 31 |
+
+アプリ名と向きは**利用者から見える挙動**なので、オーナーとの対話で決める。配備下限 17.0 は Compose Multiplatform の要件（iOS 13+）ではなく選択で、minSdk 31 と実カバー率が近い水準に置いている。
 
 ### セーフエリアは Compose 側で処理する
 
 `ContentView` は `.ignoresSafeArea()` を付けて Compose に画面全体を渡し、インセットの処理は Material3 の `Scaffold`（`contentWindowInsets`）に任せる。**SwiftUI 側でセーフエリアを効かせると、SwiftUI が余白を入れたうえで `Scaffold` がさらに入れて二重になる。**
 
-ステップ 7 のスタブは `Text` 1 個で TopAppBar を持たないため、この選択が正しいかはまだ確かめられていない。**ステップ 12 で `ReBuyAppScaffold` が iOS に出た時点で確認する。**
+ステップ 7 のスタブは `Text` 1 個で TopAppBar を持たないため、この選択が正しいかはまだ確かめられていない。**iOS は ステップ 15 までスタブのままなので、確認できるのもそこ。**
 
 ### Swift から見える API 面はファイル名でも決まる
 
-Kotlin/Native はトップレベル関数の入れ物クラス名を**ファイル名から**作る。`ReBuyViewController.kt` のトップレベル関数は Swift から `ReBuyViewControllerKt.reBuyViewController()` になる。**iOS の入口関数は 1 ファイルにまとめる**——別ファイルに分けると Swift 側に `...Kt` が 2 つ並ぶ。
+Kotlin/Native はトップレベル関数の入れ物クラス名を**ファイル名から**作る。`ReBuyViewController.kt` のトップレベル関数は Swift から `ReBuyViewControllerKt.ReBuyViewController()` になる。**iOS の入口関数は 1 ファイルにまとめる**——別ファイルに分けると Swift 側に `...Kt` が 2 つ並ぶ。
 
 Koin を起動する関数は `setupKoin()` にする。`startKoin()` は `org.koin.core.context.startKoin` と紛らわしく、`iosMain` で import すると衝突する。
 
