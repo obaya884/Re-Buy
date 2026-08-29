@@ -28,6 +28,9 @@ ksp {
 }
 
 dependencies {
+    // DAO の戻り値が Flow なので、公開 API として上の層へ通す
+    api(libs.kotlinx.coroutines.core)
+
     // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)

@@ -76,7 +76,7 @@ android {
 dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
 
-    implementation(project(":shared:data"))
+    implementation(project(":shared:domain"))
 
     implementation(libs.androidx.core.ktx)
 

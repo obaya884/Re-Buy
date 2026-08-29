@@ -8,3 +8,4 @@ pluginManagement {
 rootProject.name = "ReBuy"
 include(":androidApp")
 include(":shared:data")
+include(":shared:domain")
