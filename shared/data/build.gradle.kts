@@ -29,7 +29,7 @@ kotlin {
             implementation(libs.koin.android)
         }
 
-        // androidHostTest は withHostTestBuilder が動的に作るので型付きアクセサが無い
+        // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い
         getByName("androidHostTest").dependencies {
             implementation(libs.junit)
         }

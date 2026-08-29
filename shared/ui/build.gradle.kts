@@ -9,19 +9,27 @@ plugins {
     id("rebuy.android.base")
 }
 
+val uiPackage = "io.github.obaya884.rebuy.ui"
+
 // KMP ライブラリプラグインは BuildConfig に非対応。設定画面が出すバージョンだけのために
 // BuildConfig を使っていたので、gradle.properties から Kotlin のソースを生成して置き換える
-val generateVersion = tasks.register("generateVersionKt") {
+val generateVersionKt = tasks.register("generateVersionKt") {
+    group = "build"
+    description = "rebuy.versionName から Version.kt を生成する"
     val versionName = providers.gradleProperty("rebuy.versionName")
     val outputDir = layout.buildDirectory.dir("generated/version/kotlin")
+    // doLast の中からスクリプトの val を直接見ると、設定キャッシュがスクリプト参照を
+    // 直列化できずに落ちる。ここでローカルに束ねる
+    val packageName = uiPackage
+    val packagePath = packageName.replace('.', '/')
     inputs.property("versionName", versionName)
     outputs.dir(outputDir)
     doLast {
-        val file = outputDir.get().file("io/github/obaya884/rebuy/ui/Version.kt").asFile
+        val file = outputDir.get().file("$packagePath/Version.kt").asFile
         file.parentFile.mkdirs()
         file.writeText(
             """
-            package io.github.obaya884.rebuy.ui
+            package $packageName
 
             /** `gradle.properties` の `rebuy.versionName` から生成している。直接編集しない。 */
             internal const val VERSION_NAME: String = "${versionName.get()}"
@@ -34,7 +42,7 @@ kotlin {
     android {
         // R の FQN になる。package と揃えることで、
         // 画面文言を使う側が「どのモジュールのリソースか」を import で読める
-        namespace = "io.github.obaya884.rebuy.ui"
+        namespace = uiPackage
 
         // KMP ライブラリでは Android リソースが既定で無効。有効にしないと R が生成されない
         androidResources {
@@ -43,9 +51,11 @@ kotlin {
     }
 
     sourceSets {
-        androidMain {
-            kotlin.srcDir(generateVersion)
+        // ステップ 12 で SettingScreen が commonMain へ行っても付け替えずに済むよう、
+        // いま android ターゲットしか無いうちから commonMain に置く
+        commonMain { kotlin.srcDir(generateVersionKt) }
 
+        androidMain {
             dependencies {
                 api(project(":shared:domain"))
 
@@ -68,6 +78,7 @@ kotlin {
                 // 公開シグネチャに出る型があるものを api にする
                 //   compose.ui: BottomNavigationItem の ImageVector
                 //   material3: 画面 Composable が受け取る SnackbarHostState
+                // sourceSets の中では platform() が生えないので project.dependencies から呼ぶ
                 api(project.dependencies.platform(libs.androidx.compose.bom))
                 api(libs.androidx.compose.ui)
                 implementation(libs.androidx.compose.foundation)
