@@ -11,16 +11,16 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
 import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LicenseScreen(
-    navController: NavController,
+    navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
     val libraries by produceLibraries(R.raw.aboutlibraries)
@@ -28,7 +28,7 @@ fun LicenseScreen(
     ReBuyAppScaffold(
         topBarTitle = "ライセンス",
         topBarNavigationIcon = {
-            IconButton(onClick = { navController.navigateUp() }) {
+            IconButton(onClick = { navigator.goBack() }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null

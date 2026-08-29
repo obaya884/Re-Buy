@@ -21,12 +21,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import io.github.obaya884.rebuy.R
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
 import io.github.obaya884.rebuy.ui.Screen
+import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import kotlinx.coroutines.delay
@@ -37,7 +37,7 @@ import java.time.format.FormatStyle
 
 @Composable
 fun HomeScreen(
-    navController: NavController,
+    navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
     val viewModel = hiltViewModel<HomeViewModel>()
@@ -55,7 +55,7 @@ fun HomeScreen(
             IconButton(
                 modifier = Modifier.testTag("home_item_edit_button"),
                 onClick = {
-                    navController.navigate(Screen.ItemEdit.route)
+                    navigator.navigate(Screen.ItemEdit)
                 }
             ) {
                 Icon(
@@ -66,7 +66,7 @@ fun HomeScreen(
             IconButton(
                 modifier = Modifier.testTag("home_category_edit_button"),
                 onClick = {
-                    navController.navigate(Screen.CategoryEdit.route)
+                    navigator.navigate(Screen.CategoryEdit)
                 }
             ) {
                 Icon(
@@ -77,7 +77,7 @@ fun HomeScreen(
             IconButton(
                 modifier = Modifier.testTag("home_settings_button"),
                 onClick = {
-                    navController.navigate(Screen.Setting.route)
+                    navigator.navigate(Screen.Setting)
                 }
             ) {
                 Icon(
@@ -87,7 +87,7 @@ fun HomeScreen(
             }
         },
         bottomBar = {
-            BottomNavigationBar(navController, uiState.inShoppingListItems.size)
+            BottomNavigationBar(navigator, uiState.inShoppingListItems.size)
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
@@ -157,7 +157,7 @@ fun HomeScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    navController = navController,
+                    navigator = navigator,
                     tab = tab,
                     items = itemsForTab,
                     onTapToAdd = { item ->
@@ -182,7 +182,7 @@ fun HomeScreen(
 @Composable
 fun HomePagerTabList(
     modifier: Modifier,
-    navController: NavController,
+    navigator: Navigator,
     tab: HomeTab,
     items: List<ItemWithCategory>,
     onTapToAdd: (Item) -> Unit,
@@ -235,7 +235,7 @@ fun HomePagerTabList(
                             .fillMaxWidth(0.6f)
                             .height(48.dp),
                         onClick = {
-                            navController.navigate(Screen.ItemEdit.route)
+                            navigator.navigate(Screen.ItemEdit)
                         }
                     ) {
                         Text(

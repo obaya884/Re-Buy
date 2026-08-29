@@ -3,12 +3,11 @@ package io.github.obaya884.rebuy.ui.screen
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
+import io.github.obaya884.rebuy.ui.navigation.Navigator
 
 @Composable
 fun BottomNavigationBar(
-    navController: NavController,
+    navigator: Navigator,
     shoppingTabBadgeCount: Int
 ) {
     val items = listOf(
@@ -16,8 +15,6 @@ fun BottomNavigationBar(
         BottomNavigationItem.Shopping
     )
     NavigationBar {
-        val navBackStackEntry = navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry.value?.destination?.route
         items.forEach { item ->
             NavigationBarItem(
                 icon = {
@@ -36,15 +33,9 @@ fun BottomNavigationBar(
                     }
                 },
                 label = { Text(stringResource(item.titleId)) },
-                selected = currentRoute == item.route,
+                selected = item.key == navigator.state.topLevelRoute,
                 onClick = {
-                    navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navigator.navigate(item.key)
                 }
             )
         }

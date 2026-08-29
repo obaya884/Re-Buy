@@ -20,15 +20,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import io.github.obaya884.rebuy.R
+import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.TextFieldAddDialog
 import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
 
 @Composable
 fun CategoryEditScreen(
-    navController: NavController,
+    navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
     val viewModel = hiltViewModel<CategoryEditViewModel>()
@@ -38,7 +38,7 @@ fun CategoryEditScreen(
     ReBuyAppScaffold(
         topBarTitle = stringResource(id = R.string.category_edit_title),
         topBarNavigationIcon = {
-            IconButton(onClick = { navController.navigateUp() }) {
+            IconButton(onClick = { navigator.goBack() }) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = null
