@@ -321,7 +321,7 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 9. **Navigation 3 の多相シリアライズの登録漏れは iOS だけで出る**
 10. **`:shared:ui` の `BuildConfig` が消える。** 新プラグインは BuildConfig 非対応。`rebuy.versionName` から `Version.kt` を生成する小さなタスクを convention plugin に置く
 11. **`debugImplementation` が書けなくなる。** build type が無い
-12. **Compose の版が二重管理になる。** `:shared:ui` は CMP プラグインの `compose.*`、`:androidApp` は androidx の BOM。ずれると `NoSuchMethodError` か重複クラス
+12. **Compose の版が二重管理になる。** `:shared:ui` は CMP プラグインの `compose.*`、`:androidApp` は androidx の BOM。ずれると `NoSuchMethodError` か重複クラス。**`compose.*` は使っていなくても書く**——`compose.material3` は自分より古い `foundation` を推移的に引くので、`compose.foundation` を「未使用だから」と外すと版が 1.12.0 から 1.9.1 へ下がる（ステップ 8 で実際に踏み、`checkIos…ComposeLibrariesCompatibility` の警告で気づいた）。**依存には「使う」以外に「版を固定する」役目がある**
 13. **`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。** `dynamicColor` の既定が `false` なので、この分岐を `expect/actual` に切るか削るかを決めれば挙動は変わらない
 14. **`AppDatabase` の `synchronized` が common に置けない**
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める

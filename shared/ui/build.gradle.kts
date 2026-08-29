@@ -116,7 +116,10 @@ kotlin {
             // commonMain に置いても通ってしまい、:androidApp の androidx BOM とずれる
             // （落とし穴 12）。逆に androidx を iosMain へ置く方向は解決に失敗するので気づける。
             // ステップ 12 で画面が commonMain へ行けば :shared:ui は CMP 一本になり、この規約は消える
+            // compose.material3 は自分より古い foundation を推移的に引くので、
+            // いま使っていなくても compose.foundation を書いて版を 1.12.0 に固定する
             implementation(compose.runtime)
+            implementation(compose.foundation)
             implementation(compose.material3)
             implementation(compose.ui)
         }
