@@ -2,8 +2,6 @@ package io.github.obaya884.rebuy.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.assertCountEquals
-import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -25,6 +23,10 @@ import org.junit.Test
  *
  * ダイアログの開閉フラグは UiState が持つ（CLAUDE.md「アーキテクチャ / UI 層」）ので、
  * それを外から観測できる唯一の一時状態として使う。
+ *
+ * 逆向き（entry が backstack に残っている間は ViewModel が保持されること）は、
+ * 買い物画面の終了確認ダイアログを開くのにチェック済みの品目が要るため、
+ * DB を差し替えられるようになってから書く（技術改善バックログ T-21）。
  */
 @HiltAndroidTest
 class ViewModelScopeTest {
@@ -48,7 +50,7 @@ class ViewModelScopeTest {
         composeRule.waitForIdle()
     }
 
-    private fun goBack() {
+    private fun tapBackArrow() {
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
         composeRule.waitForIdle()
     }
@@ -60,9 +62,9 @@ class ViewModelScopeTest {
         composeRule.waitForIdle()
         composeRule.onNodeWithText(addDialogTitle).assertIsDisplayed()
 
-        goBack()
+        tapBackArrow()
         openCategoryEdit()
 
-        composeRule.onAllNodesWithText(addDialogTitle).assertCountEquals(0)
+        composeRule.onNodeWithText(addDialogTitle).assertDoesNotExist()
     }
 }

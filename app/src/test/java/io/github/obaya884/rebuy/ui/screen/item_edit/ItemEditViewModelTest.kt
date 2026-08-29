@@ -15,11 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * 品目編集画面の ViewModel。③ の KMP 移植で挙動が変わっていないことを確かめる網。
- *
- * Repository は本物を使い、その下の DAO だけを [FakeDatabase] に差し替える。
- */
+/** 品目編集画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
 class ItemEditViewModelTest {
 
     @get:Rule
@@ -73,7 +69,7 @@ class ItemEditViewModelTest {
         viewModel.addItem("追加した品目")
         advanceUntilIdle()
 
-        assertEquals(listOf("追加した品目"), db.items.value.map { it.name })
+        assertEquals(listOf("追加した品目"), db.storedItems.map { it.name })
     }
 
     @Test
@@ -85,7 +81,7 @@ class ItemEditViewModelTest {
         viewModel.addItem("追加した品目", categoryId = 1)
         advanceUntilIdle()
 
-        assertEquals(1, db.items.value.single().categoryId)
+        assertEquals(1, db.storedItems.single().categoryId)
     }
 
     @Test
@@ -96,7 +92,34 @@ class ItemEditViewModelTest {
         viewModel.addItem("追加した品目")
         advanceUntilIdle()
 
-        assertNull(db.items.value.single().categoryId)
+        assertNull(db.storedItems.single().categoryId)
+    }
+
+    @Test
+    fun 追加した品目がuiStateに返ってくる() = runTest {
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.addItem("追加した品目")
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("追加した品目"),
+            viewModel.uiState.value.items.map { it.item.name }
+        )
+    }
+
+    @Test
+    fun 存在しない品目の名前を変えても何も起きない() = runTest {
+        val original = listOf(item(1))
+        db.seed(items = original)
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.editItemName(999, "変更後の名前")
+        advanceUntilIdle()
+
+        assertEquals(original, db.storedItems)
     }
 
     @Test
@@ -108,7 +131,7 @@ class ItemEditViewModelTest {
         viewModel.editItemName(1, "変更後の名前")
         advanceUntilIdle()
 
-        assertEquals("変更後の名前", db.item(1).name)
+        assertEquals("変更後の名前", db.storedItem(1).name)
     }
 
     @Test
@@ -120,7 +143,7 @@ class ItemEditViewModelTest {
         viewModel.editItemCategory(1, 1)
         advanceUntilIdle()
 
-        assertEquals(1, db.item(1).categoryId)
+        assertEquals(1, db.storedItem(1).categoryId)
     }
 
     @Test
@@ -132,7 +155,7 @@ class ItemEditViewModelTest {
         viewModel.editItemCategory(1, null)
         advanceUntilIdle()
 
-        assertNull(db.item(1).categoryId)
+        assertNull(db.storedItem(1).categoryId)
     }
 
     @Test
@@ -146,7 +169,7 @@ class ItemEditViewModelTest {
         viewModel.deleteItem()
         advanceUntilIdle()
 
-        assertEquals(listOf(2), db.items.value.map { it.id })
+        assertEquals(listOf(2), db.storedItems.map { it.id })
     }
 
     @Test
@@ -158,7 +181,7 @@ class ItemEditViewModelTest {
         viewModel.deleteItem()
         advanceUntilIdle()
 
-        assertEquals(listOf(1), db.items.value.map { it.id })
+        assertEquals(listOf(1), db.storedItems.map { it.id })
     }
 
     // ---- 編集対象 ----

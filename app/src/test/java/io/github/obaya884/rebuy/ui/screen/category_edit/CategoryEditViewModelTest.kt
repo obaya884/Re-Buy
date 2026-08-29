@@ -3,6 +3,7 @@ package io.github.obaya884.rebuy.ui.screen.category_edit
 import io.github.obaya884.rebuy.MainDispatcherRule
 import io.github.obaya884.rebuy.category
 import io.github.obaya884.rebuy.data.FakeDatabase
+import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.item
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -14,11 +15,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
-/**
- * カテゴリー編集画面の ViewModel。③ の KMP 移植で挙動が変わっていないことを確かめる網。
- *
- * Repository は本物を使い、その下の DAO だけを [FakeDatabase] に差し替える。
- */
+/** カテゴリー編集画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
 class CategoryEditViewModelTest {
 
     @get:Rule
@@ -32,10 +29,13 @@ class CategoryEditViewModelTest {
     // ---- 一覧 ----
 
     @Test
-    fun 初期状態は空() = runTest {
+    fun 初期値は空で始まる() = runTest {
+        // 収集が走る前を観測する。DB が空だと初期値と収集後が同じで区別が付かない
+        db.seed(categories = listOf(category(1)))
+
         val viewModel = viewModel()
 
-        assertEquals(listOf<Nothing>(), viewModel.uiState.value.categories)
+        assertEquals(emptyList<Category>(), viewModel.uiState.value.categories)
     }
 
     @Test
@@ -58,7 +58,7 @@ class CategoryEditViewModelTest {
         viewModel.addCategory("追加したカテゴリー")
         advanceUntilIdle()
 
-        assertEquals(listOf("追加したカテゴリー"), db.categories.value.map { it.name })
+        assertEquals(listOf("追加したカテゴリー"), db.storedCategories.map { it.name })
     }
 
     @Test
@@ -84,7 +84,7 @@ class CategoryEditViewModelTest {
         viewModel.editCategoryName(1, "変更後の名前")
         advanceUntilIdle()
 
-        assertEquals("変更後の名前", db.categories.value.single().name)
+        assertEquals("変更後の名前", db.storedCategories.single().name)
     }
 
     @Test
@@ -98,7 +98,7 @@ class CategoryEditViewModelTest {
         viewModel.deleteCategory()
         advanceUntilIdle()
 
-        assertEquals(listOf(2), db.categories.value.map { it.id })
+        assertEquals(listOf(2), db.storedCategories.map { it.id })
     }
 
     @Test
@@ -110,7 +110,7 @@ class CategoryEditViewModelTest {
         viewModel.deleteCategory()
         advanceUntilIdle()
 
-        assertEquals(listOf(1), db.categories.value.map { it.id })
+        assertEquals(listOf(1), db.storedCategories.map { it.id })
     }
 
     @Test
@@ -124,7 +124,20 @@ class CategoryEditViewModelTest {
         viewModel.deleteCategory()
         advanceUntilIdle()
 
-        assertNull(db.item(1).categoryId)
+        assertNull(db.storedItem(1).categoryId)
+    }
+
+    @Test
+    fun 存在しないカテゴリーの名前を変えても何も起きない() = runTest {
+        val original = listOf(category(1))
+        db.seed(categories = original)
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.editCategoryName(999, "変更後の名前")
+        advanceUntilIdle()
+
+        assertEquals(original, db.storedCategories)
     }
 
     // ---- 編集対象 ----

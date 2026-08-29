@@ -19,7 +19,7 @@ import org.junit.runner.Description
  * 意図的に観測できるようにするための選択。
  */
 class MainDispatcherRule(
-    val dispatcher: TestDispatcher = StandardTestDispatcher()
+    private val dispatcher: TestDispatcher = StandardTestDispatcher()
 ) : TestWatcher() {
     override fun starting(description: Description) {
         Dispatchers.setMain(dispatcher)

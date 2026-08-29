@@ -16,38 +16,65 @@ import java.time.Instant
  * Room の代わりに使うインメモリの実体。2 つの DAO が同じものを見る。
  *
  * ViewModel のテストは Repository を本物のまま使い、その下の DAO だけを差し替える。
- * ステータス遷移の早期 return など Repository のルールも一緒に網に入れるため。
+ * ステータス遷移の早期 return など Repository のルールも一緒に網へ入れるため。
+ *
+ * Room に寄せてある挙動は、外部キーの `SET_NULL` と存在しない親 id の拒否、
+ * `OnConflictStrategy.REPLACE`、存在しない id への UPDATE が no-op であること、
+ * `AUTOINCREMENT` が削除した id を再利用しないこと。
+ *
+ * **再現していない差分**は 2 つ。
+ * - 外部キー違反で投げる例外が `SQLiteConstraintException` ではない（JVM 段に android.database が無い）
+ * - Flow が `StateFlow` なので同じ値の再 emit が落ちる（Room は無効化のたびに流す）。
+ *   emit 回数に意味を持たせるテストは書かないこと
  */
 class FakeDatabase {
-    val items = MutableStateFlow<List<Item>>(emptyList())
-    val categories = MutableStateFlow<List<Category>>(emptyList())
+    private val items = MutableStateFlow<List<Item>>(emptyList())
+    private val categories = MutableStateFlow<List<Category>>(emptyList())
+
+    // AUTOINCREMENT は「これまでに使った最大値 + 1」を返し、削除しても戻らない
+    private var lastItemId = 0
+    private var lastCategoryId = 0
 
     val itemDao: ItemDao = FakeItemDao()
     val categoryDao: CategoryDao = FakeCategoryDao()
 
+    /** 初期状態を置く。書き込みはここからだけ行う。 */
     fun seed(items: List<Item> = emptyList(), categories: List<Category> = emptyList()) {
         this.items.value = items
         this.categories.value = categories
+        lastItemId = items.maxOfOrNull { it.id } ?: 0
+        lastCategoryId = categories.maxOfOrNull { it.id } ?: 0
     }
 
+    /** すでに入っているものへ 1 件足す。「後から増えた」ことを表したいときに使う。 */
+    fun add(item: Item) {
+        items.update { it + item }
+    }
+
+    val storedItems: List<Item> get() = items.value
+
+    val storedCategories: List<Category> get() = categories.value
+
     /** id で 1 件引く。テストの assert 用。 */
-    fun item(id: Int): Item = items.value.first { it.id == id }
+    fun storedItem(id: Int): Item =
+        items.value.firstOrNull { it.id == id } ?: error("id = $id の品目が無い")
 
     private inner class FakeItemDao : ItemDao {
         override fun getAllItems(): Flow<List<Item>> = items
 
         override fun getAllItemsWithCategory(): Flow<List<ItemWithCategory>> =
-            combine(items, categories) { items, categories ->
-                items.map { item ->
-                    ItemWithCategory(item, categories.find { it.id == item.categoryId })
+            combine(items, categories) { itemList, categoryList ->
+                itemList.map { item ->
+                    ItemWithCategory(item, categoryList.find { it.id == item.categoryId })
                 }
             }
 
-        override suspend fun getItemById(itemId: Int): Item = item(itemId)
+        override suspend fun getItemById(itemId: Int): Item = storedItem(itemId)
 
         override suspend fun insertItem(item: Item): Long {
-            val id = if (item.id != 0) item.id else nextId(items.value.map { it.id })
-            items.update { it + item.copy(id = id) }
+            requireCategoryExists(item.categoryId)
+            val id = if (item.id != 0) item.id else ++lastItemId
+            items.update { list -> list.filterNot { it.id == id } + item.copy(id = id) }
             return id.toLong()
         }
 
@@ -76,7 +103,10 @@ class FakeDatabase {
             itemId: Int,
             newCategoryId: Int?,
             updatedAt: Instant
-        ) = updateItem(itemId) { it.copy(categoryId = newCategoryId, updatedAt = updatedAt) }
+        ) {
+            requireCategoryExists(newCategoryId)
+            updateItem(itemId) { it.copy(categoryId = newCategoryId, updatedAt = updatedAt) }
+        }
 
         /** 存在しない id への UPDATE が何もしないのは SQL と同じ。 */
         private fun updateItem(itemId: Int, transform: (Item) -> Item) {
@@ -88,9 +118,10 @@ class FakeDatabase {
         override fun getAllCategories(): Flow<List<Category>> = categories
 
         override suspend fun insert(category: Category): Long {
-            val id =
-                if (category.id != 0) category.id else nextId(categories.value.map { it.id })
-            categories.update { it + category.copy(id = id) }
+            val id = if (category.id != 0) category.id else ++lastCategoryId
+            categories.update { list ->
+                list.filterNot { it.id == id } + category.copy(id = id)
+            }
             return id.toLong()
         }
 
@@ -109,5 +140,10 @@ class FakeDatabase {
         }
     }
 
-    private fun nextId(existing: List<Int>): Int = (existing.maxOrNull() ?: 0) + 1
+    /** Room は外部キー制約を有効にするので、存在しないカテゴリーは参照できない。 */
+    private fun requireCategoryExists(categoryId: Int?) {
+        if (categoryId != null && categories.value.none { it.id == categoryId }) {
+            error("id = $categoryId のカテゴリーが無い（本番では SQLiteConstraintException）")
+        }
+    }
 }

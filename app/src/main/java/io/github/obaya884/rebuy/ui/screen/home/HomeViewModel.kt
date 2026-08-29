@@ -58,14 +58,22 @@ class HomeViewModel @Inject constructor(
     }
 
     fun addToBasket(item: Item) = viewModelScope.launch {
-        // Ripple effect のために遅延を入れる
-        delay(200)
+        delay(RIPPLE_DELAY_MS)
         itemRepository.updateStatusAsInBasket(item)
     }
 
     fun removeFromBasket(item: Item) = viewModelScope.launch {
-        // Ripple effect のために遅延を入れる
-        delay(200)
+        delay(RIPPLE_DELAY_MS)
         itemRepository.updateStatusAsNoDeal(item)
+    }
+
+    companion object {
+        /**
+         * 状態を変えるまでの待ち時間。
+         *
+         * すぐ反映すると波紋が出切る前に行が動く。**本来は UI 層の関心**で、
+         * ここに置いているのは暫定（技術改善バックログ T-27）。
+         */
+        internal const val RIPPLE_DELAY_MS = 200L
     }
 }

@@ -70,11 +70,21 @@ class ShoppingViewModel @Inject constructor(
                     itemRepository.updateStatusAsBought(item.id)
                 }
             }
-            delay(500)
+            delay(FINISH_SHOPPING_DELAY_MS)
             jobs.joinAll()
             _isLoading.emit(false)
             onFinished()
         }
+    }
+
+    companion object {
+        /**
+         * 買い物を終えるときの待ち時間。
+         *
+         * 更新が速すぎるとスピナーが一瞬だけ光って消える。**本来は UI 層の関心**で、
+         * ここに置いているのは暫定（技術改善バックログ T-27）。
+         */
+        internal const val FINISH_SHOPPING_DELAY_MS = 500L
     }
 
     fun showFinishShoppingAlertDialog() {
