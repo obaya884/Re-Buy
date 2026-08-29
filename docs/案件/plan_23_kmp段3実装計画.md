@@ -52,9 +52,9 @@
 優先順。実測で潰したものは結果を残す。
 
 1. ~~Gradle の埋め込み Kotlin で KGP 2.4.10 を使う convention plugin をコンパイルできるか~~ → **できる**（2026-08-29）。Gradle 9.7.1 の埋め込み Kotlin は 2.2 ではなく **2.4.0** で、KGP と同じマイナーだった。退避策は不要
-2. AGP 9.3.2 の KMP ライブラリ DSL のブロック名と host test の source set 名（`androidHostTest` か `androidUnitTest` か）。プラグイン id は **`com.android.kotlin.multiplatform.library`**、host test の口は **`withHostTestBuilder {}`**（既定 off）まで jar から確定済み。残りは `./gradlew :shared:data:sourceSets` と `tasks --all` で確定させる
+2. ~~AGP 9.3.2 の KMP ライブラリ DSL のブロック名と host test の source set 名~~ → **確定**（2026-08-30）。プラグイン id `com.android.kotlin.multiplatform.library`、DSL は `kotlin { androidLibrary { } }`、host test は `withHostTestBuilder { }.configure { }` で開き、source set は **`androidHostTest`**、テストタスクは **`testAndroidHostTest`**（`testDebugUnitTest` ではない）
 3. ~~`kotlin.time.Instant` が Kotlin 2.4.10 で stable か~~ → **stable**（2026-08-30）。`Clock.System.now()` と `Instant.fromEpochMilliseconds()` を使う捨てファイルを `:shared:data` でコンパイルし、警告もエラーも出ないことを確認した。`@OptIn` の伝播は起きない
-4. `androidx.room` Gradle プラグインの `schemaDirectory` がバリアント別サブディレクトリを掘らないか。掘られると `shared/data/schemas/io.github.obaya884.rebuy.data.AppDatabase/2.json` の場所が変わり、`androidApp/build.gradle.kts` の assets 指定と `RoomMigrationTest` が同時に壊れる
+4. ~~`androidx.room` Gradle プラグインの `schemaDirectory` がバリアント別サブディレクトリを掘らないか~~ → **掘らない**（2026-08-30）。`2.json` を消して再ビルドすると同じ場所に同じ内容で戻る。`androidApp` の assets 指定は無変更でよい
 5. ~~Compose Multiplatform のどの版が Kotlin 2.4.10 に対応するか~~ → **1.12.0**（2026-08-30）。Kotlin 2.2.20 でビルドされているが、Kotlin は古いメタデータを読めるので 2.4.10 から使える。Compose BOM 2026.08.00 との突き合わせはステップ 12 で行う
 
 ## build-logic（T-28a / T-28b）
@@ -254,6 +254,7 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 2. **build-logic を Gradle 埋め込み Kotlin 2.2 でコンパイルできない場合の退避**（優先順）: (a) precompiled script plugin をやめて `java-gradle-plugin` ＋ 素の `Plugin` クラスにする——Kotlin コンパイラが KGP 側になるので版の縛りが外れる、(b) `kotlin { compilerOptions { languageVersion } }` を明示、(c) root の `subprojects {}` / `plugins.withId {}` に寄せる——T-28 の目的（ターゲット定義の書き忘れ防止）は達成できるので退避として成立する
 3. **build-logic の AGP / KGP 版が root とずれると、コンパイルは通って実行時に `NoSuchMethodError`**
 4. **Room の KSP をターゲットごとに書き忘れると、そのターゲットだけリンク時に落ちる。** Android では一切現れない
+4.5. **AGP の lint タスクが KSP の生成先を入力に取るのに依存を宣言しない。** KMP ライブラリプラグインの host test で `lintAnalyzeAndroidHostTest` と `generateAndroidHostTestLintModel` が `Property has implicit dependency` で落ちる。`dependsOn("kspAndroidHostTest")` を自分で繋ぐ（`:shared:data` に実例）
 5. **`room { schemaDirectory }` がバリアント別サブディレクトリを掘ると、assets 指定と `RoomMigrationTest` が同時に壊れる**
 6. **`RoomMigrationTest` は driver 導入で 2 か所壊れる**
 7. **Navigation 3 の多相シリアライズの登録漏れは iOS だけで出る**

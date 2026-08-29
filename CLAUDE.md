@@ -154,7 +154,7 @@ AboutLibraries プラグインでビルド時にライセンス情報を生成�
 ## 開発コマンド
 
 - `./gradlew build` — lint・unit test・debug/release の assemble
-- `./gradlew testDebugUnitTest` — 全モジュールのユニットテスト（JVM）。**単一クラスを指定するときはモジュールを修飾する**（`./gradlew :shared:data:testDebugUnitTest --tests "io.github.obaya884.rebuy.InstantConverterTest"`）。無修飾で `--tests` を渡すと、一致しない側のモジュールが `No tests found` でビルドを落とす
+- `./gradlew testDebugUnitTest` — ユニットテスト（JVM）。**KMP 化したモジュールのタスク名は `testAndroidHostTest`**（`:shared:data`）。**単一クラスを指定するときはモジュールを修飾する**（`./gradlew :shared:data:testAndroidHostTest --tests "io.github.obaya884.rebuy.data.InstantConverterTest"`）。無修飾で `--tests` を渡すと、一致しない側のモジュールが `No tests found` でビルドを落とす
 - `./gradlew :androidApp:pixel6Api35DebugAndroidTest` — インストルメンテーションテスト（Gradle Managed Device。androidTest を持つのは `:androidApp` だけ。エミュレータの手動起動は不要。初回はイメージのダウンロードで数分）
 - `./gradlew installDebug` — 端末・エミュレータへインストール
 - `./gradlew clean` — KSP（Room。`:shared:data` だけで回る）の生成コードが壊れたとき
