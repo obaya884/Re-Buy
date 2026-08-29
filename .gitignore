@@ -14,3 +14,8 @@ local.properties
 
 # subagent-driven-development の作業領域
 .superpowers/
+
+# 署名鍵とその設定（public リポジトリなので値も所在もコミットしない）
+keystore.properties
+*.jks
+*.keystore
