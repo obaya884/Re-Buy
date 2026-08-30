@@ -12,16 +12,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.navigation.Navigator
+import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -33,7 +33,7 @@ fun ShoppingScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     ReBuyAppScaffold(
-        topBarTitle = stringResource(id = R.string.shopping_title),
+        topBarTitle = stringResource(Res.string.shopping_title),
         bottomBar = {
             BottomNavigationBar(navigator, uiState.inShoppingListItems.size)
         },
@@ -73,7 +73,7 @@ fun ShoppingScreen(
             ) {
                 Text(
                     modifier = Modifier.padding(8.dp),
-                    text = stringResource(id = R.string.shopping_bottom_button)
+                    text = stringResource(Res.string.shopping_bottom_button)
                 )
             }
         }
@@ -122,14 +122,14 @@ fun FinishShoppingAlertDialog(
         title = {
             Text(
                 text = stringResource(
-                    id = R.string.shopping_finish_alert_dialog_title
+                    Res.string.shopping_finish_alert_dialog_title
                 )
             )
         },
         text = {
             Text(
                 text = stringResource(
-                    R.string.shopping_finish_alert_dialog_message
+                    Res.string.shopping_finish_alert_dialog_message
                 )
             )
         },
@@ -141,7 +141,7 @@ fun FinishShoppingAlertDialog(
             ) {
                 Text(
                     stringResource(
-                        id = R.string.shopping_finish_alert_dialog_positive_button
+                        Res.string.shopping_finish_alert_dialog_positive_button
                     )
                 )
             }
@@ -154,7 +154,7 @@ fun FinishShoppingAlertDialog(
             ) {
                 Text(
                     stringResource(
-                        id = R.string.shopping_finish_alert_dialog_negative_button
+                        Res.string.shopping_finish_alert_dialog_negative_button
                     )
                 )
             }

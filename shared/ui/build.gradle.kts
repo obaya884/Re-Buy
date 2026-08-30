@@ -18,6 +18,16 @@ plugins {
 
 val uiPackage = "io.github.obaya884.rebuy.ui"
 
+// 画面文言と drawable は commonMain/composeResources に置き、Compose Resources が
+// 生成する Res 経由で参照する。生成先を明示しないと group / artifact 由来の
+// package になり、import が読みにくくなる
+compose.resources {
+    packageOfResClass = "$uiPackage.resources"
+    // :androidApp の instrumented テストが同じ文言で画面を突き合わせるため、
+    // モジュールの外から Res を触れるようにする（既定は internal）
+    publicResClass = true
+}
+
 // KMP ライブラリプラグインは BuildConfig に非対応。設定画面が出すバージョンだけのために
 // BuildConfig を使っていたので、gradle.properties から Kotlin のソースを生成して置き換える
 val generateVersionKt = tasks.register("generateVersionKt") {
@@ -58,11 +68,13 @@ kotlin {
     }
 
     android {
-        // R の FQN になる。package と揃えることで、
-        // 画面文言を使う側が「どのモジュールのリソースか」を import で読める
+        // R の FQN になる。package と揃えておく
         namespace = uiPackage
 
-        // KMP ライブラリでは Android リソースが既定で無効。有効にしないと R が生成されない
+        // KMP ライブラリでは Android リソースが既定で無効。有効にしないと R が生成されない。
+        // 画面文言と drawable は Compose Resources へ移したので、R に残っているのは
+        // AboutLibraries が生成する R.raw.aboutlibraries だけ。それを引く LicenseScreen が
+        // composeResources 経由になる（ステップ 14）までは有効のままにする
         androidResources {
             enable = true
         }
@@ -86,6 +98,13 @@ kotlin {
 
                 // ViewModel の基底。-ktx と -compose は Android 専用
                 implementation(libs.androidx.lifecycle.viewmodel)
+
+                // Compose Resources。iosMain 限定という下の規約の唯一の例外で、
+                // リソースは commonMain に置く以上ここでしか宣言できない。
+                // Android では androidx.compose の別名にすぎないので BOM とはぶつからない。
+                // api なのは :androidApp の instrumented テストが同じ文言で画面を突き合わせるため。
+                // implementation に落とすと getString / StringResource に届かずテストが通らない
+                api(compose.components.resources)
             }
         }
 

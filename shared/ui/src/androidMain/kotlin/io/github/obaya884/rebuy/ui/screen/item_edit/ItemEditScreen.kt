@@ -17,20 +17,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
+import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -44,7 +44,7 @@ fun ItemEditScreen(
     val listState = rememberLazyListState()
 
     ReBuyAppScaffold(
-        topBarTitle = stringResource(id = R.string.item_edit_title),
+        topBarTitle = stringResource(Res.string.item_edit_title),
         topBarNavigationIcon = {
             IconButton(
                 modifier = Modifier.testTag(TestTags.BACK_BUTTON),
@@ -122,7 +122,7 @@ fun ItemEditScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     textAlign = TextAlign.Center,
-                    text = stringResource(id = R.string.item_edit_empty_message),
+                    text = stringResource(Res.string.item_edit_empty_message),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.weight(1f))
@@ -131,7 +131,7 @@ fun ItemEditScreen(
 
         if (uiState.isShowItemAddDialog) {
             ItemAddDialog(
-                title = stringResource(id = R.string.item_edit_add_dialog_title),
+                title = stringResource(Res.string.item_edit_add_dialog_title),
                 categories = uiState.categories,
                 onConfirm = { name, category ->
                     viewModel.addItem(name, category?.id)
@@ -145,7 +145,7 @@ fun ItemEditScreen(
 
         if (uiState.isShowItemEditDialog && uiState.editingItem != null) {
             TextFieldEditDialog(
-                title = stringResource(id = R.string.item_edit_edit_dialog_title),
+                title = stringResource(Res.string.item_edit_edit_dialog_title),
                 editId = uiState.editingItem!!.id,
                 editName = uiState.editingItem!!.name,
                 onConfirm = { id, name ->
@@ -166,11 +166,11 @@ fun ItemEditScreen(
                 onDismissRequest = {
                     viewModel.hideItemDeleteDialog()
                 },
-                title = { Text(text = stringResource(id = R.string.item_edit_delete_dialog_title)) },
+                title = { Text(text = stringResource(Res.string.item_edit_delete_dialog_title)) },
                 text = {
                     Text(
                         text = stringResource(
-                            R.string.item_edit_delete_dialog_message,
+                            Res.string.item_edit_delete_dialog_message,
                             uiState.editingItem!!.name
                         )
                     )
@@ -182,7 +182,7 @@ fun ItemEditScreen(
                             viewModel.hideItemDeleteDialog()
                         }
                     ) {
-                        Text(stringResource(id = R.string.item_edit_delete_dialog_positive_button))
+                        Text(stringResource(Res.string.item_edit_delete_dialog_positive_button))
                     }
                 },
                 dismissButton = {
@@ -191,7 +191,7 @@ fun ItemEditScreen(
                             viewModel.hideItemDeleteDialog()
                         }
                     ) {
-                        Text(stringResource(id = R.string.item_edit_delete_dialog_negative_button))
+                        Text(stringResource(Res.string.item_edit_delete_dialog_negative_button))
                     }
                 }
             )
@@ -244,7 +244,7 @@ fun ItemEditListRow(
                     }
                 ) {
                     Icon(
-                        painterResource(id = R.drawable.icon_category),
+                        painterResource(Res.drawable.icon_category),
                         contentDescription = null
                     )
                     DropdownMenu(
@@ -372,7 +372,7 @@ fun ItemAddDialog(
                         }
                     ) {
                         Text(
-                            stringResource(id = R.string.text_field_add_dialog_negative_button)
+                            stringResource(Res.string.text_field_add_dialog_negative_button)
                         )
                     }
                     Spacer(Modifier.width(8.dp))
@@ -382,7 +382,7 @@ fun ItemAddDialog(
                         }
                     ) {
                         Text(
-                            stringResource(id = R.string.text_field_add_dialog_positive_button)
+                            stringResource(Res.string.text_field_add_dialog_positive_button)
                         )
                     }
                 }
@@ -395,7 +395,7 @@ fun ItemAddDialog(
 @Composable
 fun ItemAddDialogPreview() {
     ItemAddDialog(
-        title = stringResource(id = R.string.item_edit_add_dialog_title),
+        title = stringResource(Res.string.item_edit_add_dialog_title),
         categories = listOf(
             Category(1, "カテゴリー1"),
             Category(2, "カテゴリー2"),

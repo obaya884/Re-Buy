@@ -11,14 +11,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.VERSION_NAME
 import io.github.obaya884.rebuy.ui.navigation.Navigator
+import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun SettingScreen(
@@ -26,7 +26,7 @@ fun SettingScreen(
     snackbarHostState: SnackbarHostState
 ) {
     ReBuyAppScaffold(
-        topBarTitle = stringResource(id = R.string.setting_title),
+        topBarTitle = stringResource(Res.string.setting_title),
         topBarNavigationIcon = {
             IconButton(
                 modifier = Modifier.testTag(TestTags.BACK_BUTTON),

@@ -5,10 +5,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
-import io.github.obaya884.rebuy.ui.R
+import io.github.obaya884.rebuy.ui.resources.*
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun TextFieldEditDialog(
@@ -61,7 +61,7 @@ fun TextFieldEditDialog(
                         }
                     ) {
                         Text(
-                            stringResource(id = R.string.text_field_edit_dialog_negative_button)
+                            stringResource(Res.string.text_field_edit_dialog_negative_button)
                         )
                     }
                     Spacer(Modifier.width(8.dp))
@@ -71,7 +71,7 @@ fun TextFieldEditDialog(
                         }
                     ) {
                         Text(
-                            stringResource(id = R.string.text_field_edit_dialog_positive_button)
+                            stringResource(Res.string.text_field_edit_dialog_positive_button)
                         )
                     }
                 }

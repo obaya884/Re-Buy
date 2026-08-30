@@ -15,27 +15,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
 import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
+import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationBar
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import java.time.Instant as JavaInstant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
-import java.time.Instant as JavaInstant
 import kotlin.time.Instant
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -53,7 +53,7 @@ fun HomeScreen(
     val coroutineScope = rememberCoroutineScope()
 
     ReBuyAppScaffold(
-        topBarTitle = stringResource(R.string.home_title),
+        topBarTitle = stringResource(Res.string.home_title),
         topBarActions = {
             IconButton(
                 modifier = Modifier.testTag(TestTags.HOME_ITEM_EDIT_BUTTON),
@@ -62,7 +62,7 @@ fun HomeScreen(
                 }
             ) {
                 Icon(
-                    painterResource(id = R.drawable.icon_shopping_bug),
+                    painterResource(Res.drawable.icon_shopping_bug),
                     contentDescription = null
                 )
             }
@@ -73,7 +73,7 @@ fun HomeScreen(
                 }
             ) {
                 Icon(
-                    painterResource(id = R.drawable.icon_category),
+                    painterResource(Res.drawable.icon_category),
                     contentDescription = null
                 )
             }
@@ -222,9 +222,9 @@ fun HomePagerTabList(
         ) {
             Text(
                 text = when (tab) {
-                    is HomeTab.All -> stringResource(id = R.string.home_no_item_message_all)
-                    is HomeTab.CategoryTab -> stringResource(id = R.string.home_no_item_message_category)
-                    is HomeTab.InBasket -> stringResource(id = R.string.home_no_item_message_in_basket)
+                    is HomeTab.All -> stringResource(Res.string.home_no_item_message_all)
+                    is HomeTab.CategoryTab -> stringResource(Res.string.home_no_item_message_category)
+                    is HomeTab.InBasket -> stringResource(Res.string.home_no_item_message_in_basket)
                 },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -242,7 +242,7 @@ fun HomePagerTabList(
                         }
                     ) {
                         Text(
-                            text = stringResource(id = R.string.home_no_item_button)
+                            text = stringResource(Res.string.home_no_item_button)
                         )
                     }
                 }
@@ -257,7 +257,7 @@ fun HomePagerTabList(
                         }
                     ) {
                         Text(
-                            text = stringResource(id = R.string.home_no_item_button_shopping_list)
+                            text = stringResource(Res.string.home_no_item_button_shopping_list)
                         )
                     }
                 }
@@ -300,7 +300,7 @@ fun HomeListItemRow(
                 Text(
                     modifier = Modifier.padding(top = 4.dp),
                     text = stringResource(
-                        id = R.string.home_last_bought_at,
+                        Res.string.home_last_bought_at,
                         formatShortDate(lastBoughtAt)
                     ),
                     style = MaterialTheme.typography.labelMedium,
@@ -314,7 +314,7 @@ fun HomeListItemRow(
                     onTapToAdd()
                 }
             ) {
-                Text(text = stringResource(id = R.string.home_add_item_button))
+                Text(text = stringResource(Res.string.home_add_item_button))
             }
         } else {
             OutlinedButton(
@@ -325,9 +325,9 @@ fun HomeListItemRow(
             ) {
                 Text(
                     text = if (tab is HomeTab.InBasket) {
-                        stringResource(id = R.string.home_remove_item_button_from_shopping_list)
+                        stringResource(Res.string.home_remove_item_button_from_shopping_list)
                     } else {
-                        stringResource(id = R.string.home_remove_item_button)
+                        stringResource(Res.string.home_remove_item_button)
                     }
                 )
             }

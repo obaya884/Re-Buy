@@ -5,8 +5,10 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.ui.TestTags
+import io.github.obaya884.rebuy.ui.resources.*
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
 import org.junit.Rule
 import org.junit.Test
 
@@ -30,8 +32,8 @@ class ViewModelScopeTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    private val addDialogTitle
-        get() = composeRule.activity.getString(R.string.category_edit_add_dialog_title)
+    /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
+    private val addDialogTitle = runBlocking { getString(Res.string.category_edit_add_dialog_title) }
 
     private fun openCategoryEdit() {
         composeRule.onNodeWithTag(TestTags.HOME_CATEGORY_EDIT_BUTTON).performClick()
