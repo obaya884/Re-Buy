@@ -1,3 +1,4 @@
+import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
@@ -178,11 +179,10 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
         }
 
-        // 画面を動かすテスト（T-42）。**commonTest ではなくここに置く**——commonTest に
-        // 置くと Android 向けにもコンパイルされ、Android フレームワークの無い素の JVM
-        // （testAndroidHostTest）で実行されて落ちる。理由は NavigationIosTest の KDoc
+        // 画面を動かすテスト。**commonTest ではなくここに置く**（理由は
+        // ../../docs/仕様/17_テスト戦略定義書.md §1）
         iosTest.dependencies {
-            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            @OptIn(ExperimentalComposeLibrary::class)
             implementation(compose.uiTest)
         }
 

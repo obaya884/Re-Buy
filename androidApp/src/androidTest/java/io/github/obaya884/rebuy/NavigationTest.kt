@@ -24,6 +24,10 @@ import org.junit.Test
  * ここが見るのは「UI の操作がその規則に正しく結線されているか」。
  *
  * DB の中身に依存する遷移（買い物終了でホームへ戻る）は、データを用意する必要があるため扱わない。
+ *
+ * **iOS 側の対は `shared/ui/src/iosTest` の `NavigationIosTest`。** 共通化する手立てが無い
+ * （モジュールも source set も別）ので、**遷移を足したら両方に足すこと**。
+ * 向こうは端末の戻るを踏む 6 件を持たない代わりに、空状態を見る 2 件を持つ。
  */
 class NavigationTest {
 

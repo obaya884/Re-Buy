@@ -216,11 +216,7 @@
   - (c) Compose Multiplatform の `runComposeUiTest` を `commonTest` に置く。UI 階層ではなく Compose のセマンティクスを直接叩くので、**`NavigationTest` など既存の instrumented テストを `commonTest` へ移せる可能性がある**。文言を `Res.string.*` から引けるので、既存の方針をそのまま延長できる
   - (d) Maestro。YAML の flow 1 本が Android と iOS の両方で回り、Swift も Kotlin も書かない。**ただし iOS ではネイティブのアクセシビリティツリーを見るので、1 枚の `UIView` に描く Compose の階層が見えるかが分かれ目**（Maestro 側に issue #1549 がある。CMP 1.8.0 で同期が遅延化され `testTag` が `accessibilityIdentifier` に対応づくとされており、本リポジトリの 1.12.0 では直っている可能性が高いが**未実測**）。採るなら **`testTag` で選び `testTag` で assert する**——YAML から `Res.string.*` は引けないので、文言で assert すると「文言を変えたらテストが古い値を主張する」状態に戻る
 - 分担の見立て: **(c) と、(b)/(d) は競合ではない。** `NavigationStateRestorationTest`（プロセス death からの復元）と `LicenseLibrariesTest`（資産が APK に入っているか）は実物を起動しないと見られないので、厚みを (c) に置き、実物を起動する薄い層を (b) か (d) で持つ形になる
-- **結果（2026-08-31）: (c) を採り、`shared/ui/src/iosTest` に `NavigationIosTest`（6 件）を置いた。** 実測で分かったことが 4 つある
-  - **アクセシビリティ階層は見える。** `testTag` が `AXIdentifier` に対応づく（`top_app_bar_title` など）。Maestro の issue #1549 は CMP 1.12.0 では解消済みで、**(d) は候補から落ちない**。採らなかったのは (c) で足りたため
-  - **(c) は思ったより実物に近い。** テストバイナリの中で Compose Resources が読め、`initKoin()` が動き、`ReBuyApp()` が丸ごと描ける（Koin → Repository → DAO → Room の実物が組み上がる）
-  - **`commonTest` には置けない。** 置くと素の JVM で実行されて `Build.FINGERPRINT` が null で落ちる。Robolectric の有効化は `@RunWith` なので `commonTest` に書けない。詳細は [テスト戦略定義書](../仕様/17_テスト戦略定義書.md) §1
-  - **落とし穴 22 は再現しなかった。** 変異を当てても、テストバイナリでも実物のアプリでも落ちない。**この網が落とし穴 22 を止めるとは言えない**（[T-41](./23_技術改善バックログ.md#t-41) の追記）
-- **残った穴**: DB が空の状態しか見られない（[T-21](./23_技術改善バックログ.md#t-21) の iOS 版が要る）／実物の `.app` を起動しない（[T-46](./23_技術改善バックログ.md#t-46)）
-- 優先度の根拠: **iOS の網がゼロのまま段 4 へ進むと、iOS だけで壊れる変更が誰にも止められない**。落とし穴 22 は人が偶然踏んで見つけた
+- **結果（2026-08-31）: (c) `runComposeUiTest` を採り、`shared/ui/src/iosTest` に `NavigationIosTest`（8 件）を置いた。** 6 画面の遷移・戻る矢印・ボトムナビ・空状態を見る。CI は `ios` ジョブがそのまま拾うので変更していない。**(d) Maestro は候補として生きている**（アクセシビリティ階層が見えることは実測済み）が、(c) で足りたので採らなかった。実測の内訳と判断の経緯は log_23
+- **達成していないこと**: **落とし穴 22 は再現せず、この網が止めるとは言えない**（[T-41](./23_技術改善バックログ.md#t-41)）
+- **残った穴**: DB が空の状態しか見られない（[T-48](./23_技術改善バックログ.md#t-48)）／実物の `.app` を起動しない（[T-46](./23_技術改善バックログ.md#t-46)）／ライセンス一覧の中身を見ていない（[T-39](./23_技術改善バックログ.md#t-39)）
 - 関連: T-31 のステップ 15。[T-35](./23_技術改善バックログ.md#t-35)（iOS の DB と DI のスモークテスト）とあわせて考える
