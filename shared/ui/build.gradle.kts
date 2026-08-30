@@ -178,6 +178,14 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
         }
 
+        // 画面を動かすテスト（T-42）。**commonTest ではなくここに置く**——commonTest に
+        // 置くと Android 向けにもコンパイルされ、Android フレームワークの無い素の JVM
+        // （testAndroidHostTest）で実行されて落ちる。理由は NavigationIosTest の KDoc
+        iosTest.dependencies {
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
+        }
+
         // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い。
         // koin-test の verify() は kotlin-reflect 依存で JVM 専用なのでここに残る
         getByName("androidHostTest").dependencies {

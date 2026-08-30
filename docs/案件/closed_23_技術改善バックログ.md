@@ -33,6 +33,7 @@
 | T-28 | Composite Build と convention plugin の導入 | ツール整備 | 中 | 完了 2026-08-30 | [詳細](#t-28) |
 | T-32 | テストが 0 件で緑になるのを機械で止める | ツール整備 | 中 | 完了 2026-08-30 | [詳細](#t-32) |
 | T-31 | ③ 段 3 KMP/CMP 移植 | 内部設計 | 高 | 完了 2026-08-30 | [詳細](#t-31) |
+| T-42 | iOS の画面を機械で操作・検証できるようにする | テスト | 高 | 完了 2026-08-31 | [詳細](#t-42) |
 
 ## 詳細
 
@@ -205,3 +206,21 @@
 - 着手条件: T-28a（build-logic の立ち上げ）が済んでいること。実際には計画のステップ 1 がそれにあたる
 - 優先度の根拠: ③ の本体。段 4（iOS シェル）の前提
 - 関連: [KMP 化検討](../検討/32_KMP化検討.md) §3〜§9・§11・§13。T-28a / T-28b を内包する
+
+### T-42
+
+- 背景: Android には GMD の instrumented テストと `adb` のハーネス（`uiautomator dump` ＋ `screencap` の 21 画面走査）があるが、**iOS には画面を触る手段が何も無い**。ステップ 15 では macOS の合成クリック（`CGEvent`）でしのいだが、**人が別のウィンドウを触るとクリックが他のアプリへ飛ぶ**（実際に Chrome へ飛んだ）。誤操作の危険があり、成否も安定しない。**ステップ 15 で見つけた落とし穴 22 のような iOS 固有の不具合は、Android のテストでは 1 件も捕まらない**
+- 対応方針: 次の 3 つを比べる。**本命は (c)**——instrumented テストを common へ寄せられれば、Android と iOS の網が 1 本になる
+  - (a) `idb`（fb-idb）を入れる。`idb ui tap` がフォーカスに依存せずシミュレータへ直接送るので `adb shell input tap` と同じ形になり、画素比較の走査を iOS でもそのまま回せる。導入は簡単だが CI には載せにくい
+  - (b) `iosApp/` に XCUITest ターゲットを足す。`xcodebuild test` で CI に載る正攻法だが、テストを Swift で二重に書くことになる
+  - (c) Compose Multiplatform の `runComposeUiTest` を `commonTest` に置く。UI 階層ではなく Compose のセマンティクスを直接叩くので、**`NavigationTest` など既存の instrumented テストを `commonTest` へ移せる可能性がある**。文言を `Res.string.*` から引けるので、既存の方針をそのまま延長できる
+  - (d) Maestro。YAML の flow 1 本が Android と iOS の両方で回り、Swift も Kotlin も書かない。**ただし iOS ではネイティブのアクセシビリティツリーを見るので、1 枚の `UIView` に描く Compose の階層が見えるかが分かれ目**（Maestro 側に issue #1549 がある。CMP 1.8.0 で同期が遅延化され `testTag` が `accessibilityIdentifier` に対応づくとされており、本リポジトリの 1.12.0 では直っている可能性が高いが**未実測**）。採るなら **`testTag` で選び `testTag` で assert する**——YAML から `Res.string.*` は引けないので、文言で assert すると「文言を変えたらテストが古い値を主張する」状態に戻る
+- 分担の見立て: **(c) と、(b)/(d) は競合ではない。** `NavigationStateRestorationTest`（プロセス death からの復元）と `LicenseLibrariesTest`（資産が APK に入っているか）は実物を起動しないと見られないので、厚みを (c) に置き、実物を起動する薄い層を (b) か (d) で持つ形になる
+- **結果（2026-08-31）: (c) を採り、`shared/ui/src/iosTest` に `NavigationIosTest`（6 件）を置いた。** 実測で分かったことが 4 つある
+  - **アクセシビリティ階層は見える。** `testTag` が `AXIdentifier` に対応づく（`top_app_bar_title` など）。Maestro の issue #1549 は CMP 1.12.0 では解消済みで、**(d) は候補から落ちない**。採らなかったのは (c) で足りたため
+  - **(c) は思ったより実物に近い。** テストバイナリの中で Compose Resources が読め、`initKoin()` が動き、`ReBuyApp()` が丸ごと描ける（Koin → Repository → DAO → Room の実物が組み上がる）
+  - **`commonTest` には置けない。** 置くと素の JVM で実行されて `Build.FINGERPRINT` が null で落ちる。Robolectric の有効化は `@RunWith` なので `commonTest` に書けない。詳細は [テスト戦略定義書](../仕様/17_テスト戦略定義書.md) §1
+  - **落とし穴 22 は再現しなかった。** 変異を当てても、テストバイナリでも実物のアプリでも落ちない。**この網が落とし穴 22 を止めるとは言えない**（[T-41](./23_技術改善バックログ.md#t-41) の追記）
+- **残った穴**: DB が空の状態しか見られない（[T-21](./23_技術改善バックログ.md#t-21) の iOS 版が要る）／実物の `.app` を起動しない（[T-46](./23_技術改善バックログ.md#t-46)）
+- 優先度の根拠: **iOS の網がゼロのまま段 4 へ進むと、iOS だけで壊れる変更が誰にも止められない**。落とし穴 22 は人が偶然踏んで見つけた
+- 関連: T-31 のステップ 15。[T-35](./23_技術改善バックログ.md#t-35)（iOS の DB と DI のスモークテスト）とあわせて考える
