@@ -1,6 +1,5 @@
 package io.github.obaya884.rebuy.ui.screen.license
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -9,24 +8,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import com.mikepenz.aboutlibraries.ui.compose.android.produceLibraries
-import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
-import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LicenseScreen(
     navigator: Navigator,
     snackbarHostState: SnackbarHostState
 ) {
-    val libraries by produceLibraries(R.raw.aboutlibraries)
-
     ReBuyAppScaffold(
         topBarTitle = "ライセンス",
         topBarNavigationIcon = {
@@ -42,11 +34,23 @@ fun LicenseScreen(
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
-        LibrariesContainer(
-            libraries,
+        LicenseContent(
             Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         )
     }
 }
+
+/**
+ * ライセンス一覧の中身。
+ *
+ * ここだけ `expect/actual` なのは、AboutLibraries の読み込みが
+ * `produceLibraries(R.raw.aboutlibraries)` という Android 専用 API だから。
+ * TopAppBar と戻るボタンは共通なので [LicenseScreen] に置いてある——
+ * 画面ごと分けると、片方だけ直す事故が起きる（instrumented は Android しか見ない）。
+ *
+ * **ステップ 14 で composeResources 経由に移すと、この `expect/actual` は消えて共通の 1 実装になる。**
+ */
+@Composable
+expect fun LicenseContent(modifier: Modifier)

@@ -117,7 +117,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **ViewModel テスト 90 件が `commonTest` で両ターゲット緑**（`:shared:ui` は Android 102 件 / iOS 90 件）。`NavigatorTest` 11 件は `Navigator` が `NavigationState`（Compose 依存）を持つのでステップ 13 まで動かせない。`KoinModulesTest` 1 件は `androidHostTest` に残る。**アサーションの中身は 1 行も変えていない** |
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一（**21 画面の画素比較**。「Android の表示同一性は画素で確かめる」）。**解釈の余地がある 6 件を固定する instrumented テストが増えて 22 件**緑。ホストテスト件数不変（Android 132 件 / iOS 116 件）。`shared/ui/src/androidMain/res` が消えている |
 | 12 | **Compose を CMP へ一本化し、ナビに依存しない部品を `commonMain` へ（theme 4 本 ＋ ダイアログ 2 本 ＋ 日付書式の `expect/actual`）** | Android 同一挙動（**21 画面の画素比較**）。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 22 件緑。**日付書式を固定するテストが増えて `:shared:ui` は Android 111 件 / iOS 98 件**（Android はロケールと TZ を固定してリテラルで 4 件、iOS は文字列を見ない不変条件で 3 件）。`:shared:ui` の `androidMain` に残る androidx の Compose が `material-icons-core`（と版を決めるための BOM）だけになっている。`Theme.kt` の `dynamicColor` 分岐が消えている |
-| 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、ナビ基盤と画面 5 枚を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑（`:shared:ui` は Android 111 件 / iOS 109 件）。`androidMain` に残るのは `LicenseScreen` だけ。**`material-icons-core` の置き換え方が決まっている** |
+| 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、ナビ基盤と画面 5 枚を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑。**登録漏れを止める `ScreenSerializationTest` 2 件が増えて `:shared:ui` は Android 113 件 / iOS 109 件**。**保存・復元の載せ替えを実際に通す `NavigationStateRestorationTest` 3 件が増えて instrumented 25 件**。`androidMain` に残るのは `LicenseScreen` の中身（と日付書式の actual）だけ |
 | 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 131 件以上が出る**（ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**同じことを見る instrumented テストを 1 本足す**——いまこの退行を検出できるのは人がこの表を読むことだけなので、戻したら機械の網に載せる。Android のライセンス一覧の表示が移設前と同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
 | 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。**TopAppBar がステータスバーに重ならず、余白も二重になっていない**（「セーフエリアは Compose 側で処理する」）。**起動して数秒後にプロセスが生きている**（落とし穴 18）。Android 無変更 |
 | 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている |
@@ -182,7 +182,22 @@ kotlinx-datetime 0.7 で `Instant` / `Clock` は stdlib へ移管され、`kotli
 
 ### androidx の lifecycle と Navigation 3 は iOS 成果物を持っている
 
-ステップ 9 の時点で Google Maven を確認した（2026-08-30）。`lifecycle-viewmodel-iosarm64` と `navigation3-runtime-iosarm64` が実在するので、**JetBrains のフォーク（`org.jetbrains.androidx.*`）へ乗り換える必要は無い**。ViewModel と Navigator をそのまま `commonMain` へ運べる見込み。
+**`navigation3-ui` だけ乗り換えが要る**（ステップ 13 で実測）。Google の KMP 公開はグループ単位ではなく
+成果物ごとに進んでいる。
+
+| 成果物 | iOS 向けの公開 |
+|---|---|
+| `androidx.navigation3:navigation3-runtime` | あり |
+| `androidx.lifecycle:lifecycle-viewmodel-navigation3` | あり |
+| `androidx.navigation3:navigation3-ui`（`NavDisplay`） | **無い**（linux_x64 のみ） |
+
+`org.jetbrains.androidx.navigation3:navigation3-ui:1.1.1` へ差し替える。**Android に載るものは変わらない**
+——JB 版の android バリアントは `androidx.navigation3:navigation3-ui` への依存を宣言するだけの
+リダイレクトで、`.module` を読んで確認した。`navigation3-runtime` は androidx のまま。
+
+ステップ 9 の時点では「`navigation3-runtime-iosarm64` が実在するのでフォークは要らない」と結論したが、
+**確かめたのは `-runtime` だけで、実際に使う `-ui` を見ていなかった**。
+「対照を置く」以前に、**使う予定の成果物を全部並べる**ことが要る。
 
 **確認するときは対照を置くこと。** 最初に `group-index.xml` を grep したときはパターンが壊れていて「どれも無い」という誤った結論が出た。`room-runtime` / `sqlite-bundled`（iOS で動いているのが既知）を同じ手順にかけて、そちらが「あり」と出ることを見てから読む。
 
@@ -240,11 +255,20 @@ JetBrains 版の `org.jetbrains.compose.ui.tooling.preview.Preview`（`compose.c
 すれば **import は androidx のまま** multiplatform 化できる。androidx の `ui-tooling-preview` は落とせる。
 
 **`material-icons-core` には CMP の対応物が無い。** `Icons.Default.*` / `Icons.AutoMirrored.*` は
-`compose.material3` が推移的にも引かない（外して実測、9 ファイルが未解決になる）。ステップ 12 では
-アイコンを使うファイルが全部 `androidMain` に残るので androidx から取って BOM で版を決めているが、
-**ステップ 13 でそれらが `commonMain` へ行くときに決着させる必要がある**。選択肢は
-(a) JetBrains の凍結版 `org.jetbrains.compose.material:material-icons-core` を版指定で引く、
-(b) 使っている 9 種を drawable にして composeResources へ寄せる、の 2 つ。
+`compose.material3` が推移的にも引かない（外して実測、9 ファイルが未解決になる）。ステップ 13 で
+**JetBrains の凍結版 `org.jetbrains.compose.material:material-icons-core:1.7.3` を `commonMain` に引く**
+ことにした（経緯は [決定ログ](./log_23_技術改善バックログ.md)）。
+
+**Android の解決版は 1.7.8 から 1.7.6 へ下がるが、表示は変わらない。** JB 版の android バリアントは
+`androidx.compose.material:material-icons-core:1.7.6` を要求するだけで、版を 1.7.8 に固定していた
+androidx の BOM は `androidMain` から外れるため。**1.7.6 と 1.7.8 のソースを 281 ファイル突き合わせた
+ところ、違うのは著作権表記の年だけだった**（パスデータは 1 文字も変わっていない）。
+版を固定するためだけに BOM を残す必要は無い。iOS には 1.7.3 の klib が載る。
+
+ついでに確かめた 2 点。**`material-icons-core` 自体は非推奨ではない**——ライブラリ内の `@Deprecated` は
+`materialIcon()` ビルダーのバイナリ互換シムで、「必要なものをコピーせよ」という案内は
+`material-icons-extended` の話。そして **CMP のベクタ XML パーサは `android:autoMirrored` を読む**
+（`XmlVectorParser.kt:79`）ので、drawable 化しても RTL の自動反転は保てる。
 
 ### 画面はナビ基盤より先に移せない（ステップ 12 の着手前に判明）
 
@@ -269,6 +293,21 @@ JetBrains 版の `org.jetbrains.compose.ui.tooling.preview.Preview`（`compose.c
 日付書式（`HomeScreen` の `formatShortDate`）は `HomeScreen` が動かなくても切り出せるので、
 `expect/actual` はステップ 12 で済ませる。ステップ 12 の完了条件「日付表示が 1 文字も違わない」の
 対象はこの 1 か所だけ。
+
+### 保存・復元の載せ替えは、移送の中でいちばんテストが届いていなかった（ステップ 13）
+
+ステップ 13 で実際に変わったのは `NavigationState` の保存・復元経路だけと言ってよい。ところが
+**そこを通るテストが 1 件も無かった**（test-reviewer の指摘で気づいた）。
+
+- `NavigatorTest` は `NavigationState` を直接組み立てるので `rememberNavigationState` を呼ばない
+- `ScreenSerializationTest` は登録の中身だけを見て、呼び出し側との配線を見ない
+
+`StateRestorationTester` を使う `NavigationStateRestorationTest`（instrumented 3 件）を足した。
+`ReBuyApp()` をそのまま描いて `rememberSerializable` の Saver を実際に走らせるので、符号化・復号の
+両方と、`screenSavedStateConfiguration` が実際に配線されていることが一度に入る。
+
+**「変わった箇所を通るか」は件数では分からない。** `NavigatorTest` 11 件が iOS でも走るようになった
+のは事実だが、その 11 件が触れているのは移送で 1 行も変わっていないコードだけだった。
 
 ### リソースはそのまま移せる（ステップ 11 で実測）
 
@@ -433,10 +472,10 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 6. ~~**KMP 化すると JVM target 17 が黙って外れる。**~~ → **T-28b（ステップ 4）で塞いだ**（2026-08-30）。`rebuy.android.base` の KMP 用の枝が `jvmTarget` を入れるので、**モジュール側に書かない**。書き忘れてもビルドもテストも緑のままバイトコード版がビルド環境の JDK で決まる（手元の JBR 25 と CI の Temurin 21 で別物が出る）性質は変わらないので、KMP 化のたびに `javap -v <class> | grep "major version"` が 61 かを確かめる
 7. **`room { schemaDirectory }` がバリアント別サブディレクトリを掘ると、assets 指定と `RoomMigrationTest` が同時に壊れる**
 8. **`RoomMigrationTest` は driver 導入で 2 か所壊れる**
-9. **Navigation 3 の多相シリアライズの登録漏れは iOS だけで出る**
+9. ~~**Navigation 3 の多相シリアライズの登録漏れは iOS だけで出る**~~ → **前提が誤りだった。Android でも同じように落ちる**（2026-08-30 に実測）。Android を救っていたのは `rememberNavBackStack(vararg)` ＝ `NavKeySerializer` の reflection 経路だけで、ステップ 13 でそれを使うのをやめたため差が消えた。登録を落として instrumented を回すと `SerializationException: Serializer for subclass 'License' is not found` で 2 件が落ちる。**壊れ方が揃ったので Android 側に網を張れる**——`ScreenSerializationTest`（JVM 段）と `NavigationStateRestorationTest`（instrumented）の 2 本で塞いだ
 10. **`:shared:ui` の `BuildConfig` が消える。** 新プラグインは BuildConfig 非対応。`rebuy.versionName` から `Version.kt` を生成する小さなタスクを convention plugin に置く
-11. **`debugImplementation` が書けなくなる。** build type が無い
-12. **Compose の版が二重管理になる。** `:shared:ui` は CMP プラグインの `compose.*`、`:androidApp` は androidx の BOM。ずれると `NoSuchMethodError` か重複クラス。**`compose.*` は使っていなくても書く**——`compose.material3` は自分より古い `foundation` を推移的に引くので、`compose.foundation` を「未使用だから」と外すと版が 1.12.0 から 1.9.1 へ下がる（ステップ 8 で実際に踏み、`checkIos…ComposeLibrariesCompatibility` の警告で気づいた）。**依存には「使う」以外に「版を固定する」役目がある**
+11. ~~**`debugImplementation` が書けなくなる。** build type が無い~~ → **決着済み**（2026-08-30）。`compose.ui.tooling`（プレビューのレンダラ）はステップ 6 で落とし、`@Preview` の依存はステップ 12 で `compose.preview` に置き換えた。`debugImplementation` に置きたいものは残っていない
+12. ~~**Compose の版が二重管理になる。**~~ → **ステップ 12 で CMP 一本にした**（2026-08-30）。`:shared:ui` の Compose は `commonMain` の `compose.*` だけになり、androidx の BOM は外れた。**踏んだ教訓は残る**——`compose.material3` は自分より古い `foundation` を推移的に引くので、`compose.foundation` を「未使用だから」と外すと版が 1.12.0 から 1.9.1 へ下がる（ステップ 8 で実際に踏み、`checkIos…ComposeLibrariesCompatibility` の警告で気づいた）。**依存には「使う」以外に「版を固定する」役目がある**
 13. ~~**`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。**~~ → **ステップ 12 で分岐ごと削除した**（2026-08-30）。`dynamicColor` は既定が `false` で呼び出し側も指定しておらず、一度も通っていなかった。使うと決めたときに `expect/actual` で足す
 14. **`AppDatabase` の `synchronized` が common に置けない**
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
