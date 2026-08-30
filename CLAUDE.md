@@ -35,7 +35,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - `applicationId`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
 - **`namespace` は Kotlin package と揃え、モジュールごとに分ける**（`:androidApp` = `io.github.obaya884.rebuy` ＝ `applicationId` ／ `:shared:data` = `...rebuy.data` ／ `:shared:domain` = `...rebuy.domain` ／ `:shared:ui` = `...rebuy.ui`）。Gradle のパスにある `shared` は入れ物を示す語なので package にも namespace にも入れない
 - **画面文言と drawable は Compose Resources に置く**（`shared/ui/src/commonMain/composeResources/` の `values/strings.xml` と `drawable/`）。参照側は `io.github.obaya884.rebuy.ui.resources.Res` を import して `stringResource(Res.string.xxx)` / `painterResource(Res.drawable.xxx)` で引く。`Res` は `publicResClass = true` で公開してあるので、`:androidApp` の instrumented テストも同じ文言を引ける
-- **Android の `R` に残っているのは AboutLibraries の `R.raw.aboutlibraries` だけ**（`io.github.obaya884.rebuy.ui.R`）。非推移的 `R` は AGP 8 以降の既定で、各モジュールの `R` は自分のリソースだけを持つ
+- **`:shared:ui` の Kotlin から Android の `R` を引く場所はもう無いが、`androidResources { enable = true }` は外さない**。Compose Resources が道連れになり、ビルドは緑のまま全画面が落ちる（[段 3 実装計画](./docs/案件/plan_23_kmp段3実装計画.md) の落とし穴 20）
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
 - AGP 9 / Gradle 9。JDK は 17 以上（Android Studio 同梱の JBR 25 で動作確認済み）
 - ビルドスクリプトは Kotlin DSL。依存は必ず `gradle/libs.versions.toml` 経由で追加する
@@ -103,9 +103,10 @@ Koin モジュールを**層ごとに 1 ファイル**置く（`DataModule` / `D
 
 ### OSS ライセンス表示
 
-AboutLibraries プラグインでビルド時にライセンス情報を生成し、`LicenseScreen` の `LibrariesContainer` が表示する。依存を追加したらここに自動反映されるので手動更新は不要。
+AboutLibraries プラグインがビルド時に `shared/ui/src/commonMain/composeResources/files/aboutlibraries.json` を生成し、`LicenseScreen` が `Res.readBytes` で読んで `LibrariesContainer` に渡す。依存を追加したらここに自動反映されるので手動更新は不要。
 
-**いまは一覧が空になっている。** AboutLibraries 15.2.0 が AGP の KMP android ターゲットから依存を拾えないため（[段 3 実装計画](./docs/案件/plan_23_kmp段3実装計画.md) の落とし穴 17）。段 3 のステップ 14 で composeResources 経由に移して戻す。
+- **生成物だがコミットする**（Room のスキーマと同じ扱い）。依存を足し引きすると diff に出るので、**ライセンス一覧の変化がレビューに乗る**。ビルドのたびに再生成されるため、コミットし忘れは `git status` に出る
+- **`collect { filterVariants }` は Kotlin ターゲット名（`android`）で書く。** 外すと Android に載らないものが混ざり、AGP のバリアント名（`androidMain`）を書くと一覧が空になる（[段 3 実装計画](./docs/案件/plan_23_kmp段3実装計画.md) の落とし穴 17）。どちらもビルドとテストは緑のままなので、`LicenseLibrariesTest`（instrumented）が中身を見て止める
 
 ## サブエージェント運用
 

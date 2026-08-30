@@ -8,10 +8,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
+import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
 @Composable
@@ -34,8 +38,16 @@ fun LicenseScreen(
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
-        LicenseContent(
-            Modifier
+        // 一覧の元データは AboutLibraries の Gradle プラグインが commonMain のリソースへ
+        // 直接書き出している（配線は shared/ui/build.gradle.kts）。
+        // 読み終わるまで libraries は null で、その間 LibrariesContainer は空を描く
+        val libraries by produceLibraries {
+            Res.readBytes(ABOUT_LIBRARIES_PATH).decodeToString()
+        }
+
+        LibrariesContainer(
+            libraries = libraries,
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         )
@@ -43,14 +55,11 @@ fun LicenseScreen(
 }
 
 /**
- * ライセンス一覧の中身。
+ * ライセンス一覧の元データの、リソース内のパス。
  *
- * ここだけ `expect/actual` なのは、AboutLibraries の読み込みが
- * `produceLibraries(R.raw.aboutlibraries)` という Android 専用 API だから。
- * TopAppBar と戻るボタンは共通なので [LicenseScreen] に置いてある——
- * 画面ごと分けると、片方だけ直す事故が起きる（instrumented は Android しか見ない）。
- *
- * **ステップ 14 で composeResources 経由に移すと、この `expect/actual` は消えて共通の 1 実装になる。**
+ * `Res.readBytes` は文字列で引くので、`Res.string.xxx` と違ってタイプミスをコンパイラが
+ * 止められない——**この画面を開いたときに初めて落ちる**。公開しているのは
+ * `LicenseLibrariesTest`（instrumented）にこの定数を参照させるため。書き写させると、
+ * 書き写しどうしが一致するだけで実装のパス誤りを止められなくなる。
  */
-@Composable
-expect fun LicenseContent(modifier: Modifier)
+const val ABOUT_LIBRARIES_PATH = "files/aboutlibraries.json"
