@@ -118,9 +118,9 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一（**21 画面の画素比較**。「Android の表示同一性は画素で確かめる」）。**解釈の余地がある 6 件を固定する instrumented テストが増えて 22 件**緑。ホストテスト件数不変（Android 132 件 / iOS 116 件）。`shared/ui/src/androidMain/res` が消えている |
 | 12 | **Compose を CMP へ一本化し、ナビに依存しない部品を `commonMain` へ（theme 4 本 ＋ ダイアログ 2 本 ＋ 日付書式の `expect/actual`）** | Android 同一挙動（**21 画面の画素比較**）。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 22 件緑。**日付書式を固定するテストが増えて `:shared:ui` は Android 111 件 / iOS 98 件**（Android はロケールと TZ を固定してリテラルで 4 件、iOS は文字列を見ない不変条件で 3 件）。`:shared:ui` の `androidMain` に残る androidx の Compose が `material-icons-core`（と版を決めるための BOM）だけになっている。`Theme.kt` の `dynamicColor` 分岐が消えている |
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、ナビ基盤と画面 5 枚を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑。**登録漏れを止める `ScreenSerializationTest` 2 件が増えて `:shared:ui` は Android 113 件 / iOS 109 件**。**保存・復元の載せ替えを実際に通す `NavigationStateRestorationTest` 3 件が増えて instrumented 25 件**。`androidMain` に残るのは `LicenseScreen` の中身（と日付書式の actual）だけ |
-| 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 131 件以上が出る**（ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**同じことを見る instrumented テストを 1 本足す**——いまこの退行を検出できるのは人がこの表を読むことだけなので、戻したら機械の網に載せる。Android のライセンス一覧の表示が移設前と同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
+| 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 134 件が出る**（移設前は 133 件。ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**収集の壊れ方を止める `LicenseLibrariesTest` 4 件が増えて instrumented 29 件**（件数の下限・Android の依存だけを拾えているか・全件にライセンスが付いているか・画面に届いているか）——それまでこの退行を検出できるのは人が実機で一覧を見ることだけだった。`aboutlibraries.json` はコミットし、読む側のタスクに `dependsOn` を明示。`androidMain` に残るのは日付書式の `actual` だけ |
 | 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。**TopAppBar がステータスバーに重ならず、余白も二重になっていない**（「セーフエリアは Compose 側で処理する」）。**起動して数秒後にプロセスが生きている**（落とし穴 18）。Android 無変更 |
-| 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている |
+| 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている。**ビルド後に `git diff --exit-code` を見る**——`aboutlibraries.json` と `shared/data/schemas` はビルドで再生成される生成物をコミットしているので、再生成し忘れが CI で止まるようにする |
 
 ステップ 13 は commit が大きい。「ナビ基盤の CMP 対応」「画面ごと」に割ってよい。
 
@@ -285,7 +285,7 @@ androidx の BOM は `androidMain` から外れるため。**1.7.6 と 1.7.8 の
 |---|---|
 | `theme/` 4 本、`TextFieldAddDialog`、`TextFieldEditDialog` | **ステップ 12** |
 | `NavigationState`、`Navigator`、`ReBuyApp`（＋`Screen`）、`BottomNavigationItem`、`TestTags`、`ReBuyAppScaffold`、`BottomNavigationBar`、画面 5 枚 | **ステップ 13** |
-| `LicenseScreen` | **ステップ 14**（`R.raw` と AboutLibraries の Android 専用 API） |
+| `LicenseScreen` | **ステップ 13 と 14 に割れた**。TopAppBar と戻るは 13 で共通化し、`R.raw` を引く一覧の中身だけ `expect/actual` で残して 14 で畳んだ |
 
 `Theme.kt` の `dynamicColor` 分岐（落とし穴 13）は**実質デッドコード**だった。既定が `false` で
 呼び出し側も指定していないので、`LocalContext` ごと落とせば挙動を変えずに `commonMain` へ行ける。
@@ -448,19 +448,61 @@ Koin を起動する関数は `setupKoin()` にする。`startKoin()` は `org.k
 
 ## AboutLibraries（ステップ 14）
 
-15.2.0 が Compose 1.12.x / AGP 9 / Kotlin 2.4 / API 37 をサポート版として明記しており、このリポジトリの構成に合う。変更は 2 か所だけ。
+15.2.0 が Compose 1.12.x / AGP 9 / Kotlin 2.4 / API 37 をサポート版として明記しており、このリポジトリの構成に合う。出力先と読み出し API は AboutLibraries が KMP 向けに示している形をそのまま採った。
 
 ```kotlin
-aboutLibraries { export { outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json") } }
+aboutLibraries {
+    collect { filterVariants.set(setOf("android")) }
+    export {
+        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
+        prettyPrint = true
+    }
+}
 ```
 
 ```kotlin
 val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").decodeToString() }
+LibrariesContainer(libraries, modifier)
 ```
 
-**生成物がソースディレクトリの中に入る**ので、コミットするか `.gitignore` するかを決める。コミットしないなら、リソースコピータスクが `exportLibraryDefinitions` に依存するよう明示的に配線しないと、初回ビルドで「ファイルが無い」か「古い内容が焼き込まれる」が起きる。設定キャッシュが有効なので暗黙依存だと警告も出ない。
+### 0 件だった原因は「バリアント名で設定を探していた」こと
 
-**収集範囲は KMP で再び変わる。** 段 2 でやった「移設の前後で `aboutlibraries.json` を diff する」をここでもう一度行う。
+プラグインは Android のリソースに載せる json を、**AGP のバリアント名**を持つタスクで作る（`AboutLibrariesPluginAndroidExtension.kt` の `prepareLibraryDefinitions<バリアント名>`）。KMP android ライブラリのバリアント名は `androidMain` だが、依存が載る設定は Kotlin ターゲット名の `androidCompileClasspath` / `androidRuntimeClasspath`。`BaseAboutLibrariesTask.configure()` は `<バリアント名>CompileClasspath` を探すので、**どちらも存在するのに突き合わせが外れて 0 件になる**。`collect { all = true }` が効かなかったのも同じで、`all` は探す設定の範囲を広げるだけで名前の突き合わせは変えない。
+
+**ステップ 14 でこの経路を使うのをやめたので、ずれ自体が消えた。** 出力先を composeResources にすると Android のリソース生成は無効になり、書き出すのはバリアントを持たない `exportLibraryDefinitions` になる。バリアントが無ければ絞り込みも無く、解決できる設定を全部見る。
+
+### `filterVariants` は「Android に載るものだけ」に絞るために要る
+
+絞らないと **139 件**になり、Android に載らない 5 件が混ざる——`skiko` / `ui-uikit` / `kotlinx-browser` / `atomicfu` / `kotlinx-datetime`。`commonMain` のメタデータ解決を通って入ってくるもので、`:androidApp` の `debugRuntimeClasspath` には 1 つも無い。`collect { filterVariants.set(setOf("android")) }` で `androidCompileClasspath` / `androidRuntimeClasspath` だけを見るようにすると **134 件**になり、移設前の 133 件と直接くらべられる。
+
+**iOS を出すときはここを見直す。** いま `android` に絞っているぶん、iOS でだけ載るものが一覧から落ちる（T-39）。
+
+### 出力先は `build/` に逃がせない
+
+Compose Resources の `customDirectory(sourceSetName, provider)` は既定のディレクトリに**足すのではなく置き換える**（`PrepareComposeResources.kt` の `ext.customResourceDirectories[sourceSet.name] ?: 既定`）。`commonMain` に指定すると `composeResources/values` も `drawable` も見えなくなり、**文言 49 件と drawable 3 件が一斉に `Unresolved reference` になる**。生成物をソースツリーの外に置く道はここで閉じた。
+
+そのうえでコミットする方を採った（AboutLibraries も SCM に入れる運用を挙げている）。Room のスキーマと同じ扱いで、**依存の増減がライセンス一覧の diff として見える**のが利点。1 行 88KB では読めないので `prettyPrint` を入れる。
+
+コミットしても**タスク依存は要る**。生成物がリソースのソースディレクトリの中に出るので、読む側（`copyNonXmlValueResourcesForCommonMain` / `convertXmlValueResourcesForCommonMain`）に `dependsOn("exportLibraryDefinitions")` を明示する。暗黙依存のままだと、設定キャッシュが有効なぶん警告も出ないまま「ファイルが無い」か「古い内容が焼き込まれる」が起きる。
+
+### 移設の前後で diff した
+
+段 2 と同じく、移設前（`4054492~1`）の `exportLibraryDefinitionsDebug` と突き合わせた。**133 件 → 134 件**で、差分は 13 件すべてが段 3 で実際に起きた依存の変化だった（収集漏れは無い）。
+
+| 消えた | 理由 |
+|---|---|
+| `ui-tooling` / `ui-tooling-data` | 落とし穴 11。ステップ 6・12 で落とした |
+| `compose-bom` | ステップ 12 で CMP 一本化 |
+| `room-ktx` | ステップ 8。KMP では `room-runtime` に統合 |
+
+| 増えた | 理由 |
+|---|---|
+| `sqlite-bundled` | ステップ 8 |
+| `navigation3-ui`（JetBrains） | ステップ 13 |
+| `components-resources` | ステップ 11 |
+| `material-icons-core`（JetBrains 1.7.3） | ステップ 13 |
+
+版が動いたのは `material-icons-core` 1.7.8 → 1.7.6 と **`material-ripple` 1.12.0 → 1.9.3**。どちらも BOM を外したステップ 12 の結果で、そのときの画素比較では表示が変わっていない。
 
 ## 落とし穴
 
@@ -480,9 +522,11 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 14. **`AppDatabase` の `synchronized` が common に置けない**
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
 16. **`iosMain` の関数名を Objective-C の method family で始めない。** `init` / `new` / `copy` / `mutableCopy` / `alloc` の 5 つが該当し、いずれも Swift 側で `do` が付く（`initKoin()` → `doInitKoin()`）
-17. **AboutLibraries が KMP の android ターゲットから依存を拾えない。** 15.2.0（最新）の KMP 経路は AGP の KMP android ライブラリに追随しておらず、`:shared:ui` を KMP 化すると `aboutlibraries.json` が **0 件**になる（`collect { all = true }` でも `commonMain` に依存を置いても変わらない）。**ビルドもテストも緑のまま、ライセンス画面だけが空になる。** ステップ 5〜14 の間は空を許容し、ステップ 14 で戻す（2026-08-30 オーナー判断）。あわせて `aboutlibraries.json` が生成物なのにソースツリー内に出る点もここで片づける
+17. ~~**AboutLibraries が KMP の android ターゲットから依存を拾えない。**~~ → **ステップ 14 で解けた**（2026-08-30）。原因はプラグインの KMP 非対応ではなく、Android のリソースへ載せる経路が **AGP のバリアント名（`androidMain`）で Kotlin ターゲット名の設定（`androidCompileClasspath`）を探していた**こと。出力先を composeResources にするとこの経路自体を通らなくなる。**バリアント名で `filterVariants` を書くと同じ 0 件が戻る**——変異で実測した——ので、`LicenseLibrariesTest`（instrumented）が件数を見て止める
 18. **CMP は `Info.plist` に `CADisableMinimumFrameDurationOnPhone` を要求する。** 無いと `PlistSanityCheck` が例外を投げて `SIGABRT` で落ちる。**チェックが走るのは 1 フレーム描画した後**なので、スクリーンショットには正常な画面が写る。**iOS の確認でスクリーンショットは「動いた」証拠にならない**——`xcrun simctl spawn booted launchctl list | grep -i <app>` でプロセスが生き続けているかを見ること（ステップ 7 で実際に踏んだ）
 19. **Linux CI は iOS のタスクを黙って無効化する。** 落ちるのではなく `Native task 'iosSimulatorArm64Test' is disabled` / `cannot run on the current host (linux-x86_64)` の警告を出して素通りする（ステップ 6 で実測）。ステップ 6 の時点では `commonMain` が空なので害が無いが、**ステップ 8 以降は `compileKotlinIosArm64` に実際のソースが入り、iOS 側のコンパイルエラーが CI をすり抜ける**。ステップ 16 で macOS ランナーの `ios` ジョブを足すまで、**各ステップでローカルの `linkDebugFrameworkIosSimulatorArm64` を自分で回すこと**が唯一の網になる
+20. **Compose Resources を Android に載せているのは assets 経路で、`androidResources { enable = true }` に紐づいている。** CMP は `variant.sources.assets` に配線しており（`AndroidResources.kt`）、`assets` が null だと**何も言わずに配線を諦める**。`:shared:ui` の Kotlin から `R` を引く場所が無くなったからと無効にすると、**ビルドは緑・APK に `assets/composeResources/` が 1 つも入らない・起動して全画面が落ちる**（ステップ 14 で実際に踏んだ）。APK の中身は `unzip -l` で見る
+21. **`compose.resources { customDirectory(...) }` は既定のディレクトリを置き換える。** `commonMain` に足すつもりで指定すると `composeResources/values` も `drawable` も見えなくなり、文言と drawable が一斉に `Unresolved reference` になる（ステップ 14 で実際に踏んだ）。生成物をソースツリーの外へ逃がす用途には使えない
 
 ## spec §11「③ で壊れる開発基盤」の仕分け
 

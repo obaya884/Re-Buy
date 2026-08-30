@@ -79,4 +79,7 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     androidTestImplementation(libs.androidx.room.testing)
+    // LicenseLibrariesTest が画面と同じ Libs で JSON を読む。:shared:ui では
+    // implementation なので推移的には来ない
+    androidTestImplementation(libs.aboutlibraries.core)
 }

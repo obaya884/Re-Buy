@@ -18,6 +18,36 @@ plugins {
 
 val uiPackage = "io.github.obaya884.rebuy.ui"
 
+aboutLibraries {
+    collect {
+        // Android に載るものだけに絞る。絞らないと commonMain のメタデータ解決から
+        // skiko や ui-uikit など Android に無い 5 件が混ざって 139 件になる。
+        //
+        // **ここは Kotlin ターゲット名（android）で書く。** AGP の KMP バリアント名
+        // （androidMain）で書くと、依存が載る設定の名前は androidCompileClasspath なので
+        // 1 件も一致せず、ビルドもテストも緑のまま一覧だけが空になる（落とし穴 17）
+        filterVariants.set(setOf("android"))
+    }
+    export {
+        // 置き場所は AboutLibraries が KMP 向けに示している場所。
+        // **R.raw に出すほうの経路は止まらない**（15.2.0 に止める設定が無い）。
+        // バリアント名で設定を探すあの経路は 0 件のままで、APK にも 71 バイトの
+        // 空の json が残るが、読む側が composeResources に移ったので誰も見ない。
+        //
+        // 生成物だが Room のスキーマ（shared/data/schemas）と同じくコミットする——
+        // 依存を足し引きしたときに一覧の変化が diff に出るほうが、気づける。
+        // 1 行 88KB では diff が読めないので prettyPrint も入れる
+        outputFile = file("src/commonMain/composeResources/files/aboutlibraries.json")
+        prettyPrint = true
+    }
+}
+
+// 生成物がリソースのソースディレクトリの中に出るので、読む側のタスクに依存を明示する。
+// 宣言しないと順序が保証されず、**再生成より先にコピーが走って古い内容が APK に載る**。
+// タスク名が変わったら named() が設定時に落ちるので、黙って外れることは無い
+tasks.named("copyNonXmlValueResourcesForCommonMain") { dependsOn("exportLibraryDefinitions") }
+tasks.named("convertXmlValueResourcesForCommonMain") { dependsOn("exportLibraryDefinitions") }
+
 // 画面文言と drawable は commonMain/composeResources に置き、Compose Resources が
 // 生成する Res 経由で参照する。生成先を明示しないと group / artifact 由来の
 // package になり、import が読みにくくなる
@@ -71,10 +101,10 @@ kotlin {
         // R の FQN になる。package と揃えておく
         namespace = uiPackage
 
-        // KMP ライブラリでは Android リソースが既定で無効。有効にしないと R が生成されない。
-        // 画面文言と drawable は Compose Resources へ移したので、R に残っているのは
-        // AboutLibraries が生成する R.raw.aboutlibraries だけ。それを引く LicenseScreen が
-        // composeResources 経由になる（ステップ 14）までは有効のままにする
+        // KMP ライブラリでは Android リソースが既定で無効。**Compose Resources も道連れになる**
+        // ——Android では assets 経由で載るが、CMP はその配線を variant.sources.assets に
+        // 繋いでおり、ここを無効にすると assets ごと null になって APK から消える。
+        // ビルドは緑のまま画面が全部落ちるので、R を引く場所が無くなっても有効のままにする
         androidResources {
             enable = true
         }
@@ -115,6 +145,12 @@ kotlin {
                 // getString / StringResource に届かずテストが通らない
                 api(compose.components.resources)
 
+                // OSS ライセンス表示。json の読み込みが Res.readBytes になったので
+                // Android 専用 API（produceLibraries(R.raw...)）は要らなくなった
+                implementation(libs.aboutlibraries.core)
+                implementation(libs.aboutlibraries.compose.core)
+                implementation(libs.aboutlibraries.compose.m3)
+
                 // Icons.Default.* / Icons.AutoMirrored.*。CMP に対応物が無いので JetBrains の
                 // 凍結版を引く。Android に載る実体は JB 版が要求する androidx の
                 // material-icons-core で、BOM を外したことで 1.7.8 から 1.7.6 に下がる。
@@ -134,16 +170,6 @@ kotlin {
                 // Screen の @Serializable と NavKey の多相シリアライズ。
                 // json は使っていない（保存形式は savedstate が決める）ので core だけ
                 implementation(libs.kotlinx.serialization.core)
-            }
-        }
-
-        androidMain {
-            dependencies {
-                // OSS ライセンス表示。produceLibraries(R.raw...) が Android 専用なので
-                // LicenseScreen だけ androidMain に残る（ステップ 14 で commonMain へ）
-                implementation(libs.aboutlibraries.core)
-                implementation(libs.aboutlibraries.compose.core)
-                implementation(libs.aboutlibraries.compose.m3)
             }
         }
 
