@@ -116,13 +116,13 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
 | 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **ViewModel テスト 90 件が `commonTest` で両ターゲット緑**（`:shared:ui` は Android 102 件 / iOS 90 件）。`NavigatorTest` 11 件は `Navigator` が `NavigationState`（Compose 依存）を持つのでステップ 13 まで動かせない。`KoinModulesTest` 1 件は `androidHostTest` に残る。**アサーションの中身は 1 行も変えていない** |
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一（**21 画面の画素比較**。「Android の表示同一性は画素で確かめる」）。**解釈の余地がある 6 件を固定する instrumented テストが増えて 22 件**緑。ホストテスト件数不変（Android 132 件 / iOS 116 件）。`shared/ui/src/androidMain/res` が消えている |
-| 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑 |
-| 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` と `NavigationState` / `Navigator` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑（`:shared:ui` は Android 102 件 / iOS 101 件） |
+| 12 | **Compose を CMP へ一本化し、ナビに依存しない部品を `commonMain` へ（theme 4 本 ＋ ダイアログ 2 本 ＋ 日付書式の `expect/actual`）** | Android 同一挙動（**21 画面の画素比較**）。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 22 件緑。**日付書式を固定するテストが増えて `:shared:ui` は Android 111 件 / iOS 98 件**（Android はロケールと TZ を固定してリテラルで 4 件、iOS は文字列を見ない不変条件で 3 件）。`:shared:ui` の `androidMain` に残る androidx の Compose が `material-icons-core`（と版を決めるための BOM）だけになっている。`Theme.kt` の `dynamicColor` 分岐が消えている |
+| 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、ナビ基盤と画面 5 枚を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑（`:shared:ui` は Android 111 件 / iOS 109 件）。`androidMain` に残るのは `LicenseScreen` だけ。**`material-icons-core` の置き換え方が決まっている** |
 | 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 131 件以上が出る**（ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**同じことを見る instrumented テストを 1 本足す**——いまこの退行を検出できるのは人がこの表を読むことだけなので、戻したら機械の網に載せる。Android のライセンス一覧の表示が移設前と同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
 | 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。**TopAppBar がステータスバーに重ならず、余白も二重になっていない**（「セーフエリアは Compose 側で処理する」）。**起動して数秒後にプロセスが生きている**（落とし穴 18）。Android 無変更 |
 | 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている |
 
-ステップ 11（リソース 52 件）と 12（画面 6 枚）は commit が大きい。11 を「文言」「drawable」、12 を「theme」「画面ごと」に割ってよい。
+ステップ 13 は commit が大きい。「ナビ基盤の CMP 対応」「画面ごと」に割ってよい。
 
 ## データ層（ステップ 3・8）
 
@@ -231,6 +231,45 @@ abstract class ViewModelTestBase {
 
 **iOS 側の Koin グラフは誰も検証しない。** `verify()` は JVM 専用で Android のグラフしか見ない。`:shared:ui` の `iosTest` に「起動して 5 つの型を `get()` する」テストを 1 本足し、`KoinGraphTest` の iOS 版に相当させる。
 
+### Compose を CMP に寄せるときに引っかかる 2 つ（ステップ 12 で実測）
+
+**`@Preview` は CMP でも `androidx.compose.ui.tooling.preview.Preview` が正。**
+JetBrains 版の `org.jetbrains.compose.ui.tooling.preview.Preview`（`compose.components.uiToolingPreview`）は
+1.12 で非推奨になり、「`org.jetbrains.compose.ui:ui-tooling-preview` の
+`androidx.compose.ui.tooling.preview.Preview` を使え」という警告が出る。依存を **`compose.preview`** に
+すれば **import は androidx のまま** multiplatform 化できる。androidx の `ui-tooling-preview` は落とせる。
+
+**`material-icons-core` には CMP の対応物が無い。** `Icons.Default.*` / `Icons.AutoMirrored.*` は
+`compose.material3` が推移的にも引かない（外して実測、9 ファイルが未解決になる）。ステップ 12 では
+アイコンを使うファイルが全部 `androidMain` に残るので androidx から取って BOM で版を決めているが、
+**ステップ 13 でそれらが `commonMain` へ行くときに決着させる必要がある**。選択肢は
+(a) JetBrains の凍結版 `org.jetbrains.compose.material:material-icons-core` を版指定で引く、
+(b) 使っている 9 種を drawable にして composeResources へ寄せる、の 2 つ。
+
+### 画面はナビ基盤より先に移せない（ステップ 12 の着手前に判明）
+
+**画面は 1 枚も `commonMain` へ移せない。** 依存の向きが一方通行になっている。
+
+- 画面 6 枚と `BottomNavigationBar` はすべて `Navigator` を第 1 引数に取る
+- `sealed class Screen : NavKey` は `ReBuyApp.kt`（＝ステップ 13 の対象そのもの）の中にある
+- `TestTags` は `BottomNavigationItem`（`NavKey` と `Screen` を持つ）を参照し、`ReBuyAppScaffold` はその `TestTags` を参照する
+
+`commonMain` から `androidMain` は見えないので、ナビ基盤が `androidMain` にいる限り動かせない。
+逆向きの依存は無いので、**ナビ基盤が移れば画面は素直に続く**。ステップ 12 と 13 の境界はこの向きに沿って引いている。
+
+| ステップ 12 の着手時点で `androidMain` にいた 19 本 | 行き先 |
+|---|---|
+| `theme/` 4 本、`TextFieldAddDialog`、`TextFieldEditDialog` | **ステップ 12** |
+| `NavigationState`、`Navigator`、`ReBuyApp`（＋`Screen`）、`BottomNavigationItem`、`TestTags`、`ReBuyAppScaffold`、`BottomNavigationBar`、画面 5 枚 | **ステップ 13** |
+| `LicenseScreen` | **ステップ 14**（`R.raw` と AboutLibraries の Android 専用 API） |
+
+`Theme.kt` の `dynamicColor` 分岐（落とし穴 13）は**実質デッドコード**だった。既定が `false` で
+呼び出し側も指定していないので、`LocalContext` ごと落とせば挙動を変えずに `commonMain` へ行ける。
+
+日付書式（`HomeScreen` の `formatShortDate`）は `HomeScreen` が動かなくても切り出せるので、
+`expect/actual` はステップ 12 で済ませる。ステップ 12 の完了条件「日付表示が 1 文字も違わない」の
+対象はこの 1 か所だけ。
+
 ### リソースはそのまま移せる（ステップ 11 で実測）
 
 `shared/ui/src/androidMain/res` の `values/strings.xml`（49 件）と `drawable`（3 件）を
@@ -254,9 +293,10 @@ abstract class ViewModelTestBase {
 **`Res` は `publicResClass = true` で公開する。** `:androidApp` の instrumented テストが画面のタイトルを
 文言で引いているため。読み出しの `getString` は suspend なので、テスト側は `runBlocking` で待ち合わせる。
 
-**`compose.components.resources` は `commonMain` に置く。** 「`compose.*` は `iosMain` だけ」という
-落とし穴 12 の規約の唯一の例外——リソースが `commonMain` にある以上ほかに置き場が無い。Android では
-JetBrains の別名アーティファクトが androidx へ解決するので BOM とはぶつからない。
+**`compose.components.resources` は `commonMain` に置く。** リソースが `commonMain` にある以上
+ほかに置き場が無い。ステップ 11 の時点では「`compose.*` は `iosMain` だけ」という落とし穴 12 の規約の
+唯一の例外だったが、**ステップ 12 で `compose.*` がすべて `commonMain` へ集まり、この規約は消えた**。
+Android では JetBrains の別名アーティファクトが androidx へ解決するので BOM とはぶつからない。
 
 **未使用の文言は、これ以降どの機械も見つけられない。** 生成される `allStringResources` が全件を
 `map.put` するので参照が無くても使われているように見え、Android lint の `UnusedResources` の視界からも
@@ -397,7 +437,7 @@ val libraries by produceLibraries { Res.readBytes("files/aboutlibraries.json").d
 10. **`:shared:ui` の `BuildConfig` が消える。** 新プラグインは BuildConfig 非対応。`rebuy.versionName` から `Version.kt` を生成する小さなタスクを convention plugin に置く
 11. **`debugImplementation` が書けなくなる。** build type が無い
 12. **Compose の版が二重管理になる。** `:shared:ui` は CMP プラグインの `compose.*`、`:androidApp` は androidx の BOM。ずれると `NoSuchMethodError` か重複クラス。**`compose.*` は使っていなくても書く**——`compose.material3` は自分より古い `foundation` を推移的に引くので、`compose.foundation` を「未使用だから」と外すと版が 1.12.0 から 1.9.1 へ下がる（ステップ 8 で実際に踏み、`checkIos…ComposeLibrariesCompatibility` の警告で気づいた）。**依存には「使う」以外に「版を固定する」役目がある**
-13. **`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。** `dynamicColor` の既定が `false` なので、この分岐を `expect/actual` に切るか削るかを決めれば挙動は変わらない
+13. ~~**`Theme.kt` の `LocalContext` ＋ `dynamicDarkColorScheme`。**~~ → **ステップ 12 で分岐ごと削除した**（2026-08-30）。`dynamicColor` は既定が `false` で呼び出し側も指定しておらず、一度も通っていなかった。使うと決めたときに `expect/actual` で足す
 14. **`AppDatabase` の `synchronized` が common に置けない**
 15. **`DataModule.kt` の `androidContext()` が commonMain へ行けない唯一の依存。** `expect val platformDataModule` に閉じ込める
 16. **`iosMain` の関数名を Objective-C の method family で始めない。** `init` / `new` / `copy` / `mutableCopy` / `alloc` の 5 つが該当し、いずれも Swift 側で `do` が付く（`initKoin()` → `doInitKoin()`）

@@ -75,9 +75,10 @@ fun TextFieldAddDialog(
     }
 }
 
+// private にしているのは、public だと iOS の framework（ReBuyUi）の公開ヘッダにも出るため
 @Preview
 @Composable
-fun TextFieldDialogPreview() {
+private fun TextFieldAddDialogPreview() {
     TextFieldAddDialog(
         title = "Add Item",
         onConfirm = {},
