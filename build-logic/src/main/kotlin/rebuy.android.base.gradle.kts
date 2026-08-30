@@ -64,12 +64,16 @@ fun Project.configureKmpAndroidBase() = extensions.configure<KotlinMultiplatform
  */
 fun Project.failOnZeroTests() {
     // テストタスクと、それが拾うべき source set の対応。**タスクごとに見る**——
-    // build/test-results を丸ごと数えると、別のタスクが前に残した XML で通ってしまう（実測）
-    val testTasks = mapOf(
-        "testAndroidHostTest" to listOf("commonTest", "androidHostTest"),
-        "iosSimulatorArm64Test" to listOf("commonTest", "iosTest"),
-        "iosArm64Test" to listOf("commonTest", "iosTest"),
-    )
+    // build/test-results を丸ごと数えると、別のタスクが前に残した XML で通ってしまう（実測）。
+    //
+    // **iOS は macOS のときだけ見る。** Linux では Kotlin/Native のテストタスクが
+    // 「このホストでは走らない」と無効化されるので、検査だけが走って 0 件と判定してしまう
+    // （落とし穴 19 を検査の側で踏んだ。CI で実測）
+    val isMacOs = System.getProperty("os.name").startsWith("Mac")
+    val testTasks = buildMap {
+        put("testAndroidHostTest", listOf("commonTest", "androidHostTest"))
+        if (isMacOs) put("iosSimulatorArm64Test", listOf("commonTest", "iosTest"))
+    }
     val projectPath = path
 
     testTasks.forEach { (testTask, sourceSets) ->
