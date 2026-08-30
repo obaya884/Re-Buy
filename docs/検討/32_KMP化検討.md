@@ -151,7 +151,7 @@ iOS のホストを移植の段に置いて後ろへ送らないのは、§13 �
 
 着手時に潰す。
 
-段 3 の計画（[実装計画](../案件/plan_23_kmp段3実装計画.md)）を書くにあたって調べ、次の 4 点は結論が出た。
+段 3 の計画（[実装計画](../案件/archive_23_kmp段3実装計画.md)）を書くにあたって調べ、次の 4 点は結論が出た。
 
 - **AboutLibraries は CMP で動く。** 15.2.0 が Compose 1.12.x / AGP 9 / Kotlin 2.4 をサポート版として明記している。`aboutLibraries { export { outputFile = ... composeResources/files/... } }` に変え、`Res.readBytes` で読む
 - **Navigation 3 の CMP 対応は入っている。** ただし**多相シリアライズの明示登録が必須**で、`sealed class Screen : NavKey` を `@Serializable sealed interface` にし、`SavedStateConfiguration` に `polymorphic(NavKey::class)` を登録する。登録漏れは **Android では動いたまま iOS だけプロセス復元時に落ちる**

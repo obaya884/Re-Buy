@@ -35,7 +35,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - `applicationId`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
 - **`namespace` は Kotlin package と揃え、モジュールごとに分ける**（`:androidApp` = `io.github.obaya884.rebuy` ＝ `applicationId` ／ `:shared:data` = `...rebuy.data` ／ `:shared:domain` = `...rebuy.domain` ／ `:shared:ui` = `...rebuy.ui`）。Gradle のパスにある `shared` は入れ物を示す語なので package にも namespace にも入れない
 - **画面文言と drawable は Compose Resources に置く**（`shared/ui/src/commonMain/composeResources/` の `values/strings.xml` と `drawable/`）。参照側は `io.github.obaya884.rebuy.ui.resources.Res` を import して `stringResource(Res.string.xxx)` / `painterResource(Res.drawable.xxx)` で引く。`Res` は `publicResClass = true` で公開してあるので、`:androidApp` の instrumented テストも同じ文言を引ける
-- **`:shared:ui` の Kotlin から Android の `R` を引く場所はもう無いが、`androidResources { enable = true }` は外さない**。Compose Resources が道連れになり、ビルドは緑のまま全画面が落ちる（[段 3 実装計画](./docs/案件/plan_23_kmp段3実装計画.md) の落とし穴 20）
+- **`:shared:ui` の Kotlin から Android の `R` を引く場所はもう無いが、`androidResources { enable = true }` は外さない**。Compose Resources が道連れになり、ビルドは緑のまま全画面が落ちる（[段 3 実装計画](./docs/案件/archive_23_kmp段3実装計画.md) の落とし穴 20）
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
 - AGP 9 / Gradle 9。JDK は 17 以上（Android Studio 同梱の JBR 25 で動作確認済み）
 - ビルドスクリプトは Kotlin DSL。依存は必ず `gradle/libs.versions.toml` 経由で追加する
