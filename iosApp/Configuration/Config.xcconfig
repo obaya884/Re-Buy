@@ -27,6 +27,12 @@ ALWAYS_SEARCH_USER_PATHS = NO
 
 SDKROOT = iphoneos
 IPHONEOS_DEPLOYMENT_TARGET = 17.0
+
+// Kotlin 側は iosArm64 と iosSimulatorArm64 の 2 つしか作っていない（iosX64 は
+// Intel Mac のシミュレータ用で、開発機も GitHub の macOS ランナーも arm64）。
+// 絞らないと `-destination 'generic/platform=iOS Simulator'` が x86_64 も要求し、
+// Gradle 側が `Unknown iOS simulator arch: 'x86_64'` で落ちる（CI で実測）
+ARCHS = arm64
 TARGETED_DEVICE_FAMILY = 1
 SWIFT_VERSION = 5.0
 

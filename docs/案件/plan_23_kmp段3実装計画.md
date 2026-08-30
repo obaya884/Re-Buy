@@ -533,9 +533,9 @@ Compose Resources の `customDirectory(sourceSetName, provider)` は既定のデ
 
 | # | 項目 | 状態 |
 |---|---|---|
-| 1 | `./gradlew build` が Linux で iOS タスクを落とす | **段 3 で塞ぐ**。CI の `build` ジョブを `./gradlew build` からタスクの明示列挙へ（ステップ 16） |
+| 1 | `./gradlew build` が Linux で iOS タスクを落とす | **済**（ステップ 16）。**タスクの明示列挙ではなく、macOS ランナーの `ios` ジョブを足す形にした**——列挙はモジュールやターゲットを足すたびに追随が要り、書き忘れがまた同じ「緑なのに通っていない」を生む。`ios` ジョブが `iosSimulatorArm64Test` と `xcodebuild` を回すので、Linux の `build` が iOS を素通りしても穴は残らない |
 | 2 | GMD のタスク名 | **済**（段 2 で `:androidApp:` 修飾を allow に追加済み） |
-| 3 | レポートパス | **概ね済**。`verifier.md` のタスク名の記述だけ直す |
-| 4 | `test-reviewer` の起動契機 | **段 3 で塞ぐ**。`shared/*/src/commonTest/**` `androidHostTest/**` `iosTest/**` へ |
+| 3 | レポートパス | **済**（ステップ 16）。`verifier.md` の手順を `testAndroidHostTest` / iOS / `git diff --exit-code` に追随させた |
+| 4 | `test-reviewer` の起動契機 | **済**（ステップ 16）。CLAUDE.md と `test-reviewer.md` の両方を `commonTest` / `androidHostTest` / `iosTest` に直した |
 | 5 | CLAUDE.md のアーキテクチャ節 → `docs/仕様/15` | **段 3 で塞ぐ**（§14 の完了条件）。`17_テスト戦略定義書` も |
-| 6 | KMP のタスク名を allow に | **段 3 で塞ぐ**。ただし**ステップ 3 で追随させる**——16 まで待つと以降 12 commit ぶん許可プロンプトを踏む |
+| 6 | KMP のタスク名を allow に | **済**。ステップ 3 で Gradle の KMP タスクを、ステップ 16 で iOS のタスクと `xcodebuild` / `xcrun simctl` を足した |

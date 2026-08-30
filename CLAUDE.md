@@ -138,7 +138,7 @@ AboutLibraries プラグインがビルド時に `shared/ui/src/commonMain/compo
 - **着手前** — 影響範囲が読み切れないとき: `Explore`
 - **実装方式で迷うとき** — トレードオフのある設計判断: `Plan`
 - **実装が一区切りしたら（コミット前）** — `verifier` と `code-quality-reviewer` を並列でバックグラウンド起動。軽微な変更では起動しない
-- **差分にテストファイル（`shared/*/src/{test,androidHostTest,commonTest}/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
+- **差分にテストファイル（`shared/*/src/{commonTest,androidHostTest,iosTest}/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
 - **差分が docs の条項に触れる／条項で定まる挙動を実装したとき** — `spec-reviewer`
 
 ## 実装完了後のフロー（レビュー → 動作確認 → コミット/push）

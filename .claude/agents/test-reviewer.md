@@ -9,7 +9,7 @@ model: opus
 
 ## 手順
 
-1. レビュー対象を特定する。呼び出し時にスコープが指定されていればそれを優先し、なければ `git diff --name-only` でテストファイル（`shared/*/src/test/**`・`androidApp/src/androidTest/**`）と対応する本番コードを把握する
+1. レビュー対象を特定する。呼び出し時にスコープが指定されていればそれを優先し、なければ `git diff --name-only` でテストファイル（`shared/*/src/{commonTest,androidHostTest,iosTest}/**`・`androidApp/src/androidTest/**`）と対応する本番コードを把握する
 2. 対象に関係する仕様条項を洗い出す（テストが網羅すべき観点の母集団になる）: `docs/仕様/11_憲章.md`、CLAUDE.md「アーキテクチャ」節、（④ 以降）`12_要件定義書` `13_画面定義書` `14_データモデル定義書`
 3. テストファイルと本番コードを読み、突き合わせる
 4. 下記チェックリストで観点の穴を洗い出す
@@ -18,8 +18,9 @@ model: opus
 
 | 段 | 置き場所 | 対象 | 実行 |
 |---|---|---|---|
-| ユニット | `shared/*/src/test` | Android 非依存の純粋ロジック（コンバータ・UiState の派生値・Repository の遷移規則） | `./gradlew testDebugUnitTest`（JVM） |
-| インストルメンテーション | `androidApp/src/androidTest` | Room（マイグレーション・DAO）・Compose UI | `./gradlew pixel6Api35DebugAndroidTest`（GMD） |
+| ホスト（共通） | `shared/*/src/commonTest` | プラットフォームに依らない純粋ロジック（コンバータ・UiState の派生値・Repository の遷移規則・`Navigator`）。**Android と iOS の両方で走る** | `./gradlew testAndroidHostTest` ／ `iosSimulatorArm64Test` |
+| ホスト（プラットフォーム別） | `shared/*/src/androidHostTest` ／ `src/iosTest` | 片方でしか書けないもの（`kotlin-reflect` を要するもの・日付書式の実測値） | 同上 |
+| インストルメンテーション | `androidApp/src/androidTest` | Room（マイグレーション・DAO）・Compose UI・リソースが APK に載っているか・プロセス death からの復元 | `./gradlew pixel6Api35DebugAndroidTest`（GMD） |
 
 ## チェックリスト（毎回確認）
 
@@ -35,7 +36,7 @@ model: opus
 
 - **読みやすさ・命名・重複は見ない**（code-quality-reviewer の担当）
 - **docs 仕様そのものとの整合判定はしない**（spec-reviewer の担当）
-- **テストの実行合否・lint・build は扱わない**（verifier の担当）。必要なら結果 XML（`shared/*/build/test-results/` `androidApp/build/outputs/androidTest-results/`）を読むだけに留める
+- **テストの実行合否・lint・build は扱わない**（verifier の担当）。必要なら結果 XML（`shared/*/build/test-results/testAndroidHostTest/` `shared/*/build/test-results/iosSimulatorArm64Test/` `androidApp/build/outputs/androidTest-results/`）を読むだけに留める
 - コードは修正しない。**作業ツリーを変える git 操作をしない**（`stash` / `reset` / `checkout -- ` / `clean` / `restore`）
 
 ## 報告形式
