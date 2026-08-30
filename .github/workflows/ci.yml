@@ -109,7 +109,11 @@ jobs:
       # Swift 側（iOSApp.swift / ContentView.swift）が壊れていないかを見る。
       # Xcode の run script phase が framework のリンクも走らせるので、
       # linkDebugFrameworkIosSimulatorArm64 はこれに含まれる
+      # テストが落ちても走らせる。1 回の実行で「Kotlin 側」と「Swift 側」の両方の
+      # 結果が要る。Kotlin/Native のコンパイルは上のステップで済んでいるので、
+      # ここは 1 分もかからない（ジョブを分けると逆に 5〜8 分のコンパイルが二重になる）
       - name: iOS アプリのビルド
+        if: ${{ !cancelled() }}
         run: |
           xcodebuild -project iosApp/iosApp.xcodeproj \
             -scheme iosApp \
