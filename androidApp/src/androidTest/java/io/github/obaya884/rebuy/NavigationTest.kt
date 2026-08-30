@@ -6,9 +6,12 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
-import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.ui.TestTags
+import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
+import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -27,13 +30,14 @@ class NavigationTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    private fun string(resId: Int): String = composeRule.activity.getString(resId)
+    /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
+    private fun string(resource: StringResource): String = runBlocking { getString(resource) }
 
-    private val homeTitle get() = string(R.string.home_title)
-    private val shoppingTitle get() = string(R.string.shopping_title)
-    private val settingTitle get() = string(R.string.setting_title)
-    private val itemEditTitle get() = string(R.string.item_edit_title)
-    private val categoryEditTitle get() = string(R.string.category_edit_title)
+    private val homeTitle = string(Res.string.home_title)
+    private val shoppingTitle = string(Res.string.shopping_title)
+    private val settingTitle = string(Res.string.setting_title)
+    private val itemEditTitle = string(Res.string.item_edit_title)
+    private val categoryEditTitle = string(Res.string.category_edit_title)
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"

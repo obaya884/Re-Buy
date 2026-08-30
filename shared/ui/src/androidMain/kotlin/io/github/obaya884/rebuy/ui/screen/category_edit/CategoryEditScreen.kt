@@ -16,16 +16,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import io.github.obaya884.rebuy.ui.R
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
+import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.TextFieldAddDialog
 import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -38,7 +38,7 @@ fun CategoryEditScreen(
     val editingCategory = uiState.editingCategory
 
     ReBuyAppScaffold(
-        topBarTitle = stringResource(id = R.string.category_edit_title),
+        topBarTitle = stringResource(Res.string.category_edit_title),
         topBarNavigationIcon = {
             IconButton(
                 modifier = Modifier.testTag(TestTags.BACK_BUTTON),
@@ -110,7 +110,7 @@ fun CategoryEditScreen(
                 Spacer(modifier = Modifier.weight(1f))
                 Text(
                     textAlign = TextAlign.Center,
-                    text = stringResource(id = R.string.category_edit_empty_message),
+                    text = stringResource(Res.string.category_edit_empty_message),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.weight(1f))
@@ -119,7 +119,7 @@ fun CategoryEditScreen(
 
         if (uiState.isShowCategoryAddDialog) {
             TextFieldAddDialog(
-                title = stringResource(id = R.string.category_edit_add_dialog_title),
+                title = stringResource(Res.string.category_edit_add_dialog_title),
                 onConfirm = {
                     viewModel.addCategory(it)
                     viewModel.hideCategoryAddDialog()
@@ -132,7 +132,7 @@ fun CategoryEditScreen(
 
         if (uiState.isShowCategoryEditDialog && editingCategory != null) {
             TextFieldEditDialog(
-                title = stringResource(id = R.string.category_edit_edit_dialog_title),
+                title = stringResource(Res.string.category_edit_edit_dialog_title),
                 editId = editingCategory.id,
                 editName = editingCategory.name,
                 onConfirm = { id, name ->
@@ -157,12 +157,12 @@ fun CategoryEditScreen(
                     viewModel.hideCategoryDeleteDialog()
                 },
                 title = {
-                    Text(text = stringResource(id = R.string.category_edit_delete_dialog_title))
+                    Text(text = stringResource(Res.string.category_edit_delete_dialog_title))
                 },
                 text = {
                     Text(
                         text = stringResource(
-                            id = R.string.category_edit_delete_dialog_message,
+                            Res.string.category_edit_delete_dialog_message,
                             editingCategory.name
                         )
                     )
@@ -174,7 +174,7 @@ fun CategoryEditScreen(
                             viewModel.hideCategoryDeleteDialog()
                         }
                     ) {
-                        Text(stringResource(id = R.string.category_edit_delete_dialog_positive_button))
+                        Text(stringResource(Res.string.category_edit_delete_dialog_positive_button))
                     }
                 },
                 dismissButton = {
@@ -183,7 +183,7 @@ fun CategoryEditScreen(
                             viewModel.hideCategoryDeleteDialog()
                         }
                     ) {
-                        Text(stringResource(id = R.string.category_edit_delete_dialog_negative_button))
+                        Text(stringResource(Res.string.category_edit_delete_dialog_negative_button))
                     }
                 }
             )

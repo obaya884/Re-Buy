@@ -4,9 +4,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.res.stringResource
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun BottomNavigationBar(
@@ -32,7 +32,7 @@ fun BottomNavigationBar(
                         Icon(imageVector = item.icon, contentDescription = null)
                     }
                 },
-                label = { Text(stringResource(item.titleId)) },
+                label = { Text(stringResource(item.title)) },
                 selected = item.route == navigator.currentTopLevelRoute,
                 onClick = {
                     navigator.navigate(item.route)

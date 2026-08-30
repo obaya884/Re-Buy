@@ -34,7 +34,8 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 
 - `applicationId`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
 - **`namespace` は Kotlin package と揃え、モジュールごとに分ける**（`:androidApp` = `io.github.obaya884.rebuy` ＝ `applicationId` ／ `:shared:data` = `...rebuy.data` ／ `:shared:domain` = `...rebuy.domain` ／ `:shared:ui` = `...rebuy.ui`）。Gradle のパスにある `shared` は入れ物を示す語なので package にも namespace にも入れない
-- **リソースを使う側は所有モジュールの `R` を import する**（画面文言は `:shared:ui` にあるので `io.github.obaya884.rebuy.ui.R`）。非推移的 `R` は AGP 8 以降の既定で、各モジュールの `R` は自分のリソースだけを持つ
+- **画面文言と drawable は Compose Resources に置く**（`shared/ui/src/commonMain/composeResources/` の `values/strings.xml` と `drawable/`）。参照側は `io.github.obaya884.rebuy.ui.resources.Res` を import して `stringResource(Res.string.xxx)` / `painterResource(Res.drawable.xxx)` で引く。`Res` は `publicResClass = true` で公開してあるので、`:androidApp` の instrumented テストも同じ文言を引ける
+- **Android の `R` に残っているのは AboutLibraries の `R.raw.aboutlibraries` だけ**（`io.github.obaya884.rebuy.ui.R`）。非推移的 `R` は AGP 8 以降の既定で、各モジュールの `R` は自分のリソースだけを持つ
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
 - AGP 9 / Gradle 9。JDK は 17 以上（Android Studio 同梱の JBR 25 で動作確認済み）
 - ビルドスクリプトは Kotlin DSL。依存は必ず `gradle/libs.versions.toml` 経由で追加する

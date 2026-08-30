@@ -115,7 +115,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**、＋ TZ 固定の 4 件が `androidHostTest`（`:shared:data` は Android 25 件 / iOS 21 件）。**`shared/data/schemas` に git 差分が出ない**。**`ItemDao` / `CategoryDao` が `commonMain` にある**——ここに無いと `FakeDatabase` がステップ 10 で `commonTest` へ行けず往復になる。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
 | 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **ViewModel テスト 90 件が `commonTest` で両ターゲット緑**（`:shared:ui` は Android 102 件 / iOS 90 件）。`NavigatorTest` 11 件は `Navigator` が `NavigationState`（Compose 依存）を持つのでステップ 13 まで動かせない。`KoinModulesTest` 1 件は `androidHostTest` に残る。**アサーションの中身は 1 行も変えていない** |
-| 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一。instrumented 20 件緑。`shared/ui/src/main/res` が消えている |
+| 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一（**21 画面の画素比較**。「Android の表示同一性は画素で確かめる」）。**解釈の余地がある 6 件を固定する instrumented テストが増えて 22 件**緑。ホストテスト件数不変（Android 132 件 / iOS 116 件）。`shared/ui/src/androidMain/res` が消えている |
 | 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑 |
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` と `NavigationState` / `Navigator` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑（`:shared:ui` は Android 102 件 / iOS 101 件） |
 | 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 131 件以上が出る**（ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**同じことを見る instrumented テストを 1 本足す**——いまこの退行を検出できるのは人がこの表を読むことだけなので、戻したら機械の網に載せる。Android のライセンス一覧の表示が移設前と同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
@@ -230,6 +230,66 @@ abstract class ViewModelTestBase {
 **ステップ 10 まで、message 付きの assert を足さないこと。** `kotlin.test` は `(actual, message)`、`org.junit.Assert` は `(message, actual)` で引数順が逆になる。いま message 付きの呼び出しは 0 件なので、機械的な import 差し替えで安全に移せる。
 
 **iOS 側の Koin グラフは誰も検証しない。** `verify()` は JVM 専用で Android のグラフしか見ない。`:shared:ui` の `iosTest` に「起動して 5 つの型を `get()` する」テストを 1 本足し、`KoinGraphTest` の iOS 版に相当させる。
+
+### リソースはそのまま移せる（ステップ 11 で実測）
+
+`shared/ui/src/androidMain/res` の `values/strings.xml`（49 件）と `drawable`（3 件）を
+`shared/ui/src/commonMain/composeResources/` の同名ディレクトリへ動かすだけで、**Android の表示は
+ステータスバーを除いて 1 画素も変わらなかった**。移送前に心配していた 2 点はどちらも Android と同じに解釈される。
+
+- `\n` のエスケープ（4 件）——改行として描画され、行数も折り返し位置も同じ
+- `%1$s` の位置指定（3 件）——`stringResource(Res.string.x, arg)` でそのまま置換される
+
+参照側の書き換えは機械的。
+
+| いま | 置き換え先 |
+|---|---|
+| `androidx.compose.ui.res.stringResource` | `org.jetbrains.compose.resources.stringResource` |
+| `androidx.compose.ui.res.painterResource` | `org.jetbrains.compose.resources.painterResource` |
+| `R.string.x` / `R.drawable.x` | `Res.string.x` / `Res.drawable.x` |
+| `stringResource(id = ...)` | `stringResource(...)`——第 1 引数の名前が `resource` に変わる |
+
+型が変わるのは `BottomNavigationItem` だけ（`titleId: Int` → `title: StringResource`）。
+
+**`Res` は `publicResClass = true` で公開する。** `:androidApp` の instrumented テストが画面のタイトルを
+文言で引いているため。読み出しの `getString` は suspend なので、テスト側は `runBlocking` で待ち合わせる。
+
+**`compose.components.resources` は `commonMain` に置く。** 「`compose.*` は `iosMain` だけ」という
+落とし穴 12 の規約の唯一の例外——リソースが `commonMain` にある以上ほかに置き場が無い。Android では
+JetBrains の別名アーティファクトが androidx へ解決するので BOM とはぶつからない。
+
+**未使用の文言は、これ以降どの機械も見つけられない。** 生成される `allStringResources` が全件を
+`map.put` するので参照が無くても使われているように見え、Android lint の `UnusedResources` の視界からも
+外れる。移送の時点で 12 件ある（[技術改善バックログ](./23_技術改善バックログ.md) の T-36）。
+
+**書式の解釈エンジンが静かに入れ替わる。** CMP の置換は `String.format` ではなく `%(\d+)\$[ds]` の
+正規表現置換で、**解釈できない書式（`%s`・`%.2f`・`%%`）は例外を出さずに生のまま画面へ出る**。
+`%N$d` もロケール書式が効かず `toString()` が入るだけ。いまの 3 件は `%1$s` ＋ String 引数なので
+Android 時代と一致するが、**画素比較は今回限りの人手確認で残らない**ので、`\n` 4 件と `%1$s` 3 件
+（重なりを除いて 6 件）を `StringResourceFormatTest` で期待値リテラルとして固定した。ほかのテストは
+文言を `Res.string.*` から引くので、値が壊れても画面と同じ壊れた値を見て素通りしてしまう。
+
+**drawable も経路が変わる。** Android の VectorDrawable インフレータから CMP 自前の
+`XmlVectorParser` になった。いまの 3 件は `<path>` 1 本と `fillColor` / `pathData` だけなので
+差が出なかったが、`fillType` / `<clip-path>` / `<gradient>` / `?attr/` を使う drawable を足すと
+**静かに違う絵が出る**。読み込みに失敗すれば composition ごと落ちるので「在ること」だけは守られる。
+
+**テストと画面でリソース環境の解決経路が違う。** テストの `getString` は
+`getSystemResourceEnvironment()`（`Locale.getDefault()`）、画面の `stringResource` は
+`rememberResourceEnvironment()`（`Locale.current` ＋ `LocalDensity` ＋ `isSystemInDarkTheme`）を通る。
+修飾子付きディレクトリが `values/` 1 つしか無いうちは同じ項目を引くが、`values-en/` や `values-night/`
+を足すと「テストが引く文言 ≠ 画面が出す文言」になりうる。
+
+### Android の表示同一性は画素で確かめる
+
+ステップ 11 と 12 の完了条件「表示・文言が完全に同一」は目視では守れない。`pm clear` から決まった順に
+操作して 21 画面のスクリーンショットと `uiautomator` の dump を撮る走査を作り、移送の前後で流して
+突き合わせる（`adb` だけで完結する）。
+
+- **テキストと bounds は dump の diff で見る。** `\n` が改行として効いているかは bounds の高さに出る
+- **見た目は PNG の画素で見る。** 時計が写るステータスバー（上端 142px）は除く
+- **起動直後の 1 枚はスプラッシュを撮りうる。** dump は正しい画面を返すのに画像だけがスプラッシュ、
+  という食い違いが実際に起きた。1 枚だけ差が出たら、まず撮り直す
 
 ### Navigation 3 の多相シリアライズ
 
