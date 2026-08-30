@@ -16,25 +16,33 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberDecoratedNavEntries
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
-import androidx.navigation3.runtime.serialization.NavKeySerializer
 import androidx.savedstate.compose.serialization.serializers.MutableStateSerializer
+import androidx.savedstate.serialization.SavedStateConfiguration
+import kotlinx.serialization.PolymorphicSerializer
 
 /**
  * 構成変更とプロセス death をまたいで保持されるナビゲーション状態を作る。
+ *
+ * @param configuration `NavKey` の開いた多相を解ける [SavedStateConfiguration]。
+ *   引数で受け取るのは、どのルートを登録するかを知っているのが呼び出し側だから。
+ *   **1 引数版の [rememberNavBackStack] と `NavKeySerializer` は使わない**——`commonMain` から
+ *   呼べてしまうが中身が Android の reflection なので、iOS ではプロセス復元だけが落ちる
  */
 @Composable
 fun rememberNavigationState(
     startRoute: NavKey,
-    topLevelRoutes: Set<NavKey>
+    topLevelRoutes: Set<NavKey>,
+    configuration: SavedStateConfiguration
 ): NavigationState {
     val topLevelRoute = rememberSerializable(
         startRoute, topLevelRoutes,
-        serializer = MutableStateSerializer(NavKeySerializer())
+        serializer = MutableStateSerializer(PolymorphicSerializer(NavKey::class)),
+        configuration = configuration
     ) {
         mutableStateOf(startRoute)
     }
 
-    val backStacks = topLevelRoutes.associateWith { key -> rememberNavBackStack(key) }
+    val backStacks = topLevelRoutes.associateWith { key -> rememberNavBackStack(configuration, key) }
 
     return remember(startRoute, topLevelRoutes) {
         NavigationState(

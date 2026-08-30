@@ -114,29 +114,33 @@ kotlin {
                 // 同じ文言で画面を突き合わせるため。implementation に落とすと
                 // getString / StringResource に届かずテストが通らない
                 api(compose.components.resources)
+
+                // Icons.Default.* / Icons.AutoMirrored.*。CMP に対応物が無いので JetBrains の
+                // 凍結版を引く。Android に載る実体は JB 版が要求する androidx の
+                // material-icons-core で、BOM を外したことで 1.7.8 から 1.7.6 に下がる。
+                // 1.7.6 と 1.7.8 のソースは著作権表記の年しか違わないので表示は変わらない（log_23）
+                implementation(libs.jetbrains.compose.material.icons.core)
+
+                // 画面が koinViewModel() で ViewModel を取る
+                implementation(libs.koin.compose.viewmodel)
+
+                // Navigation 3。Screen が NavKey を継ぎ、Navigator も NavKey を公開する
+                api(libs.androidx.navigation3.runtime)
+                // NavDisplay。androidx は navigation3-ui の iOS 向けを publish していないので
+                // JetBrains のフォークを使う。android バリアントは androidx の実装への
+                // リダイレクトなので、Android に載るものは変わらない
+                implementation(libs.jetbrains.navigation3.ui)
+                implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+                // Screen の @Serializable と NavKey の多相シリアライズ。
+                // json は使っていない（保存形式は savedstate が決める）ので core だけ
+                implementation(libs.kotlinx.serialization.core)
             }
         }
 
         androidMain {
             dependencies {
-                implementation(libs.koin.compose.viewmodel)
-
-                // Navigation。Screen が NavKey を継ぎ、Navigator も NavKey を公開する
-                api(libs.androidx.navigation3.runtime)
-                implementation(libs.androidx.navigation3.ui)
-                implementation(libs.androidx.lifecycle.viewmodel.navigation3)
-                implementation(libs.kotlinx.serialization.json)
-
-                // Compose 本体は commonMain の CMP から来る。ここに残るのは
-                // material-icons-core（Icons.Default.* / Icons.AutoMirrored.*）だけ。
-                // CMP に対応物が無く、material3 も推移的には引かないので androidx から取る。
-                // 版を決めるためだけに BOM を残している。アイコンを使う画面は
-                // ステップ 13 で commonMain へ行くので、置き換え方はそこで決める。
-                // sourceSets の中では platform() が生えないので project.dependencies から呼ぶ
-                implementation(project.dependencies.platform(libs.androidx.compose.bom))
-                implementation(libs.androidx.compose.material.icons.core)
-
-                // OSS ライセンス表示
+                // OSS ライセンス表示。produceLibraries(R.raw...) が Android 専用なので
+                // LicenseScreen だけ androidMain に残る（ステップ 14 で commonMain へ）
                 implementation(libs.aboutlibraries.core)
                 implementation(libs.aboutlibraries.compose.core)
                 implementation(libs.aboutlibraries.compose.m3)
@@ -153,6 +157,10 @@ kotlin {
         getByName("androidHostTest").dependencies {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.test)
+            // ScreenSerializationTest の sealedSubclasses / objectInstance。koin-test が
+            // 推移的に引いてもいるが、それが外れた日に理由の分からない
+            // KotlinReflectionNotSupportedError にならないよう明示する
+            implementation(kotlin("reflect"))
         }
     }
 }

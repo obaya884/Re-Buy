@@ -89,7 +89,8 @@ Koin モジュールを**層ごとに 1 ファイル**置く（`DataModule` / `D
 
 ### UI 層 (`ui/`)
 
-- 画面遷移は Navigation 3。`ui/ReBuyApp.kt` の `NavDisplay` と `entryProvider` に集約し、ルートは `sealed class Screen : NavKey` で定義する。画面追加時はここに `@Serializable data object` と `entry<...>` を両方足す
+- 画面遷移は Navigation 3。`ui/ReBuyApp.kt` の `NavDisplay` と `entryProvider` に集約し、ルートは `@Serializable sealed interface Screen : NavKey` で定義する。**画面追加時は同じファイルの 3 か所をそろえる**——`Screen` の `@Serializable data object`、`entryProvider` の `entry<...>`、`screenSavedStateConfiguration` の `subclass(...)`
+- **3 つ目の登録を忘れると、その画面にいる状態でプロセス保存が走った瞬間に `SerializationException` になる**（Android も iOS も同じ）。`ScreenSerializationTest`（JVM 段）が `sealedSubclasses` と登録内容を突き合わせ、`NavigationStateRestorationTest`（instrumented）が実際に保存・復元を往復させて止める
 - backstack は `ui/navigation/NavigationState.kt` がトップレベルルート（ホーム・買い物）ごとに保持し、遷移イベントは `Navigator`（`navigate` / `goBack` / `navigateAsRoot`）が受けて状態を更新する。UI は状態を見るだけ
 - 画面 Composable のシグネチャは `(navigator: Navigator, snackbarHostState: SnackbarHostState)` で統一。ViewModel は `koinViewModel<XxxViewModel>()` で画面内から取得する（引数で渡さない）
 - 全画面が `ReBuyAppScaffold` を使い、TopAppBar / BottomBar / Snackbar / FAB の構成を共通化している
