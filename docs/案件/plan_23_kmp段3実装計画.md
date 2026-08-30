@@ -119,7 +119,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 12 | **Compose を CMP へ一本化し、ナビに依存しない部品を `commonMain` へ（theme 4 本 ＋ ダイアログ 2 本 ＋ 日付書式の `expect/actual`）** | Android 同一挙動（**21 画面の画素比較**）。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 22 件緑。**日付書式を固定するテストが増えて `:shared:ui` は Android 111 件 / iOS 98 件**（Android はロケールと TZ を固定してリテラルで 4 件、iOS は文字列を見ない不変条件で 3 件）。`:shared:ui` の `androidMain` に残る androidx の Compose が `material-icons-core`（と版を決めるための BOM）だけになっている。`Theme.kt` の `dynamicColor` 分岐が消えている |
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、ナビ基盤と画面 5 枚を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑。**登録漏れを止める `ScreenSerializationTest` 2 件が増えて `:shared:ui` は Android 113 件 / iOS 109 件**。**保存・復元の載せ替えを実際に通す `NavigationStateRestorationTest` 3 件が増えて instrumented 25 件**。`androidMain` に残るのは `LicenseScreen` の中身（と日付書式の actual）だけ |
 | 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 134 件が出る**（移設前は 133 件。ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**収集の壊れ方を止める `LicenseLibrariesTest` 4 件が増えて instrumented 29 件**（件数の下限・Android の依存だけを拾えているか・全件にライセンスが付いているか・画面に届いているか）——それまでこの退行を検出できるのは人が実機で一覧を見ることだけだった。`aboutlibraries.json` はコミットし、読む側のタスクに `dependsOn` を明示。`androidMain` に残るのは日付書式の `actual` だけ |
-| 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。**TopAppBar がステータスバーに重ならず、余白も二重になっていない**（「セーフエリアは Compose 側で処理する」）。**起動して数秒後にプロセスが生きている**（落とし穴 18）。Android 無変更 |
+| 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動いた**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。ライセンス一覧も iOS で出る。ダイアログと **DB の追加・削除**も通る（Room ＋ 同梱 driver の書き込み経路が iOS で動く）。**TopAppBar がステータスバーに重ならず、余白も二重になっていない**（「セーフエリアは Compose 側で処理する」）。**起動して数秒後にプロセスが生きている**（落とし穴 18）。Android は挙動・テスト件数とも不変（instrumented 29 件）。**ここで iOS 固有の不具合を 1 つ見つけて直した**（落とし穴 22） |
 | 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている。**ビルド後に `git diff --exit-code` を見る**——`aboutlibraries.json` と `shared/data/schemas` はビルドで再生成される生成物をコミットしているので、再生成し忘れが CI で止まるようにする |
 
 ステップ 13 は commit が大きい。「ナビ基盤の CMP 対応」「画面ごと」に割ってよい。
@@ -436,7 +436,7 @@ xcrun simctl io booted screenshot out.png
 
 `ContentView` は `.ignoresSafeArea()` を付けて Compose に画面全体を渡し、インセットの処理は Material3 の `Scaffold`（`contentWindowInsets`）に任せる。**SwiftUI 側でセーフエリアを効かせると、SwiftUI が余白を入れたうえで `Scaffold` がさらに入れて二重になる。**
 
-ステップ 7 のスタブは `Text` 1 個で TopAppBar を持たないため、この選択が正しいかはまだ確かめられていない。**iOS は ステップ 15 までスタブのままなので、確認できるのもそこ。**
+**ステップ 15 で確かめた。この選択で正しい。** TopAppBar はステータスバーと Dynamic Island に重ならず、下部ナビもホームインジケータを避けており、余白の二重も無い。`ContentView` は `.ignoresSafeArea()` のまま、`Scaffold` の既定の `contentWindowInsets` に任せている（追加の指定は要らなかった）。
 
 ### Swift から見える API 面はファイル名でも決まる
 
@@ -527,6 +527,7 @@ Compose Resources の `customDirectory(sourceSetName, provider)` は既定のデ
 19. **Linux CI は iOS のタスクを黙って無効化する。** 落ちるのではなく `Native task 'iosSimulatorArm64Test' is disabled` / `cannot run on the current host (linux-x86_64)` の警告を出して素通りする（ステップ 6 で実測）。ステップ 6 の時点では `commonMain` が空なので害が無いが、**ステップ 8 以降は `compileKotlinIosArm64` に実際のソースが入り、iOS 側のコンパイルエラーが CI をすり抜ける**。ステップ 16 で macOS ランナーの `ios` ジョブを足すまで、**各ステップでローカルの `linkDebugFrameworkIosSimulatorArm64` を自分で回すこと**が唯一の網になる
 20. **Compose Resources を Android に載せているのは assets 経路で、`androidResources { enable = true }` に紐づいている。** CMP は `variant.sources.assets` に配線しており（`AndroidResources.kt`）、`assets` が null だと**何も言わずに配線を諦める**。`:shared:ui` の Kotlin から `R` を引く場所が無くなったからと無効にすると、**ビルドは緑・APK に `assets/composeResources/` が 1 つも入らない・起動して全画面が落ちる**（ステップ 14 で実際に踏んだ）。APK の中身は `unzip -l` で見る
 21. **`compose.resources { customDirectory(...) }` は既定のディレクトリを置き換える。** `commonMain` に足すつもりで指定すると `composeResources/values` も `drawable` も見えなくなり、文言と drawable が一斉に `Unresolved reference` になる（ステップ 14 で実際に踏んだ）。生成物をソースツリーの外へ逃がす用途には使えない
+22. **iOS では `is <data object>` が、分岐に `@Composable` 呼び出しを含む `when` の中で一致しない。** `tab is HomeTab.All` が `true` を返す直後に、同じ `tab` を見る `when` が `NoWhenBranchMatchedException` を投げる（ステップ 15 で実測）。**Android では起きない。** `is HomeTab.All` を `HomeTab.All`（等値）に書き換えると通る。`data object` は singleton なので等値のほうがそもそも読みやすく、書き換えは意味を変えない。**object の分岐は `is` で書かない**——リポジトリ内で `when` を使っているのは `HomeScreen` の 3 か所だけで、すべて等値に揃えた（T-41）
 
 ## spec §11「③ で壊れる開発基盤」の仕分け
 

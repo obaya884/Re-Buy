@@ -216,11 +216,14 @@ fun HomePagerTabList(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            // **object の分岐は `is` ではなく等値で書く。** iOS では `is <data object>` が
+            // 分岐に Composable 呼び出しを含む when の中で一致しない（[段 3 実装計画] の落とし穴 22）。
+            // Android では起きないので、Android のテストでは捕まらない
             Text(
                 text = when (tab) {
-                    is HomeTab.All -> stringResource(Res.string.home_no_item_message_all)
+                    HomeTab.All -> stringResource(Res.string.home_no_item_message_all)
                     is HomeTab.CategoryTab -> stringResource(Res.string.home_no_item_message_category)
-                    is HomeTab.InBasket -> stringResource(Res.string.home_no_item_message_in_basket)
+                    HomeTab.InBasket -> stringResource(Res.string.home_no_item_message_in_basket)
                 },
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
@@ -228,7 +231,7 @@ fun HomePagerTabList(
             )
             Spacer(modifier = Modifier.height(24.dp))
             when (tab) {
-                is HomeTab.All, is HomeTab.CategoryTab -> {
+                HomeTab.All, is HomeTab.CategoryTab -> {
                     Button(
                         modifier = Modifier
                             .fillMaxWidth(0.6f)
@@ -243,7 +246,7 @@ fun HomePagerTabList(
                     }
                 }
 
-                is HomeTab.InBasket -> {
+                HomeTab.InBasket -> {
                     Button(
                         modifier = Modifier
                             .fillMaxWidth(0.6f)
@@ -320,7 +323,9 @@ fun HomeListItemRow(
                 }
             ) {
                 Text(
-                    text = if (tab is HomeTab.InBasket) {
+                    // ここも同じ理由で等値。いまは if なので通るが、when へ畳んだ瞬間に
+                    // iOS だけが落ちる形になる（落とし穴 22）
+                    text = if (tab == HomeTab.InBasket) {
                         stringResource(Res.string.home_remove_item_button_from_shopping_list)
                     } else {
                         stringResource(Res.string.home_remove_item_button)
