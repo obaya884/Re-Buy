@@ -5,7 +5,7 @@ plugins {
     alias(libs.plugins.kotlin.multiplatform)
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose.compiler)
-    // iosMain の Compose。androidMain は androidx の BOM のままにする
+    // Compose Multiplatform。:shared:ui の Compose はここから来る
     alias(libs.plugins.compose.multiplatform)
     // バージョンはルートの buildscript classpath で固定しているので、ここでは版を指定しない
     id("org.jetbrains.kotlin.plugin.serialization")
@@ -81,8 +81,6 @@ kotlin {
     }
 
     sourceSets {
-        // ステップ 12 で SettingScreen が commonMain へ行っても付け替えずに済むよう、
-        // いま android ターゲットしか無いうちから commonMain に置く
         commonMain {
             kotlin.srcDir(generateVersionKt)
 
@@ -99,11 +97,22 @@ kotlin {
                 // ViewModel の基底。-ktx と -compose は Android 専用
                 implementation(libs.androidx.lifecycle.viewmodel)
 
-                // Compose Resources。iosMain 限定という下の規約の唯一の例外で、
-                // リソースは commonMain に置く以上ここでしか宣言できない。
-                // Android では androidx.compose の別名にすぎないので BOM とはぶつからない。
-                // api なのは :androidApp の instrumented テストが同じ文言で画面を突き合わせるため。
-                // implementation に落とすと getString / StringResource に届かずテストが通らない
+                // Compose Multiplatform。androidx の Compose ではなくこちらを使う。
+                // Android では JetBrains の別名アーティファクトが androidx へ解決するので、
+                // :androidApp が持つ androidx の BOM とはぶつからない。
+                // :androidApp と instrumented テストが直に触る型を出すものを api にする
+                //   compose.ui: BottomNavigationItem の ImageVector
+                //   material3: 画面 Composable が受け取る SnackbarHostState
+                // runtime と foundation はこの 2 つが api で推移的に引くので implementation
+                implementation(compose.runtime)
+                api(compose.ui)
+                api(compose.material3)
+                implementation(compose.foundation)
+                implementation(compose.preview)
+
+                // 画面文言と drawable。api なのは :androidApp の instrumented テストが
+                // 同じ文言で画面を突き合わせるため。implementation に落とすと
+                // getString / StringResource に届かずテストが通らない
                 api(compose.components.resources)
             }
         }
@@ -118,16 +127,13 @@ kotlin {
                 implementation(libs.androidx.lifecycle.viewmodel.navigation3)
                 implementation(libs.kotlinx.serialization.json)
 
-                // Compose
-                // 公開シグネチャに出る型があるものを api にする
-                //   compose.ui: BottomNavigationItem の ImageVector
-                //   material3: 画面 Composable が受け取る SnackbarHostState
+                // Compose 本体は commonMain の CMP から来る。ここに残るのは
+                // material-icons-core（Icons.Default.* / Icons.AutoMirrored.*）だけ。
+                // CMP に対応物が無く、material3 も推移的には引かないので androidx から取る。
+                // 版を決めるためだけに BOM を残している。アイコンを使う画面は
+                // ステップ 13 で commonMain へ行くので、置き換え方はそこで決める。
                 // sourceSets の中では platform() が生えないので project.dependencies から呼ぶ
-                api(project.dependencies.platform(libs.androidx.compose.bom))
-                api(libs.androidx.compose.ui)
-                implementation(libs.androidx.compose.foundation)
-                implementation(libs.androidx.compose.ui.tooling.preview)
-                api(libs.androidx.compose.material3)
+                implementation(project.dependencies.platform(libs.androidx.compose.bom))
                 implementation(libs.androidx.compose.material.icons.core)
 
                 // OSS ライセンス表示
@@ -135,19 +141,6 @@ kotlin {
                 implementation(libs.aboutlibraries.compose.core)
                 implementation(libs.aboutlibraries.compose.m3)
             }
-        }
-
-        iosMain.dependencies {
-            // compose.*（Compose Multiplatform）は iosMain にだけ置く。androidMain や
-            // commonMain に置いても通ってしまい、:androidApp の androidx BOM とずれる
-            // （落とし穴 12）。逆に androidx を iosMain へ置く方向は解決に失敗するので気づける。
-            // ステップ 12 で画面が commonMain へ行けば :shared:ui は CMP 一本になり、この規約は消える
-            // compose.material3 は自分より古い foundation を推移的に引くので、
-            // いま使っていなくても compose.foundation を書いて版を 1.12.0 に固定する
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material3)
-            implementation(compose.ui)
         }
 
         commonTest.dependencies {
