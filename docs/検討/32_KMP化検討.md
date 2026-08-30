@@ -1,7 +1,7 @@
 # KMP 化検討（ロードマップ ③）
 
 - 作成日: 2026-08-29
-- 更新日: 2026-08-29
+- 更新日: 2026-08-30
 - ステータス: 確定（実装計画へ）
 - 位置づけ: ロードマップ ③「KMP 化＋マルチモジュール化」の設計。既存の Android アプリ（Kotlin 44 ファイル・約 3,000 行）を Kotlin Multiplatform＋Compose Multiplatform の新構造へ載せ替える。**Android の挙動は変えない**
 - 関連: [ロードマップ](../案件/24_ロードマップ.md) ／ [憲章](../仕様/11_憲章.md) ／ [開発基盤検討](./31_開発基盤検討.md) ／ [技術改善バックログ](../案件/23_技術改善バックログ.md)
@@ -128,12 +128,14 @@ iOS のホストを移植の段に置いて後ろへ送らないのは、§13 �
 
 ② の最終レビューで挙がった箇所。実装計画に組み込む。
 
-- `./gradlew build` が全モジュール対象になり、Linux の CI で iOS ターゲットのタスクが落ちる
-- Gradle Managed Device のタスク名に `:androidApp:` 修飾が要る。`.claude/settings.json` の allow は完全一致なので現行の記述が外れる
-- `androidApp/build/` 決め打ちのレポートパス（`ci.yml`・`verifier`・`test-reviewer`）
-- `test-reviewer` の起動契機が `androidApp/src/test/**` なので `commonTest` に効かない
-- CLAUDE.md のアーキテクチャ節を `docs/仕様/15_アーキテクチャ定義書.md` へ移すとき、`.claude/agents/` 2 本の参照を同時に直す（inline code のパスは `docs-check` の網の外）
-- KMP のタスク名を `.claude/settings.json` の allow に足す
+**6 点すべて済**（内訳は [段 3 実装計画](../案件/archive_23_kmp段3実装計画.md) の §11 の表）。
+
+- ~~`./gradlew build` が全モジュール対象になり、Linux の CI で iOS ターゲットのタスクが落ちる~~ → **済**（ステップ 16a）。タスクの明示列挙ではなく、macOS ランナーの `ios` ジョブで塞いだ
+- ~~Gradle Managed Device のタスク名に `:androidApp:` 修飾が要る~~ → **済**（段 2）
+- ~~`androidApp/build/` 決め打ちのレポートパス~~ → **済**（ステップ 16a）
+- ~~`test-reviewer` の起動契機が `androidApp/src/test/**` なので `commonTest` に効かない~~ → **済**（ステップ 16a）。`commonTest` / `androidHostTest` / `iosTest` へ
+- ~~CLAUDE.md のアーキテクチャ節を `docs/仕様/15_アーキテクチャ定義書.md` へ移すとき、`.claude/agents/` 2 本の参照を同時に直す~~ → **済**（ステップ 16b）
+- ~~KMP のタスク名を `.claude/settings.json` の allow に足す~~ → **済**（ステップ 3 と 16a）
 
 ## 12. ③ で学ぶこと
 
@@ -151,7 +153,7 @@ iOS のホストを移植の段に置いて後ろへ送らないのは、§13 �
 
 着手時に潰す。
 
-段 3 の計画（[実装計画](../案件/plan_23_kmp段3実装計画.md)）を書くにあたって調べ、次の 4 点は結論が出た。
+段 3 の計画（[実装計画](../案件/archive_23_kmp段3実装計画.md)）を書くにあたって調べ、次の 4 点は結論が出た。
 
 - **AboutLibraries は CMP で動く。** 15.2.0 が Compose 1.12.x / AGP 9 / Kotlin 2.4 をサポート版として明記している。`aboutLibraries { export { outputFile = ... composeResources/files/... } }` に変え、`Res.readBytes` で読む
 - **Navigation 3 の CMP 対応は入っている。** ただし**多相シリアライズの明示登録が必須**で、`sealed class Screen : NavKey` を `@Serializable sealed interface` にし、`SavedStateConfiguration` に `polymorphic(NavKey::class)` を登録する。登録漏れは **Android では動いたまま iOS だけプロセス復元時に落ちる**

@@ -11,13 +11,13 @@ Re-Buy（仮称）は「くりかえし使える買い物リスト」。品目�
 挙動の契約はドキュメント群にある。実装中に挙動レベルの仕様判断が発生した場合、**コードより先に該当ドキュメントを更新する**。判断はオーナーとの対話でのみ決め、AI が単独で決めない。
 
 - 価値・スコープ・収益モデル: `docs/仕様/11_憲章.md`
-- 要件・画面・データモデル: `docs/仕様/12〜14`（④ で作る。それまでは憲章と本書「アーキテクチャ」節が正）
+- 要件・画面・データモデル: `docs/仕様/12〜14`（④ で作る。それまでは[憲章](./docs/仕様/11_憲章.md)と[アーキテクチャ定義書](./docs/仕様/15_アーキテクチャ定義書.md)が正）
 - 挙動を変えない技術活動（リファクタ・依存追随・CI/ツール整備）: `docs/案件/23_技術改善バックログ.md`（**T-XX**。挙動が絡むなら要求軸、絡まないならこちら）
 - 未実装要求の案件管理: `docs/案件/22_要件バックログ.md`（④ から）
 
 ## docs の構造と書き方の規約
 
-ファイル名は**全体で一意な 2 桁番号**を持つ（1X = 仕様 / 2X = 案件 / 3X = 検討。新規文書は該当ブロックの次番号）。`log_` / `closed_` / `guide_` / `plan_` / `archive_` の付属ファイルは親の番号を引き継ぐ。予約: 12・13・14・21（④）、15・17（③）。欠番: 25・26（実装計画に独立番号を振っていた名残）。
+ファイル名は**全体で一意な 2 桁番号**を持つ（1X = 仕様 / 2X = 案件 / 3X = 検討。新規文書は該当ブロックの次番号）。`log_` / `closed_` / `guide_` / `plan_` / `archive_` の付属ファイルは親の番号を引き継ぐ。予約: 12・13・14・21（④）。欠番: 25・26（実装計画に独立番号を振っていた名残）。
 
 - **番号は「文書」に振り、「案件」には振らない。** 案件は増え続けるので、1 案件 1 番号にすると 2 桁が尽きる。個々の実装計画は台帳の付属文書として `plan_<親番号>_<名前>.md` に置き、完了したら `archive_<親番号>_<名前>.md` へ改名して凍結する（挙動を変えない技術活動なら親は 23、要求なら 22）
 
@@ -34,8 +34,8 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 
 - `applicationId`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
 - **`namespace` は Kotlin package と揃え、モジュールごとに分ける**（`:androidApp` = `io.github.obaya884.rebuy` ＝ `applicationId` ／ `:shared:data` = `...rebuy.data` ／ `:shared:domain` = `...rebuy.domain` ／ `:shared:ui` = `...rebuy.ui`）。Gradle のパスにある `shared` は入れ物を示す語なので package にも namespace にも入れない
-- **画面文言と drawable は Compose Resources に置く**（`shared/ui/src/commonMain/composeResources/` の `values/strings.xml` と `drawable/`）。参照側は `io.github.obaya884.rebuy.ui.resources.Res` を import して `stringResource(Res.string.xxx)` / `painterResource(Res.drawable.xxx)` で引く。`Res` は `publicResClass = true` で公開してあるので、`:androidApp` の instrumented テストも同じ文言を引ける
-- **`:shared:ui` の Kotlin から Android の `R` を引く場所はもう無いが、`androidResources { enable = true }` は外さない**。Compose Resources が道連れになり、ビルドは緑のまま全画面が落ちる（[段 3 実装計画](./docs/案件/plan_23_kmp段3実装計画.md) の落とし穴 20）
+- **画面文言と drawable は Compose Resources に置く**（`shared/ui/src/commonMain/composeResources/`）。引き方と `publicResClass` の理由は [アーキテクチャ定義書](./docs/仕様/15_アーキテクチャ定義書.md) §4.4
+- **`:shared:ui` の Kotlin から Android の `R` を引く場所はもう無いが、`androidResources { enable = true }` は外さない**。Compose Resources が道連れになり、ビルドは緑のまま全画面が落ちる（[段 3 実装計画](./docs/案件/archive_23_kmp段3実装計画.md) の落とし穴 20）
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
 - AGP 9 / Gradle 9。JDK は 17 以上（Android Studio 同梱の JBR 25 で動作確認済み）
 - ビルドスクリプトは Kotlin DSL。依存は必ず `gradle/libs.versions.toml` 経由で追加する
@@ -54,59 +54,9 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 
 ## アーキテクチャ
 
-> ③ で `docs/仕様/15_アーキテクチャ定義書.md` へ移す。それまでは本節が正。
+**正は [アーキテクチャ定義書](./docs/仕様/15_アーキテクチャ定義書.md)。** UI (Compose) → ViewModel → Repository → DAO → Room の単方向レイヤ構成で、DI は Koin。`:shared:*` は KMP で、**既定の置き場所は `commonMain`**——`androidMain` / `iosMain` に置くのはプラットフォーム API を直に触るものだけ。
 
-UI (Compose) → ViewModel → Repository (`domain/`) → DAO (`data/`) → Room の単方向レイヤ構成。DI は Koin。
-
-### データ層 (`data/`)
-
-- `AppDatabase`: Room。エンティティは `Item` と `Category` の 2 つ。`exportSchema = true` で `shared/data/schemas/` に JSON を出力する
-- `Item.categoryId` → `Category.id` の外部キー（`onDelete = SET_NULL`）。JOIN 済みの読み出しは `ItemWithCategory`（`@Embedded` + `@Relation`）を使う
-- 日時は `Instant` で保持し、`InstantConverter` がエポックミリ秒（`INTEGER`）として保存する。ミリ秒未満は切り捨てる（0 方向ではなく過去方向）
-- **日時をテキストで保存しない**。文字列にするとタイムゾーン・ゼロ埋め・存在しない日付の解決規則といった解釈の余地が保存形式に入り込む。エポックミリ秒なら読み方が 1 通りしかなく、壊れた値を別の日時として読む経路が消える
-- `ItemStatus` は `NO_DEAL(0)` / `IN_SHOPPING_LIST(1)` / `CHECKED_IN_SHOPPING_LIST(2)` の 3 状態。`ItemStatusConverter` で Int に変換して保存するため、**enum の `value` は既存 DB と互換を壊さない限り変更しない**
-- DAO の更新系クエリは `updatedAt = Clock.System.now()` をデフォルト引数で受け取り、更新のたびにタイムスタンプを書き換える
-
-### スキーマ変更時の手順
-
-`AppDatabase` の `version` を上げ、`Migration` を追加し、`RoomMigrationTest.ALL_MIGRATIONS` に登録する。`shared/data/schemas/` に生成された新しい JSON もコミットすること（`androidTest` はこのディレクトリを assets として参照している）。
-
-**⑤ でストアに出すまでは `Migration` を書かない。** `version` を上げるだけにして、旧 DB を持つ端末は入れ直す。守るべき実データがまだ無い段階で移行コードを書いても、検証されないまま積み上がる。`fallbackToDestructiveMigration` も足さない——黙ってデータが消えるより、起動時に落ちて気づけるほうを採る。
-
-### ドメイン層 (`domain/`)
-
-`ItemRepository` / `CategoryRepository` は DAO の薄いラッパー。ステータス遷移（`updateStatusAsInBasket` など）はここに集約されており、同じ状態への更新は早期 return で握りつぶす。ビジネスルールを足すならここ。
-
-### DI (`di/`)
-
-Koin モジュールを**層ごとに 1 ファイル**置く（`DataModule` / `DomainModule` / `UiModule`）。粒度が「1 依存 1 ファイル」でないのは、Koin では宣言が 1 行で済み、依存ごとにファイルを分けると層の境界が読めなくなるため。新しい依存は該当する層のモジュールに足す。
-
-**各モジュールは `includes` で 1 つ下の層だけを知る**（`uiModule` → `domainModule` → `dataModule`）。アプリが読み込むのは `uiModule` 1 つだけで、残りは Koin が連鎖で解決する。この連なりが ③ の段 2 で作る Gradle の依存の向き（`:shared:ui` → `:shared:domain` → `:shared:data`）とそのまま対応し、3 ファイルはそれぞれのモジュールへ移る。
-
-**テストでは `startKoin` を呼ばない。** instrumented は本物の `ReBuyApplication` の上で走るので、二重に起動すると落ちる。差し替えたいときは `loadKoinModules` / `unloadKoinModules` を使う。
-
-**Koin は依存グラフをコンパイル時に検証しない。** 配線ミスは起動時まで分からないので、`KoinModulesTest`（JVM 段）が `verify` でグラフを組み立てられることを固定し、`KoinGraphTest`（instrumented）が依存を 1 つずつしか持たないことを固定している。DI に触れたら両方を回す。
-
-### UI 層 (`ui/`)
-
-- 画面遷移は Navigation 3。`ui/ReBuyApp.kt` の `NavDisplay` と `entryProvider` に集約し、ルートは `@Serializable sealed interface Screen : NavKey` で定義する。**画面追加時は同じファイルの 3 か所をそろえる**——`Screen` の `@Serializable data object`、`entryProvider` の `entry<...>`、`screenSavedStateConfiguration` の `subclass(...)`
-- **3 つ目の登録を忘れると、その画面にいる状態でプロセス保存が走った瞬間に `SerializationException` になる**（Android も iOS も同じ）。`ScreenSerializationTest`（JVM 段）が `sealedSubclasses` と登録内容を突き合わせ、`NavigationStateRestorationTest`（instrumented）が実際に保存・復元を往復させて止める
-- backstack は `ui/navigation/NavigationState.kt` がトップレベルルート（ホーム・買い物）ごとに保持し、遷移イベントは `Navigator`（`navigate` / `goBack` / `navigateAsRoot`）が受けて状態を更新する。UI は状態を見るだけ
-- 画面 Composable のシグネチャは `(navigator: Navigator, snackbarHostState: SnackbarHostState)` で統一。ViewModel は `koinViewModel<XxxViewModel>()` で画面内から取得する（引数で渡さない）
-- 全画面が `ReBuyAppScaffold` を使い、TopAppBar / BottomBar / Snackbar / FAB の構成を共通化している
-- ViewModel は「複数の `MutableStateFlow` を `combine` して 1 つの `XxxScreenUiState` にまとめ、`stateIn(viewModelScope, SharingStarted.Eagerly, 初期値)` で公開する」パターンで統一。Repository の Flow は `init` の `viewModelScope.launch` で collect して private StateFlow に流し込む
-- Kotlin 標準の `combine` は 5 引数までなので、6 個をまとめるときはルートの `FlowExt.kt` の自作 `combine` を使う（`ItemEditViewModel` が例）
-- ダイアログの開閉フラグも UiState に持たせ、`showXxxDialog()` / `hideXxxDialog()` を ViewModel に生やす
-- 派生値（フィルタ済みリストなど）は UiState の `get()` プロパティで計算する（`HomeScreenUiState.inBasketItems` など）
-- BottomNavigation を持つ画面の UiState は `BottomNavigationScreenUiState` を実装し、買い物リストのバッジ件数を提供する
-- ViewModel のテストは Repository を本物のまま使い、その下の DAO だけを `FakeDatabase`（`shared/ui/src/commonTest`）に差し替える。ステータス遷移の早期 return など Repository のルールも一緒に網へ入る。`viewModelScope` が要求する `Dispatchers.Main` は基底クラス `ViewModelTestBase` が差し替える
-
-### OSS ライセンス表示
-
-AboutLibraries プラグインがビルド時に `shared/ui/src/commonMain/composeResources/files/aboutlibraries.json` を生成し、`LicenseScreen` が `Res.readBytes` で読んで `LibrariesContainer` に渡す。依存を追加したらここに自動反映されるので手動更新は不要。
-
-- **生成物だがコミットする**（Room のスキーマと同じ扱い）。依存を足し引きすると diff に出るので、**ライセンス一覧の変化がレビューに乗る**。ビルドのたびに再生成されるため、コミットし忘れは `git status` に出る
-- **`collect { filterVariants }` は Kotlin ターゲット名（`android`）で書く。** 外すと Android に載らないものが混ざり、AGP のバリアント名（`androidMain`）を書くと一覧が空になる（[段 3 実装計画](./docs/案件/plan_23_kmp段3実装計画.md) の落とし穴 17）。どちらもビルドとテストは緑のままなので、`LicenseLibrariesTest`（instrumented）が中身を見て止める
+テストの段と「何をどこで守るか」は [テスト戦略定義書](./docs/仕様/17_テスト戦略定義書.md)。
 
 ## サブエージェント運用
 
@@ -140,6 +90,7 @@ AboutLibraries プラグインがビルド時に `shared/ui/src/commonMain/compo
 - **実装が一区切りしたら（コミット前）** — `verifier` と `code-quality-reviewer` を並列でバックグラウンド起動。軽微な変更では起動しない
 - **差分にテストファイル（`shared/*/src/{commonTest,androidHostTest,iosTest}/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
 - **差分が docs の条項に触れる／条項で定まる挙動を実装したとき** — `spec-reviewer`
+- **差分に `build-logic/**`・`.github/workflows/**`・`scripts/**` が含まれるとき** — `code-quality-reviewer` と、検査そのものを足したなら `test-reviewer`。**「本番コードではないから軽微」と自分で判断しない**——T-32 はこの判断でレビューを飛ばした結果、動機とした 2 つの事故のどちらも塞げていない実装がマージされた（log_23 2026-08-30）。**ここには自動テストの網が無い**ので、レビューが唯一の網になる
 
 ## 実装完了後のフロー（レビュー → 動作確認 → コミット/push）
 

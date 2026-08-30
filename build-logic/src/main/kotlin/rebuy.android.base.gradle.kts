@@ -1,6 +1,7 @@
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.gradle.api.tasks.testing.AbstractTestTask
+import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 
@@ -46,69 +47,69 @@ fun Project.configureKmpAndroidBase() = extensions.configure<KotlinMultiplatform
 }
 
 /**
- * テストソースを持つモジュールで、テストが 1 件も走らずに緑になるのを止める（T-32）。
+ * **テストソースを持つ source set が 1 つでも「1 件も実行していない」なら落とす**（T-32）。
  *
  * KMP ライブラリプラグインはホストテストが既定で無効で、開け忘れると **0 件のまま緑**になる。
- * 段 3 では 2 回踏んだ——`withHostTest {}` の入れ忘れと、`testDebugUnitTest` が KMP 化で
- * 一致するモジュールを失った件。いま件数を守っているのは「人が数えていること」だけ。
  *
- * **モジュールごとの期待件数は書かない。** 書くとその数字の更新漏れが起きる。
- * 「テストソースがあるのに 0 件」だけを見れば、テストを持たない `:shared:domain` は
- * 自動的に外れる。
- *
- * **テストタスク自身の `doLast` には置けない。** source set が外れると `NO-SOURCE` で
- * タスクごと飛び、`doLast` も走らずに緑になる——止めたい形がそのまま素通りする（実測）。
- * `finalizedBy` なら飛んだときも走る。`afterSuite` は設定キャッシュで使えないので、
- * 実行後に JUnit XML を読む。Gradle は `NO-SOURCE` のときタスクの出力を消すので、
- * 前回の実行結果が残って緑になることは無い。
+ * **作りの細部はどれも実測で決まっている。外すと黙って止まらなくなる**ので、
+ * 触る前に [テスト戦略定義書](../../../../docs/仕様/17_テスト戦略定義書.md) §4
+ * （何がどう素通りするか）と同 §6（そもそも守れない範囲）を読むこと。
  */
 fun Project.failOnZeroTests() {
-    // テストタスクと、それが拾うべき source set の対応。**タスクごとに見る**——
-    // build/test-results を丸ごと数えると、別のタスクが前に残した XML で通ってしまう（実測）。
-    //
-    // **iOS は macOS のときだけ見る。** Linux では Kotlin/Native のテストタスクが
-    // 「このホストでは走らない」と無効化されるので、検査だけが走って 0 件と判定してしまう
-    // （落とし穴 19 を検査の側で踏んだ。CI で実測）
-    val isMacOs = System.getProperty("os.name").startsWith("Mac")
+    // テストタスクと、それが拾う source set。ここに書いていないものは検査されない
+    val isMacOs = providers.systemProperty("os.name").get().startsWith("Mac")
     val testTasks = buildMap {
         put("testAndroidHostTest", listOf("commonTest", "androidHostTest"))
         if (isMacOs) put("iosSimulatorArm64Test", listOf("commonTest", "iosTest"))
     }
     val projectPath = path
 
-    testTasks.forEach { (testTask, sourceSets) ->
-        // configure 時に評価するとモジュール側の sourceSets {} より先に走りうるので provider に包む
-        val hasTestSources = provider {
-            sourceSets
-                .map { layout.projectDirectory.dir("src/$it").asFile }
-                .any { dir -> dir.walkTopDown().any { it.extension == "kt" } }
+    testTasks.forEach { (testTask, sourceSetNames) ->
+        val sourceSetDirs = sourceSetNames.associateWith {
+            layout.projectDirectory.dir("src/$it").asFile
         }
-        val resultsDir = layout.buildDirectory.dir("test-results/$testTask")
+        val resultsDir = layout.buildDirectory.dir("test-results/$testTask").get().asFile
 
         val verify = tasks.register(
             "verify${testTask.replaceFirstChar { it.uppercase() }}Executed"
         ) {
-            description = "$testTask がテストソースを持つのに 1 件も実行していないなら落とす（T-32）"
+            group = LifecycleBasePlugin.VERIFICATION_GROUP
+            description = "$testTask で 1 件も走っていない source set があれば落とす（T-32）"
             doLast {
-                if (!hasTestSources.get()) return@doLast
-                val dir = resultsDir.get().asFile
-                val executed = if (!dir.exists()) 0 else dir.walkTopDown()
+                // 実際に 1 件以上走ったテストクラスの単純名。
+                // iOS の name は "iosSimulatorArm64Test.<FQCN>"、入れ子クラスは "Outer$Inner"。
+                // skipped を引くのは、tests が @Ignore も数えるため
+                val testSuite =
+                    Regex("""<testsuite name="([^"]+)"[^>]*tests="(\d+)"[^>]*skipped="(\d+)"""")
+                val executed = if (!resultsDir.exists()) emptySet() else resultsDir.walkTopDown()
                     .filter { it.extension == "xml" }
-                    .sumOf { file ->
-                        Regex("""<testsuite [^>]*tests="(\d+)"""")
-                            .findAll(file.readText())
-                            .sumOf { it.groupValues[1].toInt() }
+                    .flatMap { testSuite.findAll(it.readText()) }
+                    .filter { it.groupValues[2].toInt() - it.groupValues[3].toInt() > 0 }
+                    .map { it.groupValues[1].substringAfterLast('.').substringBefore('$') }
+                    .toSet()
+
+                sourceSetDirs.forEach { (name, dir) ->
+                    // このリポジトリは 1 ファイル 1 テストクラス
+                    val declared = if (!dir.exists()) emptySet() else dir.walkTopDown()
+                        .filter { it.extension == "kt" }
+                        .map { it.nameWithoutExtension }
+                        .toSet()
+                    if (declared.isEmpty()) return@forEach
+                    if (declared.none { it in executed }) {
+                        throw GradleException(
+                            "$projectPath:$testTask が src/$name のテストを 1 件も実行していない。" +
+                                "source set の設定が外れていないか確かめること（T-32）"
+                        )
                     }
-                check(executed > 0) {
-                    "$projectPath:$testTask は ${sourceSets.joinToString(" / ")} に" +
-                        "テストを持つのに 1 件も実行していない。" +
-                        "source set の設定が外れていないか確かめること（T-32）"
                 }
             }
         }
 
-        // named() ではなく matching()。そのターゲットを持たないモジュールでも落ちないようにする
-        tasks.matching { it.name == testTask }.configureEach { finalizedBy(verify) }
+        // finalizedBy だけだとタスクが無いときに検査ごと消えるので check にも繋ぐ
+        tasks.withType<AbstractTestTask>().configureEach {
+            if (name == testTask) finalizedBy(verify)
+        }
+        tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME) { dependsOn(verify) }
     }
 }
 
