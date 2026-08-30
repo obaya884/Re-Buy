@@ -120,7 +120,7 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、ナビ基盤と画面 5 枚を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑。**登録漏れを止める `ScreenSerializationTest` 2 件が増えて `:shared:ui` は Android 113 件 / iOS 109 件**。**保存・復元の載せ替えを実際に通す `NavigationStateRestorationTest` 3 件が増えて instrumented 25 件**。`androidMain` に残るのは `LicenseScreen` の中身（と日付書式の actual）だけ |
 | 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 134 件が出る**（移設前は 133 件。ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**収集の壊れ方を止める `LicenseLibrariesTest` 4 件が増えて instrumented 29 件**（件数の下限・Android の依存だけを拾えているか・全件にライセンスが付いているか・画面に届いているか）——それまでこの退行を検出できるのは人が実機で一覧を見ることだけだった。`aboutlibraries.json` はコミットし、読む側のタスクに `dependsOn` を明示。`androidMain` に残るのは日付書式の `actual` だけ |
 | 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動いた**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。ライセンス一覧も iOS で出る。ダイアログと **DB の追加・削除**も通る（Room ＋ 同梱 driver の書き込み経路が iOS で動く）。**TopAppBar がステータスバーに重ならず、余白も二重になっていない**（「セーフエリアは Compose 側で処理する」）。**起動して数秒後にプロセスが生きている**（落とし穴 18）。Android は挙動・テスト件数とも不変（instrumented 29 件）。**ここで iOS 固有の不具合を 1 つ見つけて直した**（落とし穴 22） |
-| 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている。**ビルド後に `git diff --exit-code` を見る**——`aboutlibraries.json` と `shared/data/schemas` はビルドで再生成される生成物をコミットしているので、再生成し忘れが CI で止まるようにする |
+| 16 | **開発基盤の追随** | **16a（CI・ツール整備）と 16b（docs）に割った。** CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑（`ios` は macOS で `iosSimulatorArm64Test` ＋ `xcodebuild`）。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` があり、CLAUDE.md のアーキテクチャ節は 2 行の要約＋参照に縮んだ。docs 内の `src/main` 表記が KMP の source set 名に追随している。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている。**ビルド後に `git diff --exit-code` を見る**——`aboutlibraries.json` と `shared/data/schemas` はビルドで再生成される生成物をコミットしているので、再生成し忘れが CI で止まる |
 
 ステップ 13 は commit が大きい。「ナビ基盤の CMP 対応」「画面ごと」に割ってよい。
 
@@ -537,5 +537,5 @@ Compose Resources の `customDirectory(sourceSetName, provider)` は既定のデ
 | 2 | GMD のタスク名 | **済**（段 2 で `:androidApp:` 修飾を allow に追加済み） |
 | 3 | レポートパス | **済**（ステップ 16）。`verifier.md` の手順を `testAndroidHostTest` / iOS / `git diff --exit-code` に追随させた |
 | 4 | `test-reviewer` の起動契機 | **済**（ステップ 16）。CLAUDE.md と `test-reviewer.md` の両方を `commonTest` / `androidHostTest` / `iosTest` に直した |
-| 5 | CLAUDE.md のアーキテクチャ節 → `docs/仕様/15` | **段 3 で塞ぐ**（§14 の完了条件）。`17_テスト戦略定義書` も |
+| 5 | CLAUDE.md のアーキテクチャ節 → `docs/仕様/15` | **済**（ステップ 16b）。`17_テスト戦略定義書` も作り、CLAUDE.md は 2 行の要約＋参照に縮めた |
 | 6 | KMP のタスク名を allow に | **済**。ステップ 3 で Gradle の KMP タスクを、ステップ 16 で iOS のタスクと `xcodebuild` / `xcrun simctl` を足した |

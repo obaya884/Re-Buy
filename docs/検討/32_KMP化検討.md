@@ -1,7 +1,7 @@
 # KMP 化検討（ロードマップ ③）
 
 - 作成日: 2026-08-29
-- 更新日: 2026-08-29
+- 更新日: 2026-08-30
 - ステータス: 確定（実装計画へ）
 - 位置づけ: ロードマップ ③「KMP 化＋マルチモジュール化」の設計。既存の Android アプリ（Kotlin 44 ファイル・約 3,000 行）を Kotlin Multiplatform＋Compose Multiplatform の新構造へ載せ替える。**Android の挙動は変えない**
 - 関連: [ロードマップ](../案件/24_ロードマップ.md) ／ [憲章](../仕様/11_憲章.md) ／ [開発基盤検討](./31_開発基盤検討.md) ／ [技術改善バックログ](../案件/23_技術改善バックログ.md)
@@ -132,7 +132,7 @@ iOS のホストを移植の段に置いて後ろへ送らないのは、§13 �
 - Gradle Managed Device のタスク名に `:androidApp:` 修飾が要る。`.claude/settings.json` の allow は完全一致なので現行の記述が外れる
 - `androidApp/build/` 決め打ちのレポートパス（`ci.yml`・`verifier`・`test-reviewer`）
 - `test-reviewer` の起動契機が `androidApp/src/test/**` なので `commonTest` に効かない
-- CLAUDE.md のアーキテクチャ節を `docs/仕様/15_アーキテクチャ定義書.md` へ移すとき、`.claude/agents/` 2 本の参照を同時に直す（inline code のパスは `docs-check` の網の外）
+- ~~CLAUDE.md のアーキテクチャ節を `docs/仕様/15_アーキテクチャ定義書.md` へ移すとき、`.claude/agents/` 2 本の参照を同時に直す~~ → **済**（段 3 のステップ 16b）
 - KMP のタスク名を `.claude/settings.json` の allow に足す
 
 ## 12. ③ で学ぶこと
