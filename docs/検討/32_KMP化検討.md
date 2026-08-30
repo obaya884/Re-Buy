@@ -128,12 +128,14 @@ iOS のホストを移植の段に置いて後ろへ送らないのは、§13 �
 
 ② の最終レビューで挙がった箇所。実装計画に組み込む。
 
-- `./gradlew build` が全モジュール対象になり、Linux の CI で iOS ターゲットのタスクが落ちる
-- Gradle Managed Device のタスク名に `:androidApp:` 修飾が要る。`.claude/settings.json` の allow は完全一致なので現行の記述が外れる
-- `androidApp/build/` 決め打ちのレポートパス（`ci.yml`・`verifier`・`test-reviewer`）
-- `test-reviewer` の起動契機が `androidApp/src/test/**` なので `commonTest` に効かない
-- ~~CLAUDE.md のアーキテクチャ節を `docs/仕様/15_アーキテクチャ定義書.md` へ移すとき、`.claude/agents/` 2 本の参照を同時に直す~~ → **済**（段 3 のステップ 16b）
-- KMP のタスク名を `.claude/settings.json` の allow に足す
+**6 点すべて済**（内訳は [段 3 実装計画](../案件/archive_23_kmp段3実装計画.md) の §11 の表）。
+
+- ~~`./gradlew build` が全モジュール対象になり、Linux の CI で iOS ターゲットのタスクが落ちる~~ → **済**（ステップ 16a）。タスクの明示列挙ではなく、macOS ランナーの `ios` ジョブで塞いだ
+- ~~Gradle Managed Device のタスク名に `:androidApp:` 修飾が要る~~ → **済**（段 2）
+- ~~`androidApp/build/` 決め打ちのレポートパス~~ → **済**（ステップ 16a）
+- ~~`test-reviewer` の起動契機が `androidApp/src/test/**` なので `commonTest` に効かない~~ → **済**（ステップ 16a）。`commonTest` / `androidHostTest` / `iosTest` へ
+- ~~CLAUDE.md のアーキテクチャ節を `docs/仕様/15_アーキテクチャ定義書.md` へ移すとき、`.claude/agents/` 2 本の参照を同時に直す~~ → **済**（ステップ 16b）
+- ~~KMP のタスク名を `.claude/settings.json` の allow に足す~~ → **済**（ステップ 3 と 16a）
 
 ## 12. ③ で学ぶこと
 

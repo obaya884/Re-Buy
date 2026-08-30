@@ -17,7 +17,7 @@ Re-Buy（仮称）は「くりかえし使える買い物リスト」。品目�
 
 ## docs の構造と書き方の規約
 
-ファイル名は**全体で一意な 2 桁番号**を持つ（1X = 仕様 / 2X = 案件 / 3X = 検討。新規文書は該当ブロックの次番号）。`log_` / `closed_` / `guide_` / `plan_` / `archive_` の付属ファイルは親の番号を引き継ぐ。予約: 12・13・14・21（④）、15・17（③）。欠番: 25・26（実装計画に独立番号を振っていた名残）。
+ファイル名は**全体で一意な 2 桁番号**を持つ（1X = 仕様 / 2X = 案件 / 3X = 検討。新規文書は該当ブロックの次番号）。`log_` / `closed_` / `guide_` / `plan_` / `archive_` の付属ファイルは親の番号を引き継ぐ。予約: 12・13・14・21（④）。欠番: 25・26（実装計画に独立番号を振っていた名残）。
 
 - **番号は「文書」に振り、「案件」には振らない。** 案件は増え続けるので、1 案件 1 番号にすると 2 桁が尽きる。個々の実装計画は台帳の付属文書として `plan_<親番号>_<名前>.md` に置き、完了したら `archive_<親番号>_<名前>.md` へ改名して凍結する（挙動を変えない技術活動なら親は 23、要求なら 22）
 
@@ -34,7 +34,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 
 - `applicationId`: `io.github.obaya884.rebuy`（逆ドメイン部分は ⑤ の公開前に再検討）
 - **`namespace` は Kotlin package と揃え、モジュールごとに分ける**（`:androidApp` = `io.github.obaya884.rebuy` ＝ `applicationId` ／ `:shared:data` = `...rebuy.data` ／ `:shared:domain` = `...rebuy.domain` ／ `:shared:ui` = `...rebuy.ui`）。Gradle のパスにある `shared` は入れ物を示す語なので package にも namespace にも入れない
-- **画面文言と drawable は Compose Resources に置く**（`shared/ui/src/commonMain/composeResources/` の `values/strings.xml` と `drawable/`）。参照側は `io.github.obaya884.rebuy.ui.resources.Res` を import して `stringResource(Res.string.xxx)` / `painterResource(Res.drawable.xxx)` で引く。`Res` は `publicResClass = true` で公開してあるので、`:androidApp` の instrumented テストも同じ文言を引ける
+- **画面文言と drawable は Compose Resources に置く**（`shared/ui/src/commonMain/composeResources/`）。引き方と `publicResClass` の理由は [アーキテクチャ定義書](./docs/仕様/15_アーキテクチャ定義書.md) §4.4
 - **`:shared:ui` の Kotlin から Android の `R` を引く場所はもう無いが、`androidResources { enable = true }` は外さない**。Compose Resources が道連れになり、ビルドは緑のまま全画面が落ちる（[段 3 実装計画](./docs/案件/archive_23_kmp段3実装計画.md) の落とし穴 20）
 - minSdk 31 / compileSdk 37 / targetSdk 35 / Java・JVM target 17
 - AGP 9 / Gradle 9。JDK は 17 以上（Android Studio 同梱の JBR 25 で動作確認済み）
@@ -90,6 +90,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - **実装が一区切りしたら（コミット前）** — `verifier` と `code-quality-reviewer` を並列でバックグラウンド起動。軽微な変更では起動しない
 - **差分にテストファイル（`shared/*/src/{commonTest,androidHostTest,iosTest}/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
 - **差分が docs の条項に触れる／条項で定まる挙動を実装したとき** — `spec-reviewer`
+- **差分に `build-logic/**`・`.github/workflows/**`・`scripts/**` が含まれるとき** — `code-quality-reviewer` と、検査そのものを足したなら `test-reviewer`。**「本番コードではないから軽微」と自分で判断しない**——T-32 はこの判断でレビューを飛ばした結果、動機とした 2 つの事故のどちらも塞げていない実装がマージされた（log_23 2026-08-30）。**ここには自動テストの網が無い**ので、レビューが唯一の網になる
 
 ## 実装完了後のフロー（レビュー → 動作確認 → コミット/push）
 

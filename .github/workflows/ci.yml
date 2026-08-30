@@ -41,8 +41,12 @@ jobs:
 
       # aboutlibraries.json と shared/data/schemas はビルドで再生成される生成物を
       # コミットしている。再生成し忘れがここで止まる
+      # add -N を挟むのは、スキーマの version を上げたときに出る **新規** ファイルが
+      # untracked のままだと git diff に出ないため
       - name: 生成物が最新かを見る
-        run: git diff --exit-code
+        run: |
+          git add -A -N
+          git diff --exit-code
 
       - name: Upload test reports on failure
         if: failure()
