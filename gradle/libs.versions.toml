@@ -10,18 +10,18 @@ android-gradle-plugin = "9.3.2"
 androidx-core = "1.19.0"
 androidx-room = "2.8.4"
 # Room 2.8.4 が引いてくる sqlite に合わせる（ずれると driver の実装が二重になる）
-androidx-sqlite = "2.6.2"
+androidx-sqlite = "2.7.0"
 androidx-lifecycle = "2.11.0"
 androidx-compose-bom = "2026.08.00"
 # Compose Multiplatform。Kotlin 2.2.20 でビルドされているが、Kotlin は古いメタデータを読めるので 2.4.10 から使える
 compose-multiplatform = "1.12.0"
 androidx-navigation3 = "1.1.6"
-kotlinx-coroutines = "1.9.0"
-kotlinx-serialization-json = "1.9.0"
+kotlinx-coroutines = "1.11.0"
+kotlinx-serialization-json = "1.11.0"
 androidx-activity = "1.13.0"
 androidx-junit = "1.3.0"
 androidx-espresso = "3.7.0"
-koin = "4.1.0"
+koin = "4.2.2"
 aboutLibraries = "15.2.0"
 
 [libraries]
