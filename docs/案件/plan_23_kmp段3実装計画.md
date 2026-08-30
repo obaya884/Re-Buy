@@ -36,6 +36,8 @@
 | 着手前 | 122（`:shared:ui` 102 ＋ `:shared:data` 20） | 20（`:androidApp`） |
 | 完了時 | 122 が `commonTest`（android と iosSimulatorArm64 の両方で走る）＋ 5 が `androidHostTest` | 20（変わらず） |
 
+ステップ 10 の時点では `NavigatorTest` 11 件がまだ `androidHostTest` に居る（`Navigator` が Compose 依存の `NavigationState` を持つため）。**ステップ 13 で `commonTest` へ移る。**
+
 `commonTest` へ行けないのは 5 件。
 
 - `KoinModulesTest` 1 件——`koin-test` の `verify()` が kotlin-reflect 依存で JVM 専用
@@ -112,10 +114,10 @@ precompiled script plugin から `libs` を型安全に参照することはで�
 | 7 | **`iosApp/` の Xcode プロジェクトを置き、シミュレータで Compose の 1 画面を出す** | **iOS シミュレータに `Text` が出る**。`.gitignore` に Xcode の生成物（`iosApp/build/` `xcuserdata/`）が入り、`project.pbxproj` はコミットされている。Android 無変更 |
 | 8 | **`:shared:data` を `commonMain` へ** | Converter テスト **20 件が `commonTest` で android と iosSimulatorArm64 の両方緑**、＋ TZ 固定の 4 件が `androidHostTest`（`:shared:data` は Android 25 件 / iOS 21 件）。**`shared/data/schemas` に git 差分が出ない**。**`ItemDao` / `CategoryDao` が `commonMain` にある**——ここに無いと `FakeDatabase` がステップ 10 で `commonTest` へ行けず往復になる。Android 同一挙動。**既存端末の DB が引き継がれる**（アップグレードインストールで手動確認）。instrumented 20 件緑 |
 | 9 | **`:shared:domain` を `commonMain` へ** | `./gradlew build` 緑。両ターゲットでコンパイル。テスト件数不変 |
-| 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **101 件が `commonTest` で両ターゲット緑**、`KoinModulesTest` 1 件が `androidHostTest` で緑（`:shared:ui` は Android 102 件 / iOS 101 件）。**アサーションの中身は 1 行も変えていない** |
+| 10 | **`:shared:ui` の非 UI を `commonMain` へ、テストを `commonTest` へ** | **ViewModel テスト 90 件が `commonTest` で両ターゲット緑**（`:shared:ui` は Android 102 件 / iOS 90 件）。`NavigatorTest` 11 件は `Navigator` が `NavigationState`（Compose 依存）を持つのでステップ 13 まで動かせない。`KoinModulesTest` 1 件は `androidHostTest` に残る。**アサーションの中身は 1 行も変えていない** |
 | 11 | **リソースを Compose Resources へ（文言 49 件 ＋ drawable 3 件）** | Android の表示・文言が完全に同一。instrumented 20 件緑。`shared/ui/src/main/res` が消えている |
 | 12 | **theme と画面 Composable を `commonMain` へ** | Android 同一挙動。**「最終購入」の日付表示が移行前と 1 文字も違わない**。instrumented 20 件緑 |
-| 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が両ターゲット緑 |
+| 13 | **Navigation 3 を CMP 対応に（`SavedStateConfiguration` ＋ 多相シリアライズ）、`ReBuyApp` と `NavigationState` / `Navigator` を `commonMain` へ** | Android 同一挙動。**プロセス death からの復元が移行前と同じ**（開発者オプションの「アクティビティを保持しない」で手動確認）。`NavigatorTest` 11 件が `commonTest` へ移って両ターゲット緑（`:shared:ui` は Android 102 件 / iOS 101 件） |
 | 14 | **AboutLibraries を composeResources 経由に** | **ライセンス一覧に 131 件以上が出る**（ステップ 5 で 0 件になった退行がここで戻る。落とし穴 17）。**同じことを見る instrumented テストを 1 本足す**——いまこの退行を検出できるのは人がこの表を読むことだけなので、戻したら機械の網に載せる。Android のライセンス一覧の表示が移設前と同一。生成物の commit / ignore 方針が決まり、タスク依存が明示されている |
 | 15 | **`iosMain` のスタブを `ReBuyApp()` に差し替え、Koin を起動する** | **iOS シミュレータで全画面が動く**（ホーム・買い物・設定・カテゴリー編集・アイテム編集・ライセンス）。**TopAppBar がステータスバーに重ならず、余白も二重になっていない**（「セーフエリアは Compose 側で処理する」）。**起動して数秒後にプロセスが生きている**（落とし穴 18）。Android 無変更 |
 | 16 | **開発基盤の追随** | CI が `docs` / `build` / `instrumented` / `ios` の 4 ジョブで緑。allow のタスク名が実在する。§11 の 6 点が塞がっている。`docs/仕様/15_アーキテクチャ定義書.md` と `17_テスト戦略定義書.md` がある。**docs 内の `src/main` 表記が KMP の source set 名に追随している**（[技術改善バックログ](./23_技術改善バックログ.md) の種別表など）。**T-32**（テストが 0 件で緑になるのを機械で止める）が入っている |
@@ -203,12 +205,18 @@ KMP ライブラリには build type が無く、宣言できるのは `androidC
 
 `defaultConfig` も無いので `vectorDrawables { useSupportLibrary = true }` が書けなくなる。minSdk 31 では実害が無いので落とす。
 
+### iOS が緑でも移送が成功したとは言えない
+
+ステップ 10 で実測した（2026-08-30）。`ViewModelTestBase` の継承を 1 クラスから外すと、**Android は 19/19 落ちるが iOS は 8 落ちて 11 が素通りする**。`androidx.lifecycle` は `Dispatchers.Main` の不在を例外で捕まえるが、iOS には Darwin の main キューが実在するので例外にならず、コルーチンが積まれたまま走らない。否定形のアサート（`assertFalse`・「何も起きない」系・初期値系）はその状態で緑になる。
+
+**移送の判定は必ず両ターゲットで見ること。** そして**変異を入れる側も両ターゲットで確かめる**——片方だけ見ていると「網が効いている」と誤読する。
+
 ### テストの `commonTest` 移送
 
 `Dispatchers.setMain` / `resetMain` 自体は共通 API で K/N でも動く。壊れるのは JUnit4 の `TestWatcher` / `@get:Rule` のほう。基底クラスへ置き換える。
 
 ```kotlin
-abstract class ViewModelTest {
+abstract class ViewModelTestBase {
     protected val dispatcher = StandardTestDispatcher()
     @BeforeTest fun setUp() { Dispatchers.setMain(dispatcher) }
     @AfterTest fun tearDown() { Dispatchers.resetMain() }

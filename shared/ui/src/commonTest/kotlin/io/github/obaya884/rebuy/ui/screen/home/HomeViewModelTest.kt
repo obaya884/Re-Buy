@@ -1,7 +1,7 @@
 package io.github.obaya884.rebuy.ui.screen.home
 
 import io.github.obaya884.rebuy.ui.CREATED_AT
-import io.github.obaya884.rebuy.ui.MainDispatcherRule
+import io.github.obaya884.rebuy.ui.ViewModelTestBase
 import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.item.ItemStatus
@@ -12,17 +12,13 @@ import io.github.obaya884.rebuy.ui.screen.home.HomeViewModel.Companion.RIPPLE_DE
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNull
-import org.junit.Rule
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
+import kotlin.test.Test
 
 /** ホーム画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
-class HomeViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class HomeViewModelTest : ViewModelTestBase() {
 
     private val db = FakeDatabase()
 

@@ -1,7 +1,7 @@
 package io.github.obaya884.rebuy.ui.screen.shopping
 
 import io.github.obaya884.rebuy.ui.CREATED_AT
-import io.github.obaya884.rebuy.ui.MainDispatcherRule
+import io.github.obaya884.rebuy.ui.ViewModelTestBase
 import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
@@ -11,20 +11,16 @@ import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingViewModel.Companion.F
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Rule
-import org.junit.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.test.Test
 
 /** 買い物画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
-class ShoppingViewModelTest {
-
-    @get:Rule
-    val mainDispatcherRule = MainDispatcherRule()
+class ShoppingViewModelTest : ViewModelTestBase() {
 
     private val db = FakeDatabase()
 

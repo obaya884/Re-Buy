@@ -4,9 +4,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 import io.github.obaya884.rebuy.ui.Screen
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertThrows
-import org.junit.Test
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 /**
  * 遷移規則のテスト。UI にも DB にも依存しない純粋ロジックなので JVM 段で全分岐を通す。
@@ -132,7 +132,7 @@ class NavigatorTest {
     fun navigateAsRootにトップレベルでないルートを渡すと弾かれる() {
         val navigator = Navigator(navigationState())
 
-        assertThrows(IllegalArgumentException::class.java) {
+        assertFailsWith<IllegalArgumentException> {
             navigator.navigateAsRoot(Screen.Setting)
         }
     }

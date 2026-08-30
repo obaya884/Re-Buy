@@ -71,20 +71,27 @@ kotlin {
     sourceSets {
         // ステップ 12 で SettingScreen が commonMain へ行っても付け替えずに済むよう、
         // いま android ターゲットしか無いうちから commonMain に置く
-        commonMain { kotlin.srcDir(generateVersionKt) }
+        commonMain {
+            kotlin.srcDir(generateVersionKt)
 
-        androidMain {
             dependencies {
                 api(project(":shared:domain"))
 
                 // uiModule を :androidApp へ公開する。koinViewModel() は画面の内側だけ
                 api(libs.koin.core)
-                implementation(libs.koin.compose.viewmodel)
+                // 上流の api 頼みにせず、この source set でも版を固定する
+                implementation(project.dependencies.platform(libs.koin.bom))
+                // viewModelOf。koin-android のものは Android 専用
+                implementation(libs.koin.core.viewmodel)
 
-                // Lifecycle
-                implementation(libs.androidx.lifecycle.runtime.ktx)
-                implementation(libs.androidx.lifecycle.viewmodel.compose)
-                implementation(libs.androidx.lifecycle.viewmodel.ktx)
+                // ViewModel の基底。-ktx と -compose は Android 専用
+                implementation(libs.androidx.lifecycle.viewmodel)
+            }
+        }
+
+        androidMain {
+            dependencies {
+                implementation(libs.koin.compose.viewmodel)
 
                 // Navigation。Screen が NavKey を継ぎ、Navigator も NavKey を公開する
                 api(libs.androidx.navigation3.runtime)
@@ -124,10 +131,14 @@ kotlin {
             implementation(compose.ui)
         }
 
-        // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い
-        getByName("androidHostTest").dependencies {
-            implementation(libs.junit)
+        commonTest.dependencies {
+            implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+        }
+
+        // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い。
+        // koin-test の verify() は kotlin-reflect 依存で JVM 専用なのでここに残る
+        getByName("androidHostTest").dependencies {
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.test)
         }
