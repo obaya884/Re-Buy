@@ -1,6 +1,9 @@
 package io.github.obaya884.rebuy.ui
 
+import io.github.obaya884.rebuy.domain.NameError
+import io.github.obaya884.rebuy.domain.SaveResult
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 
 fun <T1, T2, T3, T4, T5, T6, R> combine(
     flow: Flow<T1>,
@@ -28,5 +31,23 @@ fun <T1, T2, T3, T4, T5, T6, R> combine(
             args[4] as T5,
             args[5] as T6,
         )
+    }
+}
+
+/**
+ * 名前を伴う保存の結果を、エラーの置き場へ反映する。
+ *
+ * 保存できたらエラーを消して [onSaved]（ふつうはシートやダイアログを閉じる）、
+ * 弾かれたら開いたまま理由を出す（画面定義書 §2）。**この分岐を画面ごとに書き写さない**
+ * ために置いている。
+ */
+fun MutableStateFlow<NameError?>.applySaveResult(result: SaveResult, onSaved: () -> Unit) {
+    when (result) {
+        SaveResult.Saved -> {
+            value = null
+            onSaved()
+        }
+
+        is SaveResult.Rejected -> value = result.error
     }
 }

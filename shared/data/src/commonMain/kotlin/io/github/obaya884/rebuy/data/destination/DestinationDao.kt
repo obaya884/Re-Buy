@@ -15,6 +15,10 @@ interface DestinationDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(destination: Destination): Long
 
+    /** 同じ名前が他の行にあるか（使い方は `NameValidation.kt`）。 */
+    @Query("SELECT EXISTS(SELECT 1 FROM destinations WHERE name = :name AND id != :exceptId)")
+    suspend fun existsName(name: String, exceptId: Int): Boolean
+
     @Delete
     suspend fun delete(destination: Destination)
 

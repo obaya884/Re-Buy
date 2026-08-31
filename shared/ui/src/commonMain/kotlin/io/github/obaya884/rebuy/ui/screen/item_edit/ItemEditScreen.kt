@@ -24,10 +24,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.NameTextField
 import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -40,6 +42,7 @@ fun ItemEditScreen(
 ) {
     val viewModel = koinViewModel<ItemEditViewModel>()
     val uiState by viewModel.uiState.collectAsState()
+    val nameError by viewModel.nameError.collectAsState()
 
     val listState = rememberLazyListState()
 
@@ -133,9 +136,10 @@ fun ItemEditScreen(
             ItemAddDialog(
                 title = stringResource(Res.string.item_edit_add_dialog_title),
                 categories = uiState.categories,
+                error = nameError,
+                // 閉じるのは ViewModel。弾かれたらダイアログは開いたまま（画面定義書 §2）
                 onConfirm = { name, category ->
                     viewModel.addItem(name, category?.id)
-                    viewModel.hideItemAddDialog()
                 },
                 onDismiss = {
                     viewModel.hideItemAddDialog()
@@ -148,9 +152,9 @@ fun ItemEditScreen(
                 title = stringResource(Res.string.item_edit_edit_dialog_title),
                 editId = uiState.editingItem!!.id,
                 editName = uiState.editingItem!!.name,
+                error = nameError,
                 onConfirm = { id, name ->
                     viewModel.editItemName(id, name)
-                    viewModel.hideItemEditDialog()
                 },
                 onDismiss = {
                     viewModel.hideItemEditDialog()
@@ -295,6 +299,7 @@ fun ItemEditListRow(
 fun ItemAddDialog(
     title: String,
     categories: List<Category?>,
+    error: NameError?,
     onConfirm: (String, Category?) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -354,11 +359,10 @@ fun ItemAddDialog(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.outline,
                 )
-                TextField(
+                NameTextField(
                     value = inputString,
                     onValueChange = { inputString = it },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    error = error
                 )
                 Row(
                     horizontalArrangement = Arrangement.End,
@@ -396,6 +400,7 @@ fun ItemAddDialog(
 fun ItemAddDialogPreview() {
     ItemAddDialog(
         title = stringResource(Res.string.item_edit_add_dialog_title),
+        error = null,
         categories = listOf(
             Category(1, "カテゴリー1"),
             Category(2, "カテゴリー2"),

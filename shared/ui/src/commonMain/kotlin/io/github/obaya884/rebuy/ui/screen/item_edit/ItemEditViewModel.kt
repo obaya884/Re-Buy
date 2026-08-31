@@ -8,6 +8,8 @@ import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
 import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
+import io.github.obaya884.rebuy.domain.NameError
+import io.github.obaya884.rebuy.ui.applySaveResult
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -21,6 +23,14 @@ class ItemEditViewModel(
     private val _isShowItemEditDialog = MutableStateFlow(false)
     private val _isShowItemDeleteDialog = MutableStateFlow(false)
     private val _editingItem = MutableStateFlow<Item?>(null)
+    private val _nameError = MutableStateFlow<NameError?>(null)
+
+    /**
+     * 名前が弾かれた理由。**確定のたびに更新される一過性の状態**で、入力欄の下にしか
+     * 出ないので `uiState` には載せず、画面が直に見る。`null` は「まだ弾かれていない」。
+     * 打ち直しでは消えない（消えるのは次の確定か、ダイアログを開き直したとき）。
+     */
+    val nameError: StateFlow<NameError?> = _nameError.asStateFlow()
 
     val uiState: StateFlow<ItemEditScreenUiState> =
         combine(
@@ -75,19 +85,22 @@ class ItemEditViewModel(
         }
     }
 
+    /** 弾かれたらダイアログを開いたままエラーを出す（画面定義書 §2）。 */
     fun addItem(newItemName: String, categoryId: Int? = null) {
         val newItem = Item(
             name = newItemName,
             categoryId = categoryId
         )
         viewModelScope.launch {
-            itemRepository.insert(newItem)
+            _nameError.applySaveResult(itemRepository.insert(newItem)) { hideItemAddDialog() }
         }
     }
 
     fun editItemName(itemId: Int, newName: String) {
         viewModelScope.launch {
-            itemRepository.updateName(itemId, newName)
+            _nameError.applySaveResult(itemRepository.updateName(itemId, newName)) {
+                hideItemEditDialog()
+            }
         }
     }
 
@@ -107,6 +120,7 @@ class ItemEditViewModel(
 
     fun showItemAddDialog() {
         viewModelScope.launch {
+            _nameError.emit(null)
             _isShowItemAddDialog.emit(true)
         }
     }
@@ -119,6 +133,7 @@ class ItemEditViewModel(
 
     fun showItemEditDialog() {
         viewModelScope.launch {
+            _nameError.emit(null)
             _isShowItemEditDialog.emit(true)
         }
     }

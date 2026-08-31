@@ -15,6 +15,10 @@ interface CategoryDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insert(category: Category): Long
 
+    /** 同じ名前が他の行にあるか（使い方は `NameValidation.kt`）。 */
+    @Query("SELECT EXISTS(SELECT 1 FROM categories WHERE name = :name AND id != :exceptId)")
+    suspend fun existsName(name: String, exceptId: Int): Boolean
+
     @Delete
     suspend fun delete(category: Category)
 

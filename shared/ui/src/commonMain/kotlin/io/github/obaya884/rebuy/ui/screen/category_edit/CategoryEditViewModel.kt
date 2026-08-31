@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.domain.CategoryRepository
+import io.github.obaya884.rebuy.domain.NameError
+import io.github.obaya884.rebuy.ui.applySaveResult
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
@@ -15,6 +17,14 @@ class CategoryEditViewModel(
     private val _isShowCategoryEditDialog = MutableStateFlow(false)
     private val _isShowCategoryDeleteDialog = MutableStateFlow(false)
     private val _editingCategory = MutableStateFlow<Category?>(null)
+    private val _nameError = MutableStateFlow<NameError?>(null)
+
+    /**
+     * 名前が弾かれた理由。**確定のたびに更新される一過性の状態**で、入力欄の下にしか
+     * 出ないので `uiState` には載せず、画面が直に見る。`null` は「まだ弾かれていない」。
+     * 打ち直しでは消えない（消えるのは次の確定か、ダイアログを開き直したとき）。
+     */
+    val nameError: StateFlow<NameError?> = _nameError.asStateFlow()
 
     val uiState: StateFlow<CategoryEditScreenUiState> =
         combine(
@@ -52,15 +62,20 @@ class CategoryEditViewModel(
         }
     }
 
+    /** 弾かれたらダイアログを開いたままエラーを出す（画面定義書 §2）。 */
     fun addCategory(newCategoryName: String) {
         viewModelScope.launch {
-            categoryRepository.insert(newCategoryName)
+            _nameError.applySaveResult(categoryRepository.insert(newCategoryName)) {
+                hideCategoryAddDialog()
+            }
         }
     }
 
     fun editCategoryName(categoryId: Int, newName: String) {
         viewModelScope.launch {
-            categoryRepository.updateName(categoryId, newName)
+            _nameError.applySaveResult(categoryRepository.updateName(categoryId, newName)) {
+                hideCategoryEditDialog()
+            }
         }
     }
 
@@ -80,6 +95,7 @@ class CategoryEditViewModel(
 
     fun showCategoryAddDialog() {
         viewModelScope.launch {
+            _nameError.emit(null)
             _isShowCategoryAddDialog.emit(true)
         }
     }
@@ -92,6 +108,7 @@ class CategoryEditViewModel(
 
     fun showCategoryEditDialog() {
         viewModelScope.launch {
+            _nameError.emit(null)
             _isShowCategoryEditDialog.emit(true)
         }
     }
