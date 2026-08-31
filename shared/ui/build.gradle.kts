@@ -21,19 +21,27 @@ val uiPackage = "io.github.obaya884.rebuy.ui"
 
 aboutLibraries {
     collect {
-        // Android に載るものだけに絞る。絞らないと commonMain のメタデータ解決から
-        // skiko や ui-uikit など Android に無い 5 件が混ざって 139 件になる。
-        //
-        // **ここは Kotlin ターゲット名（android）で書く。** AGP の KMP バリアント名
-        // （androidMain）で書くと、依存が載る設定の名前は androidCompileClasspath なので
-        // 1 件も一致せず、ビルドもテストも緑のまま一覧だけが空になる（落とし穴 17）
-        filterVariants.set(setOf("android"))
+        // iOS の依存も集め、entry の targets で表示側が絞る（設計の全体像は
+        // docs/仕様/15_アーキテクチャ定義書.md §6）。
+        // **all = true にすると filterVariants の意味が完全一致から部分一致に変わる。**
+        // 曖昧な語（android・ios など）を入れると意図しない構成まで拾うので、
+        // 構成名をフルで名指しする
+        all = true
+        includeTargets = true
+        filterVariants.set(
+            setOf(
+                "androidCompileClasspath",
+                "androidRuntimeClasspath",
+                "iosArm64CompileKlibraries",
+                "iosSimulatorArm64CompileKlibraries",
+            )
+        )
     }
     export {
         // 置き場所は AboutLibraries が KMP 向けに示している場所。
         // **R.raw に出すほうの経路は止まらない**（15.2.0 に止める設定が無い）。
-        // バリアント名で設定を探すあの経路は 0 件のままで、APK にも 71 バイトの
-        // 空の json が残るが、読む側が composeResources に移ったので誰も見ない。
+        // あちらはバリアント名の後段フィルタで all = true でも 0 件のままで、APK にも
+        // 71 バイトの空の json が残るが、読む側が composeResources に移ったので誰も見ない。
         //
         // 生成物だが Room のスキーマ（shared/data/schemas）と同じくコミットする——
         // 依存を足し引きしたときに一覧の変化が diff に出るほうが、気づける。

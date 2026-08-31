@@ -9,6 +9,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
@@ -44,9 +45,11 @@ fun LicenseScreen(
         val libraries by produceLibraries {
             Res.readBytes(ABOUT_LIBRARIES_PATH).decodeToString()
         }
+        // json は両プラットフォーム分を持つので、このプラットフォームに載る依存だけへ絞る
+        val platformLibraries = remember(libraries) { libraries?.forCurrentPlatform() }
 
         LibrariesContainer(
-            libraries = libraries,
+            libraries = platformLibraries,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
