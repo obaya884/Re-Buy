@@ -1,6 +1,6 @@
 #!/bin/sh
 # docs の機械検査。hitosuji の scripts/docs-check.sh を移植した（T-03）。
-# 設計は docs/検討/31_開発基盤検討.md §7。
+# 設計の経緯は git 履歴にある（旧 開発基盤検討 §7）。
 #
 # 使い方:
 #   sh scripts/docs-check.sh
@@ -25,7 +25,7 @@
 #   - 台帳2冊とその完了記録のいずれかが見つからない（検査対象そのものの欠落）
 #
 # 警告（終了コードは 0 のまま。誤検知がありうるので落とさない）:
-#   - ライブ文書に Phase 表記が残っている（履歴を残す log_/closed_/archive_ は対象外）
+#   - ライブ文書に Phase 表記が残っている（履歴を残す log_/closed_ は対象外）
 #   - ヘッダの更新日が古い（未コミットの編集なら「今日でない」、コミット済みなら git の最終更新と比較）
 set -eu
 
@@ -402,12 +402,12 @@ def check_links(path):
 # ---- Phase 表記の残存（警告） ------------------------------------------------
 
 # 「完了した事項に予定表記を残さない」（CLAUDE.md「書き方の規約」）。
-# 履歴を積む log_ / closed_ / archive_ は当時の呼び方が正なので対象外
+# 履歴を積む log_ / closed_ は当時の呼び方が正なので対象外
 phase_re = re.compile(r"(?<![A-Za-z])[Pp]hase\s*\d|フェーズ\s*\d")
 
 
 def check_phase_wording(path):
-    if re.match(r"(log_|closed_|archive_)", os.path.basename(path)):
+    if re.match(r"(log_|closed_)", os.path.basename(path)):
         return []
     out = []
     lines, mask = read(path)
@@ -415,7 +415,7 @@ def check_phase_wording(path):
         if mask[i - 1]:
             continue
         if phase_re.search(code_span_re.sub("``", line)):
-            out.append((path, i, "Phase 表記が残っている（現況はロードマップと要件バックログが持つ）"))
+            out.append((path, i, "Phase 表記が残っている（現況は台帳 22・23 の現況節が持つ）"))
     return out
 
 

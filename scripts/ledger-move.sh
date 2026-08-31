@@ -1,6 +1,6 @@
 #!/bin/sh
 # 台帳のエントリを完了記録へ移す。hitosuji の scripts/ledger-move.sh を移植した（T-04）。
-# 設計は docs/検討/31_開発基盤検討.md §7。
+# 設計の経緯は git 履歴にある（旧 開発基盤検討 §7）。
 #
 # 使い方:
 #   sh scripts/ledger-move.sh T-05
