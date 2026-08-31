@@ -4,6 +4,12 @@
 - 目的: 完了した要求（F-XXX / N-XX）の記録を保管する。ライブ台帳は[要件バックログ](./22_要件バックログ.md)
 - 並びは**新しい順**（先頭に積む）。移送は手作業（1 行を `## ID タイトル（完了日）` の節に展開する）
 
+## F-003 名前のバリデーション（2026-09-01）
+
+- 対応: `NameRule`（トリム・空・30 文字上限・打ち切り）と `NameError` / `SaveResult` を `:shared:domain` に置き、検証の手順を `saveWithValidatedName` 1 か所に集約。3 つの DAO に `existsName(name, exceptId)` を足し、Repository の保存系は結果型を返してトリム後の名前を保存する。UI 側は `NameTextField`（打ち切りとエラー表示）を新設し、弾かれたらダイアログを開いたままにする
+- 反映先: [画面定義書](../仕様/13_画面定義書.md) §2（上限超えの文言と「エラーは必ず文言を持つ」規則。経緯は [log_13](../仕様/log_13_画面定義書.md)）／[テスト戦略定義書](../仕様/17_テスト戦略定義書.md) §3・§6 ／[アーキテクチャ定義書の決定ログ](../仕様/log_15_アーキテクチャ定義書.md)（`nameError` を `uiState` に畳まない判断）／ PR #32
+- ついでに直したもの: 打ち切りがサロゲートペアを割る穴、改名ダイアログの `SideEffect` による毎回代入。**F-002 で開いた重複名のクラッシュ 4 経路もここで塞いだ**
+
 ## F-002 行き先とデータモデルの刷新（2026-09-01）
 
 - 対応: destinations テーブルと `Destination` / `DestinationDao` / `DestinationRepository` を新設。`items.destinationId`（外部キー・`SET_NULL`）、`categories` / `destinations` の `sortOrder`（新規は末尾）、3 テーブルの `name` に UNIQUE インデックス。`OnConflictStrategy` は `REPLACE` から `ABORT` へ（同名の登録で既存の行が消えるのを止めるため）
