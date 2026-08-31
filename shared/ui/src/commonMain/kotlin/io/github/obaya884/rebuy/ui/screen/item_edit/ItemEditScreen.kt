@@ -26,6 +26,7 @@ import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
 import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.ui.TestTags
+import io.github.obaya884.rebuy.ui.theme.tabularNumbers
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
@@ -82,7 +83,7 @@ fun ItemEditScreen(
             ) {
                 Text(
                     text = "全${uiState.items.size}件",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium.tabularNumbers(),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .fillMaxWidth()

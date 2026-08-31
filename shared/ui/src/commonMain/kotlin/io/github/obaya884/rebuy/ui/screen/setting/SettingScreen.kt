@@ -50,6 +50,10 @@ fun SettingScreen(
             SettingScreenItem("利用規約") { }
             // プライバシーポリシー
             SettingScreenItem("プライバシーポリシー") { }
+            // テーマ
+            SettingScreenItem(stringResource(Res.string.theme_title)) {
+                navigator.navigate(Screen.Theme)
+            }
             // OSSライセンス
             SettingScreenItem("ライセンス") { navigator.navigate(Screen.License) }
             // お問い合わせ・機能リクエスト

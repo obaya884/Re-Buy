@@ -2,11 +2,14 @@ package io.github.obaya884.rebuy.ui
 
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.ui.NavDisplay
 import androidx.savedstate.serialization.SavedStateConfiguration
+import io.github.obaya884.rebuy.domain.ThemeRepository
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.navigation.rememberNavigationState
 import io.github.obaya884.rebuy.ui.navigation.toEntries
@@ -17,15 +20,20 @@ import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditScreen
 import io.github.obaya884.rebuy.ui.screen.license.LicenseScreen
 import io.github.obaya884.rebuy.ui.screen.setting.SettingScreen
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingScreen
+import io.github.obaya884.rebuy.ui.screen.theme.ThemeScreen
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import org.koin.compose.koinInject
 
 @Composable
 fun ReBuyApp() {
     val snackbarHostState = remember { SnackbarHostState() }
+    // テーマの選択はアプリ全体に効くので、画面ではなくここで見る（画面 08 はタップで即時反映）
+    val themeRepository = koinInject<ThemeRepository>()
+    val palette by themeRepository.palette.collectAsState()
 
     val navigationState = rememberNavigationState(
         startRoute = Screen.Home,
@@ -42,10 +50,11 @@ fun ReBuyApp() {
             entry<Screen.CategoryEdit> { CategoryEditScreen(navigator, snackbarHostState) }
             entry<Screen.ItemEdit> { ItemEditScreen(navigator, snackbarHostState) }
             entry<Screen.License> { LicenseScreen(navigator, snackbarHostState) }
+            entry<Screen.Theme> { ThemeScreen(navigator, snackbarHostState) }
         }
     }
 
-    ReBuyTheme {
+    ReBuyTheme(palette = palette) {
         NavDisplay(
             entries = navigationState.toEntries(entryProvider),
             onBack = { navigator.goBack() }
@@ -73,6 +82,7 @@ sealed interface Screen : NavKey {
     @Serializable data object CategoryEdit : Screen
     @Serializable data object ItemEdit : Screen
     @Serializable data object License : Screen
+    @Serializable data object Theme : Screen
 }
 
 /**
@@ -91,6 +101,7 @@ internal val screenSavedStateConfiguration = SavedStateConfiguration {
             subclass(Screen.CategoryEdit::class)
             subclass(Screen.ItemEdit::class)
             subclass(Screen.License::class)
+            subclass(Screen.Theme::class)
         }
     }
 }

@@ -4,6 +4,8 @@ import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import io.github.obaya884.rebuy.data.APP_DATABASE_NAME
 import io.github.obaya884.rebuy.data.AppDatabase
+import io.github.obaya884.rebuy.data.settings.SettingsStore
+import io.github.obaya884.rebuy.data.settings.UserDefaultsSettingsStore
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 // Native では Dispatchers.IO は拡張プロパティなので、この import が要る
@@ -17,6 +19,7 @@ import platform.Foundation.NSUserDomainMask
 
 actual val platformDataModule: Module = module {
     single { createAppDatabase() }
+    single<SettingsStore> { UserDefaultsSettingsStore() }
 }
 
 private fun createAppDatabase(): AppDatabase =

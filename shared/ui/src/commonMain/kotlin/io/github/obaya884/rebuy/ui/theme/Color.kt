@@ -1,75 +1,119 @@
 package io.github.obaya884.rebuy.ui.theme
 
+import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.Color
+import io.github.obaya884.rebuy.domain.ThemePalette
 
-val primaryLight = Color(0xFF33618D)
-val onPrimaryLight = Color(0xFFFFFFFF)
-val primaryContainerLight = Color(0xFFD0E4FF)
-val onPrimaryContainerLight = Color(0xFF154974)
-val secondaryLight = Color(0xFF526070)
-val onSecondaryLight = Color(0xFFFFFFFF)
-val secondaryContainerLight = Color(0xFFD6E4F7)
-val onSecondaryContainerLight = Color(0xFF3B4857)
-val tertiaryLight = Color(0xFF6A5779)
-val onTertiaryLight = Color(0xFFFFFFFF)
-val tertiaryContainerLight = Color(0xFFF1DBFF)
-val onTertiaryContainerLight = Color(0xFF514060)
-val errorLight = Color(0xFFBA1A1A)
-val onErrorLight = Color(0xFFFFFFFF)
-val errorContainerLight = Color(0xFFFFDAD6)
-val onErrorContainerLight = Color(0xFF93000A)
-val backgroundLight = Color(0xFFF8F9FF)
-val onBackgroundLight = Color(0xFF191C20)
-val surfaceLight = Color(0xFFF8F9FF)
-val onSurfaceLight = Color(0xFF191C20)
-val surfaceVariantLight = Color(0xFFDEE3EB)
-val onSurfaceVariantLight = Color(0xFF42474E)
-val outlineLight = Color(0xFF73777F)
-val outlineVariantLight = Color(0xFFC2C7CF)
-val scrimLight = Color(0xFF000000)
-val inverseSurfaceLight = Color(0xFF2D3135)
-val inverseOnSurfaceLight = Color(0xFFEFF1F7)
-val inversePrimaryLight = Color(0xFF9ECAFC)
-val surfaceDimLight = Color(0xFFD8DAE0)
-val surfaceBrightLight = Color(0xFFF8F9FF)
-val surfaceContainerLowestLight = Color(0xFFFFFFFF)
-val surfaceContainerLowLight = Color(0xFFF2F3F9)
-val surfaceContainerLight = Color(0xFFECEEF4)
-val surfaceContainerHighLight = Color(0xFFE6E8EE)
-val surfaceContainerHighestLight = Color(0xFFE0E2E8)
+/**
+ * 画面が使う配色トークン（画面定義書 §5）。
+ *
+ * **素の Material のロールではなくこの語彙で書く。** 面が 3 段（[page] / [screen] / [card]）
+ * あることと、選択面とカゴ入り行が同じ [accentSoft] を使うことは Material のロール名では
+ * 表せない。Material のコンポーネントへは [toColorScheme] で橋渡しする。
+ */
+@Immutable
+data class ReBuyColors(
+    /** 画面の地 */
+    val page: Color,
+    /** コンテンツ面 */
+    val screen: Color,
+    /** 行・カード */
+    val card: Color,
+    /** 罫線・枠 */
+    val line: Color,
+    /** 主要色 */
+    val accent: Color,
+    /** 主要色の上に載る文字 */
+    val onAccent: Color,
+    /** 選択面・カゴ入り行 */
+    val accentSoft: Color,
+    /** 基本文字 */
+    val ink: Color,
+    /** 補助文字 */
+    val muted: Color,
+    /** 破壊的操作 */
+    val danger: Color,
+    /** シート背後の幕 */
+    val scrim: Color,
+    /** 明暗のどちら側か。**色見本のように「いまの明暗のまま別のパレットを引く」ときに使う** */
+    val isDark: Boolean
+)
 
-val primaryDark = Color(0xFF9ECAFC)
-val onPrimaryDark = Color(0xFF003256)
-val primaryContainerDark = Color(0xFF154974)
-val onPrimaryContainerDark = Color(0xFFD0E4FF)
-val secondaryDark = Color(0xFFBAC8DB)
-val onSecondaryDark = Color(0xFF243140)
-val secondaryContainerDark = Color(0xFF3B4857)
-val onSecondaryContainerDark = Color(0xFFD6E4F7)
-val tertiaryDark = Color(0xFFD5BEE5)
-val onTertiaryDark = Color(0xFF3A2A48)
-val tertiaryContainerDark = Color(0xFF514060)
-val onTertiaryContainerDark = Color(0xFFF1DBFF)
-val errorDark = Color(0xFFFFB4AB)
-val onErrorDark = Color(0xFF690005)
-val errorContainerDark = Color(0xFF93000A)
-val onErrorContainerDark = Color(0xFFFFDAD6)
-val backgroundDark = Color(0xFF101418)
-val onBackgroundDark = Color(0xFFE0E2E8)
-val surfaceDark = Color(0xFF101418)
-val onSurfaceDark = Color(0xFFE0E2E8)
-val surfaceVariantDark = Color(0xFF42474E)
-val onSurfaceVariantDark = Color(0xFFC2C7CF)
-val outlineDark = Color(0xFF8C9199)
-val outlineVariantDark = Color(0xFF42474E)
-val scrimDark = Color(0xFF000000)
-val inverseSurfaceDark = Color(0xFFE0E2E8)
-val inverseOnSurfaceDark = Color(0xFF2D3135)
-val inversePrimaryDark = Color(0xFF33618D)
-val surfaceDimDark = Color(0xFF101418)
-val surfaceBrightDark = Color(0xFF36393E)
-val surfaceContainerLowestDark = Color(0xFF0B0E12)
-val surfaceContainerLowDark = Color(0xFF191C20)
-val surfaceContainerDark = Color(0xFF1D2024)
-val surfaceContainerHighDark = Color(0xFF272A2F)
-val surfaceContainerHighestDark = Color(0xFF32353A)
+// 共通トークン。パレットで変わらない（画面定義書 §5）
+private val inkLight = Color(0xFF232B21)
+private val inkDark = Color(0xFFE7ECE1)
+private val mutedLight = Color(0xFF6E7767)
+private val mutedDark = Color(0xFF9BA492)
+private val dangerLight = Color(0xFFA8402E)
+private val dangerDark = Color(0xFFE08A77)
+private val scrimLight = Color(0.118f, 0.141f, 0.110f, 0.45f)
+private val scrimDark = Color(0.020f, 0.031f, 0.016f, 0.55f)
+
+/**
+ * 3 パレット × 明暗。値の正は画面定義書 §5 の表で、**並び順も表の列と揃えてある**。
+ *
+ * 明暗はここで 1 度だけ分岐する。`colors` に渡すのはパレット別の 7 色だけで、
+ * 共通トークン（文字色・危険色・幕）は [darkTheme] から決まる。
+ */
+fun reBuyColors(palette: ThemePalette, darkTheme: Boolean): ReBuyColors {
+    fun colors(
+        page: Long,
+        screen: Long,
+        card: Long,
+        line: Long,
+        accent: Long,
+        onAccent: Long,
+        accentSoft: Long
+    ) = ReBuyColors(
+        page = Color(page),
+        screen = Color(screen),
+        card = Color(card),
+        line = Color(line),
+        accent = Color(accent),
+        onAccent = Color(onAccent),
+        accentSoft = Color(accentSoft),
+        ink = if (darkTheme) inkDark else inkLight,
+        muted = if (darkTheme) mutedDark else mutedLight,
+        danger = if (darkTheme) dangerDark else dangerLight,
+        scrim = if (darkTheme) scrimDark else scrimLight,
+        isDark = darkTheme
+    )
+
+    return when (palette) {
+        ThemePalette.WAKABA -> if (darkTheme) {
+            colors(
+                page = 0xFF171B15, screen = 0xFF20261E, card = 0xFF2A3127, line = 0xFF3A4234,
+                accent = 0xFF74BD93, onAccent = 0xFF14201A, accentSoft = 0xFF2D3E33
+            )
+        } else {
+            colors(
+                page = 0xFFECEFE9, screen = 0xFFFAFBF7, card = 0xFFFFFFFF, line = 0xFFDCE2D5,
+                accent = 0xFF2E6B4A, onAccent = 0xFFF6FAF6, accentSoft = 0xFFE4EFE6
+            )
+        }
+
+        ThemePalette.AI -> if (darkTheme) {
+            colors(
+                page = 0xFF14171C, screen = 0xFF1D2127, card = 0xFF262B33, line = 0xFF3A414C,
+                accent = 0xFF8FB0E3, onAccent = 0xFF111927, accentSoft = 0xFF2B3644
+            )
+        } else {
+            colors(
+                page = 0xFFEBEDF1, screen = 0xFFF8F9FB, card = 0xFFFFFFFF, line = 0xFFDBDFE7,
+                accent = 0xFF34558B, onAccent = 0xFFF4F7FB, accentSoft = 0xFFE2E9F4
+            )
+        }
+
+        ThemePalette.KAKI -> if (darkTheme) {
+            colors(
+                page = 0xFF1C1712, screen = 0xFF26201A, card = 0xFF302921, line = 0xFF463B2E,
+                accent = 0xFFDC9660, onAccent = 0xFF251507, accentSoft = 0xFF413228
+            )
+        } else {
+            colors(
+                page = 0xFFF1EDE6, screen = 0xFFFBF8F3, card = 0xFFFFFFFF, line = 0xFFE5DCCE,
+                accent = 0xFFB5541F, onAccent = 0xFFFCF7F2, accentSoft = 0xFFF5E6D8
+            )
+        }
+    }
+}

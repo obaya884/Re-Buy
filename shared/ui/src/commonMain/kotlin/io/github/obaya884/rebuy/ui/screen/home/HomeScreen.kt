@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.ui.theme.tabularNumbers
 import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.formatShortDate
@@ -302,7 +303,7 @@ fun HomeListItemRow(
                         Res.string.home_last_bought_at,
                         formatShortDate(lastBoughtAt)
                     ),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelMedium.tabularNumbers(),
                     color = MaterialTheme.colorScheme.outline,
                 )
             }

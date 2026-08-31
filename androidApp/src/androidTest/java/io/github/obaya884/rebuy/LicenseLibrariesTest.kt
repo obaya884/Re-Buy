@@ -74,11 +74,19 @@ class LicenseLibrariesTest {
         val libraries = readLibraries()
 
         // targets 無しの entry は絞りを素通しする約束なので、収集側で 1 件でも
-        // 付け損なうと「絞れているように見えて絞れていない」状態になる。全件に要る。
-        // configPath で手足しした entry には targets が付かない仕様なので、
-        // 使い始めたらここは意図的に落ちる——そのとき手足し分を除外する形に直すこと
-        val untargeted = libraries.filter { it.targets.isEmpty() }.map { it.uniqueId }
+        // 付け損なうと「絞れているように見えて絞れていない」状態になる。**依存の全件に要る。**
+        // 手足しの entry（同梱フォントなど。configPath 由来）には targets が付かないので、
+        // その分だけを名指しで除く——**除外は接頭辞ではなく uniqueId で持つ**ことで、
+        // 収集側の取りこぼしがここに紛れ込まないようにする
+        val untargeted = libraries
+            .filter { it.targets.isEmpty() }
+            .map { it.uniqueId }
+            .filterNot { it in MANUAL_ENTRY_IDS }
         assertEquals("targets が付いていない依存がある", emptyList<String>(), untargeted)
+
+        // 手足しの entry そのものは消えていないこと（消えるとライセンス表示の義務を欠く）
+        val manual = libraries.map { it.uniqueId }.filter { it in MANUAL_ENTRY_IDS }
+        assertEquals("手足しした entry が一覧に無い", MANUAL_ENTRY_IDS, manual.toSet())
 
         // iOS 分が丸ごと落ちても総数の下限（100 件）は Android 分だけで満たしてしまうので、
         // iOS のターゲットを持つ件数にも下限を置く（実測 72 件）
@@ -150,5 +158,10 @@ class LicenseLibrariesTest {
         assertThrows(AssertionError::class.java) {
             composeRule.onNode(hasScrollAction()).performScrollToNode(hasText(iosOnlyName))
         }
+    }
+
+    private companion object {
+        /** `shared/ui/aboutlibraries/libraries/` に手で置いた entry。依存として解決されない。 */
+        val MANUAL_ENTRY_IDS = setOf("fonts:zen-maru-gothic")
     }
 }

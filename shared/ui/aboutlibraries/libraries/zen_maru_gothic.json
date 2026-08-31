@@ -1,0 +1,15 @@
+{
+  "uniqueId": "fonts:zen-maru-gothic",
+  "artifactVersion": "1.000",
+  "name": "Zen Maru Gothic",
+  "description": "見出しと CTA に使う丸ゴシック体（Bold のみ同梱）。",
+  "website": "https://fonts.google.com/specimen/Zen+Maru+Gothic",
+  "developers": [
+    {
+      "name": "Yoshimichi Ohira"
+    }
+  ],
+  "licenses": [
+    "OFL-1.1"
+  ]
+}

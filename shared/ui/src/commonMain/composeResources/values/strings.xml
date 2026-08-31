@@ -51,6 +51,11 @@
     <string name="category_edit_empty_message">カテゴリーがありません</string>
     <string name="category_edit_add_item_suggestion">カテゴリーを追加しましょう</string>
 
+    <string name="theme_title">テーマ</string>
+    <string name="theme_wakaba">若葉</string>
+    <string name="theme_ai">藍</string>
+    <string name="theme_kaki">柿</string>
+
     <string name="setting_title">設定</string>
     <string name="setting_row_item_edit">アイテム一覧</string>
     <string name="setting_row_category_edit">カテゴリ一覧</string>

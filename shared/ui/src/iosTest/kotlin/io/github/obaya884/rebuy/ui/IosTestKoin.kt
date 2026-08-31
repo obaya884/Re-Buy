@@ -1,7 +1,9 @@
 package io.github.obaya884.rebuy.ui
 
 import io.github.obaya884.rebuy.data.category.CategoryDao
+import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.item.ItemDao
+import io.github.obaya884.rebuy.data.settings.SettingsStore
 import io.github.obaya884.rebuy.ui.di.initKoin
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -15,7 +17,14 @@ import org.koin.mp.KoinPlatformTools
 val fakeDatabase = FakeDatabase()
 
 /**
- * テスト用の Koin を用意し、[fakeDatabase] を空へ戻してから [prepare] を適用する。
+ * 設定値の置き場も差し替える。本番は `NSUserDefaults` なので、**差し替えないと選んだテーマが
+ * シミュレータに残り**、テストの実行順で結果が変わる。
+ */
+val fakeSettingsStore = FakeSettingsStore()
+
+/**
+ * テスト用の Koin を用意し、[fakeDatabase] と [fakeSettingsStore] を空へ戻してから
+ * [prepare] を適用する。
  *
  * **Koin はプロセスにつき 1 回だけ起動し、止めない。** 止めると 2 件目以降が
  * `ClosedScopeException` で落ちる——一度掴んだ root scope がプロセス単位でキャッシュされ、
@@ -43,11 +52,14 @@ fun startTestKoin(prepare: FakeDatabase.() -> Unit = {}) {
                 module {
                     single<ItemDao> { fakeDatabase.itemDao }
                     single<CategoryDao> { fakeDatabase.categoryDao }
+                    single<DestinationDao> { fakeDatabase.destinationDao }
+                    single<SettingsStore> { fakeSettingsStore }
                 }
             ),
             allowOverride = true
         )
     }
     fakeDatabase.seed()
+    fakeSettingsStore.clear()
     fakeDatabase.prepare()
 }

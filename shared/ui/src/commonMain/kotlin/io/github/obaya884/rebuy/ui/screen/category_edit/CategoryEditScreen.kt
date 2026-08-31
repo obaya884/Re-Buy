@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.ui.TestTags
+import io.github.obaya884.rebuy.ui.theme.tabularNumbers
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
@@ -73,7 +74,7 @@ fun CategoryEditScreen(
             ) {
                 Text(
                     text = "全${uiState.categories.size}件",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleMedium.tabularNumbers(),
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .fillMaxWidth()
