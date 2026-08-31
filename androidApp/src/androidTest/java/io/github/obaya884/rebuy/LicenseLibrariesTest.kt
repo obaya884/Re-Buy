@@ -35,6 +35,9 @@ import org.junit.Test
  * iOS 専用の `skiko` や `ui-uikit` が Android の一覧に出る。件数の下限は前者しか
  * 止められないので、後者は中身で見る。絞りの規則そのものは commonTest の
  * `PlatformLibrariesTest`、iOS 側の絞りは iosTest の `LicenseLibrariesIosTest` が持つ。
+ *
+ * 絞った結果の中身をデータ段では見ない——リソースの `targets`（このクラス）と絞りの規則
+ * （commonTest）から導出できるため。画面段の「描かない」だけを持つ。
  */
 class LicenseLibrariesTest {
 
@@ -94,21 +97,6 @@ class LicenseLibrariesTest {
             "skiko が iOS のターゲット付きで入っていない",
             byId["org.jetbrains.skiko:skiko"]?.targets.orEmpty().any { it.startsWith("ios") }
         )
-    }
-
-    @Test
-    fun Androidの画面に渡る一覧はAndroidに載る依存だけになる() {
-        // 画面と同じ絞り（forCurrentPlatform。Android では android ターゲット）を通す
-        val ids = readLibs().forCurrentPlatform().libraries.map { it.uniqueId }
-
-        // 絞りすぎの方向も量で止める（実測 134 件）
-        assertTrue("絞った結果が ${ids.size} 件しかない", ids.size >= 100)
-        assertTrue("koin-android が無い", "io.insert-koin:koin-android" in ids)
-        assertTrue("room-runtime が無い", "androidx.room:room-runtime" in ids)
-
-        // Android には載らないもの。targets が付かなくなると素通しで混ざる
-        val notOnAndroid = ids.filter { "skiko" in it || "uikit" in it }
-        assertEquals("Android に載らないものが混ざっている", emptyList<String>(), notOnAndroid)
     }
 
     @Test

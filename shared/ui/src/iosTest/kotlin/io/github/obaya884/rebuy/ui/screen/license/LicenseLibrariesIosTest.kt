@@ -4,7 +4,6 @@ import com.mikepenz.aboutlibraries.Libs
 import io.github.obaya884.rebuy.ui.resources.Res
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -41,16 +40,5 @@ class LicenseLibrariesIosTest {
 
         // Android 専用のもの。絞りが素通しになると混ざる
         assertFalse("io.insert-koin:koin-android" in ids, "koin-android が混ざっている")
-    }
-
-    @Test
-    fun iOSの一覧の全件にライセンスが付いている() {
-        // 同じ json の全件は instrumented 側も見ているが、こちらは GMD を要さず
-        // iOS の CI 段だけでも回る
-        val missing = readLibs().forCurrentPlatform().libraries
-            .filter { it.licenses.isEmpty() }
-            .map { it.uniqueId }
-
-        assertEquals(emptyList(), missing, "ライセンスが空の依存がある")
     }
 }

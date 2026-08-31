@@ -244,5 +244,5 @@
 - 背景: ライセンス一覧の元データは `collect { filterVariants.set(setOf("android")) }` で **Android の classpath だけ**から集めていた。1 つの json を Android と iOS が共有しているので、**iOS でだけ載るものが一覧から落ちる**——欠けていたのは `skiko` / `ui-uikit` / `atomicfu` / `kotlinx-datetime` の 4 件（当初 5 件と数えた `kotlinx-browser` は metadata 解決の混入で、iOS のターゲットには載っていなかった）。単純に絞りを外すと今度は Android の一覧に載らないものが混ざる
 - 経緯: 初回調査では「利用側では回避できない」と判断していったん上流待ちにしたが、同日の再調査で `collect { all = true }` により解決できると判明した（撤回の経緯と実測は log_23 2026-08-31）
 - 対応: 収集を `all = true` ＋ 構成名の名指し（android の compile/runtime と iOS 2 ターゲットの klib）に変え、`includeTargets = true` で全 entry に `targets` を付けた。json は 1 つのまま、`LicenseScreen` が表示時に**実行中のプラットフォームのターゲットで絞る**（`forCurrentPlatform`。`targets` が空の entry は表示に倒す）。配線の詳細は[アーキテクチャ定義書](../仕様/15_アーキテクチャ定義書.md) §6
-- 網: `PlatformLibrariesTest`（commonTest・絞りの規則）／`LicenseLibrariesTest`（instrumented・リソースの中身・Android 側の絞り・画面が絞りを通していること）／`LicenseLibrariesIosTest`（iosTest・iOS 側の絞り）
+- 網: `PlatformLibrariesTest`（commonTest・絞りの規則）／`LicenseLibrariesTest`（instrumented・リソースの中身・画面が絞りを通していること）／`LicenseLibrariesIosTest`（iosTest・iOS 側の絞り）
 - 関連: T-31 のステップ 14 で判明
