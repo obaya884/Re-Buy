@@ -233,7 +233,7 @@
 
 - 背景: iOS で走るテストは Converter の純粋関数だけで、`AppDatabaseConstructor` の `actual` が KSP で生成されているか、`BundledSQLiteDriver` と Documents パスの配線が通るかは**シミュレータで起動するまで分からない**。CLAUDE.md の「Koin は依存グラフをコンパイル時に検証しない」から `KoinModulesTest` / `KoinGraphTest` を置いた理屈が、iOS 側では丸ごと抜けている
 - 対応方針: `shared/data/src/iosTest` に 1 件。`Room.inMemoryDatabaseBuilder<AppDatabase>()`（native にはある。common には無いので `commonTest` には置けない）＋ `BundledSQLiteDriver` で DB を組み、`insertItem` → `getAllItems().first()` の往復を見る。生成 `actual`・driver・`TypeConverters` が本物の SQLite を通ることまで一度に固定できる
-- **結果（2026-08-31）: `shared/data/src/iosTest` に `AppDatabaseIosTest`（2 件）を置いた。** in-memory の Room ＋ `BundledSQLiteDriver` で `insertItem` → `getAllItems()` の往復を見る。値がある場合と `lastBoughtAt` が null の場合を分けたのは、Room が生成する null 分岐が別経路だから（[T-25](./23_技術改善バックログ.md#t-25) の (b) と同じ観点）
-- **本番のパス（`NSDocumentDirectory`）は通っていない。** テストバイナリはアプリのサンドボックスで動かないので、実ファイルを開く経路は**実物のアプリを起動する層**でしか見られない（[T-46](./23_技術改善バックログ.md#t-46)）
+- **結果（2026-08-31）: `shared/data/src/iosTest` に `AppDatabaseIosTest`（3 件）と `DataModuleIosTest`（1 件）を置いた。** 前者は in-memory の Room で往復・`@Relation` の join・null 分岐を、後者は**本番の `dataModule` から `AppDatabase` と DAO が解けること**を見る（クエリは投げない）
+- **残る穴は「本番の DB ファイルを実際に開くこと」だけ**（[T-46](./23_技術改善バックログ.md#t-46)）。本番の DB 設定そのものも守れていない——判断と実測は log_23
 - 優先度の根拠: 段 3 を通して iOS 側は手動確認しか無い。ステップ 15 でシミュレータの往復（カテゴリー追加・削除）が通ることは人の目で見たが、**それを繰り返せる形にはなっていない**
 - 関連: T-31 のステップ 8 のレビューで test-reviewer が指摘。iOS の網という意味では [T-42](./closed_23_技術改善バックログ.md#t-42) と地続き
