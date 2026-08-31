@@ -3,8 +3,10 @@ package io.github.obaya884.rebuy
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import io.github.obaya884.rebuy.data.AppDatabase
 import io.github.obaya884.rebuy.data.category.CategoryDao
+import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.item.ItemDao
 import io.github.obaya884.rebuy.domain.CategoryRepository
+import io.github.obaya884.rebuy.domain.DestinationRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
@@ -41,6 +43,11 @@ class KoinGraphTest {
     }
 
     @Test
+    fun DestinationDaoは1つだけ() {
+        assertSame(koin.get<DestinationDao>(), koin.get<DestinationDao>())
+    }
+
+    @Test
     fun ItemRepositoryは1つだけ() {
         assertSame(koin.get<ItemRepository>(), koin.get<ItemRepository>())
     }
@@ -48,6 +55,11 @@ class KoinGraphTest {
     @Test
     fun CategoryRepositoryは1つだけ() {
         assertSame(koin.get<CategoryRepository>(), koin.get<CategoryRepository>())
+    }
+
+    @Test
+    fun DestinationRepositoryは1つだけ() {
+        assertSame(koin.get<DestinationRepository>(), koin.get<DestinationRepository>())
     }
 
     @Test

@@ -53,11 +53,8 @@ class CategoryEditViewModel(
     }
 
     fun addCategory(newCategoryName: String) {
-        val newCategory = Category(
-            name = newCategoryName,
-        )
         viewModelScope.launch {
-            categoryRepository.insert(newCategory)
+            categoryRepository.insert(newCategoryName)
         }
     }
 

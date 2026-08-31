@@ -25,8 +25,10 @@ class RoomMigrationTest {
 
     @Test
     @Throws(IOException::class)
-    fun migrateAll() {
-        helper.createDatabase(TEST_DB, 2).apply {
+    fun 最新スキーマでDBを開ける() {
+        // ④ の実装中は Migration を書かず入れ直すので、ここは最新版を開けることだけを見る。
+        // MVP 投入後は version ごとの Migration とそのテストが要る（データモデル定義書 §8）
+        helper.createDatabase(TEST_DB, 3).apply {
             close()
         }
 

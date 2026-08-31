@@ -1,8 +1,10 @@
 package io.github.obaya884.rebuy.data
 
 import androidx.room.Room
+import androidx.sqlite.SQLiteException
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import io.github.obaya884.rebuy.data.category.Category
+import io.github.obaya884.rebuy.data.destination.Destination
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import kotlinx.coroutines.Dispatchers
@@ -12,6 +14,7 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.time.Instant
 
@@ -48,15 +51,31 @@ class AppDatabaseIosTest {
     /** 生成時刻を固定して、`Instant` の往復を値で確かめられるようにする。 */
     private val createdAt = Instant.parse("2026-01-01T00:00:00Z")
 
+    private fun destination(name: String, sortOrder: Int = 1) = Destination(
+        name = name,
+        sortOrder = sortOrder,
+        createdAt = createdAt,
+        updatedAt = createdAt
+    )
+
+    private fun category(name: String, sortOrder: Int = 1) = Category(
+        name = name,
+        sortOrder = sortOrder,
+        createdAt = createdAt,
+        updatedAt = createdAt
+    )
+
     private fun item(
         name: String,
         status: ItemStatus = ItemStatus.NO_DEAL,
         categoryId: Int? = null,
+        destinationId: Int? = null,
         lastBoughtAt: Instant? = null
     ) = Item(
         name = name,
         status = status,
         categoryId = categoryId,
+        destinationId = destinationId,
         lastBoughtAt = lastBoughtAt,
         createdAt = createdAt,
         updatedAt = createdAt
@@ -117,9 +136,7 @@ class AppDatabaseIosTest {
         val itemDao = database.itemDao()
         val categoryDao = database.categoryDao()
 
-        val categoryId = categoryDao.insert(
-            Category(name = "カテゴリー1", createdAt = createdAt, updatedAt = createdAt)
-        ).toInt()
+        val categoryId = categoryDao.insert(category(name = "カテゴリー1")).toInt()
         itemDao.insertItem(item(name = "アイテム1", categoryId = categoryId))
         itemDao.insertItem(item(name = "アイテム2"))
 
@@ -128,5 +145,113 @@ class AppDatabaseIosTest {
         assertEquals("カテゴリー1", stored.getValue("アイテム1").category?.name)
         // カテゴリーが無い側は null で返る。@Relation の非マッチ経路
         assertNull(stored.getValue("アイテム2").category)
+    }
+
+    /**
+     * 並び順が本物の SQL で効くこと（`ORDER BY sortOrder, id` と
+     * `COALESCE(MAX(sortOrder), 0)`）。1 件も無いときに 0 を返すのは、
+     * Repository が末尾の採番に使う（データモデル定義書 §6）。
+     *
+     * **同値のタイブレーク（`, id`）はここでは守れない。** 落として実測しても素通りする——
+     * SQLite が返す順が rowid 昇順＝ id 昇順とたまたま一致するため。**観測できる網は
+     * `FakeDatabaseTest` の「並び順が同値なら登録順で割る」だけ**で、SQL 側の `, id` は
+     * 順序を実装依存にしないための明示的な契約として書いてある。
+     */
+    @Test
+    fun 行き先は並び順で返る() = runBlocking {
+        val dao = database.destinationDao()
+        assertEquals(0, dao.maxSortOrder())
+
+        dao.insert(destination(name = "行き先1", sortOrder = 2))
+        dao.insert(destination(name = "行き先2", sortOrder = 1))
+        dao.insert(destination(name = "行き先3", sortOrder = 1))
+
+        assertEquals(
+            listOf("行き先2", "行き先3", "行き先1"),
+            dao.getAllDestinations().first().map { it.name }
+        )
+        assertEquals(2, dao.maxSortOrder())
+    }
+
+    /** カテゴリーは行き先と同型だが、`ORDER BY` は DAO ごとに書くので別に見る。 */
+    @Test
+    fun カテゴリーは並び順で返る() = runBlocking {
+        val dao = database.categoryDao()
+        assertEquals(0, dao.maxSortOrder())
+
+        dao.insert(category(name = "カテゴリー1", sortOrder = 2))
+        dao.insert(category(name = "カテゴリー2", sortOrder = 1))
+
+        assertEquals(
+            listOf("カテゴリー2", "カテゴリー1"),
+            dao.getAllCategories().first().map { it.name }
+        )
+        assertEquals(2, dao.maxSortOrder())
+    }
+
+    /**
+     * 名前の UNIQUE インデックスと `ABORT`（理由は `ItemDao.insertItem`）が本物の SQL で
+     * 効くこと。`onConflict` は生成される DAO のコードにしか出ず、**スキーマ JSON にも
+     * `RoomMigrationTest` にも現れない**ので、3 テーブルとも実物で見る。
+     */
+    @Test
+    fun 同じ名前の行き先は入らない() = runBlocking {
+        val dao = database.destinationDao()
+        dao.insert(destination(name = "行き先1"))
+
+        assertFailsWith<SQLiteException> {
+            dao.insert(destination(name = "行き先1"))
+        }
+        assertEquals(1, dao.getAllDestinations().first().size)
+    }
+
+    @Test
+    fun 同じ名前のカテゴリーは入らない() = runBlocking {
+        val dao = database.categoryDao()
+        dao.insert(category(name = "カテゴリー1"))
+
+        assertFailsWith<SQLiteException> {
+            dao.insert(category(name = "カテゴリー1"))
+        }
+        assertEquals(1, dao.getAllCategories().first().size)
+    }
+
+    /**
+     * 品目では最終購入日まで見る。**`REPLACE` だと 2 回目の登録が既存の行を消して
+     * 最終購入日が失われる**——常駐と最終購入日がこのアプリの芯なので、ここがいちばん痛い。
+     */
+    @Test
+    fun 同じ名前の品目は入らず最終購入日も残る() = runBlocking {
+        val dao = database.itemDao()
+        val boughtAt = Instant.parse("2026-01-02T03:04:05Z")
+        dao.insertItem(item(name = "アイテム1", lastBoughtAt = boughtAt))
+
+        assertFailsWith<SQLiteException> {
+            dao.insertItem(item(name = "アイテム1"))
+        }
+
+        val stored = dao.getAllItems().first().single()
+        assertEquals(boughtAt, stored.lastBoughtAt)
+    }
+
+    /**
+     * 行き先を消すと、それを指していた品目が「どこでも買えるもの」に戻ること
+     * （外部キーの `SET_NULL`。データモデル定義書 §7）。
+     *
+     * **native の driver で外部キー制約が効いているかを見る唯一のテスト**でもある（T-49）。
+     * 効いていなければ消えた行き先の id が品目に残り、どの買い物モードにも出てこなくなる。
+     */
+    @Test
+    fun 行き先を消しても品目は残る() = runBlocking {
+        val destinationDao = database.destinationDao()
+        val itemDao = database.itemDao()
+        val destinationId = destinationDao.insert(destination(name = "行き先1")).toInt()
+        itemDao.insertItem(item(name = "アイテム1", destinationId = destinationId))
+
+        destinationDao.delete(destinationDao.getAllDestinations().first().single())
+
+        val stored = itemDao.getAllItems().first().single()
+        assertEquals("アイテム1", stored.name)
+        assertNull(stored.destinationId)
     }
 }
