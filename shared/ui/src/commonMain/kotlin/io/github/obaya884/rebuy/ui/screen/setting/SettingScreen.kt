@@ -50,6 +50,10 @@ fun SettingScreen(
             SettingScreenItem("利用規約") { }
             // プライバシーポリシー
             SettingScreenItem("プライバシーポリシー") { }
+            // 暫定: カテゴリの管理（09）は F-012。プールのアプリバーから外したのでここに置く
+            SettingScreenItem(stringResource(Res.string.setting_row_category_edit)) {
+                navigator.navigate(Screen.CategoryEdit)
+            }
             // テーマ
             SettingScreenItem(stringResource(Res.string.theme_title)) {
                 navigator.navigate(Screen.Theme)

@@ -117,7 +117,7 @@ class ThemeIosTest {
         startTestKoin()
         setContent { ReBuyApp() }
 
-        onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         onNodeWithText("テーマ").performClick()
 
         onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("テーマ")

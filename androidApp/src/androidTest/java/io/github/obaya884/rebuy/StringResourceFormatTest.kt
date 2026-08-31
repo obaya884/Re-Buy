@@ -32,24 +32,24 @@ class StringResourceFormatTest {
     @Test
     fun 改行のエスケープが実際の改行になる() {
         assertEquals(
-            "アイテムが登録されていません。\nアイテム一覧からアイテムを登録してください。",
-            string(Res.string.home_no_item_message_all)
-        )
-        assertEquals(
-            "このカテゴリーにアイテムが登録されていません。\nアイテム一覧からアイテムを登録してください。",
-            string(Res.string.home_no_item_message_category)
-        )
-        assertEquals(
-            "買い物リストにアイテムがありません。\nアイテムを追加してください。",
-            string(Res.string.home_no_item_message_in_basket)
+            "カテゴリAを削除しますか？\nこのカテゴリに設定されたアイテムのカテゴリは未設定になります。",
+            string(Res.string.category_edit_delete_dialog_message, "カテゴリA")
         )
     }
 
     @Test
     fun 位置指定の引数が差し込まれる() {
         assertEquals(
-            "最終購入：2026/08/29",
-            string(Res.string.home_last_bought_at, "2026/08/29")
+            "前回 8/29",
+            string(Res.string.pool_last_bought_at, "8/29")
+        )
+        assertEquals(
+            "全 12 件",
+            string(Res.string.pool_total_count, "12")
+        )
+        assertEquals(
+            "🏬 スーパー",
+            string(Res.string.pool_destination_prefix, "スーパー")
         )
         assertEquals(
             "アイテムAを削除しますか？",
