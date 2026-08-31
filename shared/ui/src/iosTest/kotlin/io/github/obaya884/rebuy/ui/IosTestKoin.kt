@@ -7,59 +7,47 @@ import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
 
 /**
- * `iosTest` が画面を描くときに使う DAO。**Room の代わりにこれを Koin へ差し込む**ので、
- * テストは 1 度もファイルを触らない。品目を置きたいテストは `seed(...)` を呼ぶ。
+ * 画面を描くテストが使う DAO の中身。**書き込みはテストの `prepare` からだけ行う。**
+ *
+ * `single` は最初の解決で 1 度だけ評価されてキャッシュされるので、Koin へ渡す実体は
+ * プロセスに 1 つしか置けない。テストごとの独立は [startTestKoin] の戻しで作る。
  */
 val fakeDatabase = FakeDatabase()
 
 /**
- * `iosTest` の Koin を用意する。**プロセスにつき 1 回だけ起動し、止めない。**
+ * テスト用の Koin を用意し、[fakeDatabase] を空へ戻してから [prepare] を適用する。
  *
- * 止めると 2 件目以降のテストが `ClosedScopeException` で落ちる——一度掴んだ root scope が
- * プロセス単位でキャッシュされるので、閉じると以後の composition が巻き添えになる
- * （実測。単独実行では通り、続けて走らせると落ちる）。**`stopKoin()` を呼ばないこと。**
+ * **Koin はプロセスにつき 1 回だけ起動し、止めない。** 止めると 2 件目以降が
+ * `ClosedScopeException` で落ちる——一度掴んだ root scope がプロセス単位でキャッシュされ、
+ * 閉じると以後の composition が巻き添えになる。**`stopKoin()` を呼ばないこと。**
  *
- * ### DAO を差し替える理由
+ * **画面が composition に入る前に呼ぶこと。** DAO の差し替えは `loadModules` で行うが、
+ * `AppDatabase` → DAO → Repository はすべて `single` なので、**上書きは「これから作るもの」に
+ * しか効かない**。composition が走った後では Repository が本物の DAO を掴んだままになる。
+ * **この順序はテストで守れていない**——`setContent` は即座に composition を走らせないので、
+ * 後ろで呼んでも現状は間に合ってしまう（変異で実測）。`setContent` の前に置くのは約束事。
  *
- * 本番の `platformDataModule` は `NSDocumentDirectory` の**実ファイル**に DB を作る。
- * これをそのまま使うと 2 つ困る。
+ * DAO を差し替えるのは、本番が `NSDocumentDirectory` の実ファイルに DB を作るため
+ * （新品のシミュレータでは開けず、実行と実行の間にも状態が残る。経緯は T-48）。
+ * **iOS で本物の Room が動くことは `:shared:data` の iosTest が見る**（T-35）。
  *
- * 1. **新品のシミュレータでは開けない。** テストバイナリはアプリのサンドボックスではなく
- *    シミュレータ共有のデータ領域で動くので、`data/Documents` が存在しないことがある。
- *    CI（macOS ランナーの新品シミュレータ）で実際に全件 `Unable to open database` で落ちた
- * 2. **実行と実行の間にも状態が残る。** 1 本のファイルを共有するので、書き込むテストを
- *    足した瞬間に次回の実行へ漏れる
- *
- * **iOS で本物の Room が動くことは、ここではなく `:shared:data` の iosTest が見る**（T-35）。
- * 画面遷移のテストがそこまで抱える必要は無い。
- *
- * ### 差し替えの順序が効く
- *
- * `single` は一度作ったら使い回されるので、**上書きは「これから作るもの」にしか効かない**。
- * `AppDatabase` → DAO → Repository はすべて `single` なので、画面を 1 度でも描いた後に
- * 差し替えても、Repository は古い DAO を掴んだままになる。**この関数が `setContent` より
- * 前に呼ばれること**が、差し替えが効く条件。
- *
- * `allowOverride = true` を渡せるのは `startKoin` の外だから。本番の
- * [initKoin] は `allowOverride(false)` のままで、**そちらの方針は緩めていない**。
+ * **`dataModule` に DAO を足したらここにも足すこと。** 差し替え漏れた DAO は本物の Room を
+ * 起こすので、手元では黙って実ファイルを使い、CI だけが落ちる。
  */
-fun ensureKoinStarted() {
-    // 「誰かが起動していれば何でもよい」判定になっている。いまは iosTest で Koin を触るのが
-    // ここだけなので成立するが、触る側が増えたら先に走ったほうの構成を黙って使うことになる。
-    //
-    // `:androidApp` の KoinGraphTest は GlobalContext を使っているが、**あれは JVM 専用**で
-    // Kotlin/Native からは解決できない（実測）。KMP で同じ判定をするのはこちら
-    val context = KoinPlatformTools.defaultContext()
-    if (context.getOrNull() != null) return
-
-    initKoin()
-    context.get().loadModules(
-        listOf(
-            module {
-                single<ItemDao> { fakeDatabase.itemDao }
-                single<CategoryDao> { fakeDatabase.categoryDao }
-            }
-        ),
-        allowOverride = true
-    )
+fun startTestKoin(prepare: FakeDatabase.() -> Unit = {}) {
+    // 起動済みなら差し替えは済んでいる。`allowOverride = true` を渡せるのは startKoin の外
+    // だからで、本番の initKoin は allowOverride(false) のまま触っていない
+    if (KoinPlatformTools.defaultContext().getOrNull() == null) {
+        initKoin().koin.loadModules(
+            listOf(
+                module {
+                    single<ItemDao> { fakeDatabase.itemDao }
+                    single<CategoryDao> { fakeDatabase.categoryDao }
+                }
+            ),
+            allowOverride = true
+        )
+    }
+    fakeDatabase.seed()
+    fakeDatabase.prepare()
 }

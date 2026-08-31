@@ -12,11 +12,14 @@ import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.resources.category_edit_title
 import io.github.obaya884.rebuy.ui.resources.home_no_item_button
 import io.github.obaya884.rebuy.ui.resources.home_no_item_message_all
+import io.github.obaya884.rebuy.ui.resources.home_remove_item_button
+import io.github.obaya884.rebuy.ui.resources.home_remove_item_button_from_shopping_list
 import io.github.obaya884.rebuy.ui.resources.home_title
 import io.github.obaya884.rebuy.ui.resources.item_edit_title
 import io.github.obaya884.rebuy.ui.resources.setting_title
 import io.github.obaya884.rebuy.ui.resources.shopping_title
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
+import io.github.obaya884.rebuy.ui.screen.home.HomeTab
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -25,27 +28,14 @@ import kotlin.test.Test
 /**
  * iOS 側の画面遷移の特性テスト。**Android の `NavigationTest` に対応する iOS の網**。
  *
- * **`commonTest` には置けない**（素の JVM で実行されて落ちる）。理由は
- * [テスト戦略定義書](../../../../../../../../docs/仕様/17_テスト戦略定義書.md) §1。
+ * **`commonTest` には置けない**（素の JVM で実行されて落ちる）。理由と、この網が見ない範囲は
+ * [テスト戦略定義書](../../../../../../../../docs/仕様/17_テスト戦略定義書.md) §1 と §6。
  *
- * ### Android 版との差
+ * **端末の戻るを踏む Android 版の 6 件は持たない**（iOS にハードウェアの戻るが無いため）。
+ * 代わりに戻る矢印で 2 段降りる 1 件を持つ。
  *
- * **端末の戻るを踏む 6 件は持たない。** iOS にハードウェアの戻るが無いため。
- * 代わりに戻る矢印で 2 段降りる 1 件を持つ（Android 版の「1 段ずつ帰る」に対応）。
- *
- * ### DB
- *
- * **本物の Room は使わない。** [ensureKoinStarted] が DAO を [FakeDatabase] に差し替えるので、
- * 各テストは空から始まり、品目が要るなら `prepare` で置く。
- * **iOS で本物の Room が動くことは `:shared:data` の iosTest が見る**（T-35）。
- *
- * ### この網が見ないもの
- *
- * **実物の `.app` を起動しない**ので Swift の起動経路と `.app` への同梱は見ない（T-46）。
- * **ライセンス画面はタイトルまで**——一覧の中身は非同期に読むので、Android の
- * `LicenseLibrariesTest` にあたるものが iOS に要る（T-39）。
- * **カゴタブの行は踏んでいない**——`HomeListItemRow` は「すべて」タブでしか通しておらず、
- * 落とし穴 22 の 3 か所目（`tab == HomeTab.InBasket` の分岐）はまだ未検証（T-41）。
+ * DB は [startTestKoin] が [FakeDatabase] に差し替える。**品目を置くテストを先に宣言している**
+ * のは、後続の空状態テストが「毎回空へ戻る」ことの観測者になるため。
  */
 @OptIn(ExperimentalTestApi::class)
 class NavigationIosTest {
@@ -60,23 +50,22 @@ class NavigationIosTest {
     private val categoryEditTitle = string(Res.string.category_edit_title)
     private val noItemMessage = string(Res.string.home_no_item_message_all)
     private val noItemButton = string(Res.string.home_no_item_button)
+    private val removeLabel = string(Res.string.home_remove_item_button)
+    private val removeFromListLabel = string(Res.string.home_remove_item_button_from_shopping_list)
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
 
-    /**
-     * [ReBuyApp] を描いて [block] を実行する。起動と DAO の差し替えは [ensureKoinStarted]。
-     *
-     * **毎回 [FakeDatabase] を空に戻してから [prepare] を適用する。** Koin をプロセスにつき
-     * 1 回しか起動しないので fake もテスト間で共有され、戻さないと前のテストの品目が残る。
-     */
+    /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
+    private fun oneItem(status: ItemStatus): FakeDatabase.() -> Unit =
+        { seed(items = listOf(item(id = 1, name = "アイテム1", status = status))) }
+
+    /** [ReBuyApp] を描いて [block] を実行する。Koin と DB の用意は [startTestKoin]。 */
     private fun app(
         prepare: FakeDatabase.() -> Unit = {},
         block: ComposeUiTest.() -> Unit
     ) = runComposeUiTest {
-        ensureKoinStarted()
-        fakeDatabase.seed()
-        fakeDatabase.prepare()
+        startTestKoin(prepare)
         setContent { ReBuyApp() }
         block()
     }
@@ -104,6 +93,33 @@ class NavigationIosTest {
         assertCurrentScreenIs(homeTitle)
     }
 
+    /**
+     * 品目があるときは空状態ではなく行が出る。
+     *
+     * `IN_SHOPPING_LIST` なのは、`NO_DEAL` だと行のボタンが「リストに追加」側へ分岐して
+     * タブによる出し分けに到達しないため。**その選択を [removeLabel] の assert で固定している。**
+     */
+    @Test
+    fun 品目があるホームは空状態ではなく行を出す() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
+        onNodeWithText("アイテム1").assertExists()
+        onNodeWithText(removeLabel).assertExists()
+        onNodeWithText(noItemMessage).assertDoesNotExist()
+        onNodeWithText(noItemButton).assertDoesNotExist()
+    }
+
+    /**
+     * カゴタブでは行のボタンの文言が変わる。
+     *
+     * **`HomeListItemRow` のタブ分岐を通す唯一の経路。** ここを assert しないと、
+     * 分岐が壊れても行そのものは出るので気づけない。
+     */
+    @Test
+    fun カゴタブの行はリストから削除を出す() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
+        onNodeWithText(HomeTab.InBasket.title).performClick()
+        onNodeWithText(removeFromListLabel).assertExists()
+        onNodeWithText(removeLabel).assertDoesNotExist()
+    }
+
     @Test
     fun 品目が無いホームは空状態の文言とボタンを出す() = app {
         onNodeWithText(noItemMessage).assertExists()
@@ -114,20 +130,6 @@ class NavigationIosTest {
     fun 空状態のボタンからアイテム一覧へ遷移する() = app {
         onNodeWithText(noItemButton).performClick()
         assertCurrentScreenIs(itemEditTitle)
-    }
-
-    /**
-     * 品目があるときは行が出る。**iOS で `HomeListItemRow` を通す唯一のテスト。**
-     *
-     * 空状態の裏返しであると同時に、[ensureKoinStarted] の差し替えが効いていることの証明でもある
-     * （fake に置いた品目が画面に出るなら、本番の DB ではなく fake を見ている）。
-     */
-    @Test
-    fun 品目があるホームは空状態ではなく行を出す() = app(
-        prepare = { seed(items = listOf(item(id = 1, name = "アイテム1", status = ItemStatus.IN_SHOPPING_LIST))) }
-    ) {
-        onNodeWithText("アイテム1").assertExists()
-        onNodeWithText(noItemMessage).assertDoesNotExist()
     }
 
     @Test
