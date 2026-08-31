@@ -7,6 +7,8 @@ import androidx.room.RoomDatabaseConstructor
 import androidx.room.TypeConverters
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.category.CategoryDao
+import io.github.obaya884.rebuy.data.destination.Destination
+import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemDao
 
@@ -14,8 +16,8 @@ import io.github.obaya884.rebuy.data.item.ItemDao
 internal const val APP_DATABASE_NAME = "app_database"
 
 @Database(
-    entities = [Item::class, Category::class],
-    version = 2,
+    entities = [Item::class, Category::class, Destination::class],
+    version = 3,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class, ItemStatusConverter::class)
@@ -23,6 +25,7 @@ internal const val APP_DATABASE_NAME = "app_database"
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
     abstract fun categoryDao(): CategoryDao
+    abstract fun destinationDao(): DestinationDao
 }
 
 /**

@@ -1,6 +1,7 @@
 package io.github.obaya884.rebuy.data
 
 import io.github.obaya884.rebuy.data.category.CategoryDao
+import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.di.dataModule
 import io.github.obaya884.rebuy.data.item.ItemDao
 import org.koin.dsl.koinApplication
@@ -43,6 +44,7 @@ class DataModuleIosTest {
             assertSame(database, app.koin.get<AppDatabase>())
             assertSame(app.koin.get<ItemDao>(), app.koin.get<ItemDao>())
             assertSame(app.koin.get<CategoryDao>(), app.koin.get<CategoryDao>())
+            assertSame(app.koin.get<DestinationDao>(), app.koin.get<DestinationDao>())
         } finally {
             app.close()
         }

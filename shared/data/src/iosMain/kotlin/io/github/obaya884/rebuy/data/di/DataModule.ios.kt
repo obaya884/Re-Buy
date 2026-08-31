@@ -23,6 +23,9 @@ private fun createAppDatabase(): AppDatabase =
     Room.databaseBuilder<AppDatabase>(name = databaseFilePath())
         .setDriver(BundledSQLiteDriver())
         .setQueryCoroutineContext(Dispatchers.IO)
+        // ④ の実装中は Migration を書かず入れ直す（データモデル定義書 §8）。
+        // **MVP 投入前に外す**（T-51）。外し忘れると本番でデータが消える
+        .fallbackToDestructiveMigration(dropAllTables = true)
         .build()
 
 /**

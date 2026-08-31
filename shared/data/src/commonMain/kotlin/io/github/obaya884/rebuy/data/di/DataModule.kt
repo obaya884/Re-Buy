@@ -16,4 +16,5 @@ val dataModule = module {
     // DAO は DB ごとに 1 つの実体を使い回す
     single { get<AppDatabase>().itemDao() }
     single { get<AppDatabase>().categoryDao() }
+    single { get<AppDatabase>().destinationDao() }
 }

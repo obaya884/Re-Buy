@@ -33,6 +33,14 @@ class ItemRepository(private val itemDao: ItemDao) {
         )
     }
 
+    /** null は「どこでも買えるもの」。 */
+    suspend fun updateDestination(id: Int, newDestinationId: Int?) {
+        itemDao.updateItemDestinationId(
+            itemId = id,
+            newDestinationId = newDestinationId
+        )
+    }
+
     suspend fun updateStatusAsNoDeal(item: Item) {
         if (item.status == ItemStatus.NO_DEAL) return
 
