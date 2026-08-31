@@ -34,12 +34,16 @@ class ThemeTest {
         assertEquals(ThemePalette.AI, repository.palette.first())
     }
 
+    /** 3 値とも「選ぶ → 保存 → 次の起動で読む」が往復すること。 */
     @Test
-    fun 選ぶとその場で流れて保存もされる() = runTest {
-        repository.select(ThemePalette.KAKI)
+    fun 選ぶとその場で流れて次の起動でも同じ() = runTest {
+        ThemePalette.entries.forEach { palette ->
+            repository.select(palette)
 
-        assertEquals(ThemePalette.KAKI, repository.palette.first())
-        assertEquals("KAKI", store.getString(key))
+            assertEquals(palette, repository.palette.first())
+            assertEquals(palette.name, store.getString(key))
+            assertEquals(palette, ThemeRepository(store).palette.first())
+        }
     }
 
     @Test
@@ -69,11 +73,25 @@ class ThemeTest {
         assertEquals(Color(0xFFE2E9F4), colors.accentSoft)
     }
 
+    /** 6 通りが互いに別物であること。**若葉と柿の暗いほうはここでしか評価されない。** */
     @Test
-    fun パレットごとにアクセントが違う() {
-        val accents = ThemePalette.entries.map { reBuyColors(it, darkTheme = false).accent }
+    fun パレットと明暗の6通りがすべて別物() {
+        val all = listOf(false, true).flatMap { dark ->
+            ThemePalette.entries.map { reBuyColors(it, dark) }
+        }
 
-        assertEquals(accents.size, accents.toSet().size)
+        assertEquals(all.size, all.toSet().size)
+    }
+
+    @Test
+    fun パレットごとに面とアクセントが違う() {
+        listOf(false, true).forEach { dark ->
+            val colors = ThemePalette.entries.map { reBuyColors(it, dark) }
+
+            assertEquals(3, colors.map { it.page }.toSet().size)
+            assertEquals(3, colors.map { it.accent }.toSet().size)
+            assertEquals(3, colors.map { it.accentSoft }.toSet().size)
+        }
     }
 
     @Test
@@ -90,11 +108,33 @@ class ThemeTest {
     /** 文字色・危険色はパレットで変わらない（画面定義書 §5 の「共通トークン」）。 */
     @Test
     fun 共通トークンはパレットで変わらない() {
-        val ai = reBuyColors(ThemePalette.AI, darkTheme = false)
-        val kaki = reBuyColors(ThemePalette.KAKI, darkTheme = false)
+        listOf(false, true).forEach { dark ->
+            val byPalette = ThemePalette.entries.map { reBuyColors(it, dark) }
 
-        assertEquals(ai.ink, kaki.ink)
-        assertEquals(ai.muted, kaki.muted)
-        assertEquals(ai.danger, kaki.danger)
+            assertEquals(1, byPalette.map { it.ink }.toSet().size)
+            assertEquals(1, byPalette.map { it.muted }.toSet().size)
+            assertEquals(1, byPalette.map { it.danger }.toSet().size)
+            assertEquals(1, byPalette.map { it.scrim }.toSet().size)
+        }
+    }
+
+    /**
+     * 共通トークンの値そのもの。**全画面の文字色がここで決まる**ので、8 値とも固定する
+     * （パレット別の 42 値は上の関係性で見る）。
+     */
+    @Test
+    fun 共通トークンは画面定義書の値() {
+        val light = reBuyColors(ThemePalette.AI, darkTheme = false)
+        val dark = reBuyColors(ThemePalette.AI, darkTheme = true)
+
+        assertEquals(Color(0xFF232B21), light.ink)
+        assertEquals(Color(0xFFE7ECE1), dark.ink)
+        assertEquals(Color(0xFF6E7767), light.muted)
+        assertEquals(Color(0xFF9BA492), dark.muted)
+        assertEquals(Color(0xFFA8402E), light.danger)
+        assertEquals(Color(0xFFE08A77), dark.danger)
+        // 幕は rgba 指定。0-1 に写したものを見る
+        assertEquals(Color(0.118f, 0.141f, 0.110f, 0.45f), light.scrim)
+        assertEquals(Color(0.020f, 0.031f, 0.016f, 0.55f), dark.scrim)
     }
 }

@@ -1,7 +1,9 @@
 package io.github.obaya884.rebuy.ui
 
 import io.github.obaya884.rebuy.data.category.CategoryDao
+import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.item.ItemDao
+import io.github.obaya884.rebuy.data.settings.SettingsStore
 import org.koin.mp.KoinPlatformTools
 import kotlin.test.Test
 import kotlin.test.assertSame
@@ -21,5 +23,17 @@ class IosTestKoinTest {
         val koin = KoinPlatformTools.defaultContext().get()
         assertSame(fakeDatabase.itemDao, koin.get<ItemDao>())
         assertSame(fakeDatabase.categoryDao, koin.get<CategoryDao>())
+        assertSame(fakeDatabase.destinationDao, koin.get<DestinationDao>())
+    }
+
+    /**
+     * 設定値の置き場も fake であること。**外れると本物の `NSUserDefaults` に書かれ、
+     * 選んだテーマがシミュレータに残って以後のテストが実行順で結果を変える。**
+     */
+    @Test
+    fun 差し替えた後にKoinから引ける設定の置き場はfakeのもの() {
+        startTestKoin()
+
+        assertSame(fakeSettingsStore, KoinPlatformTools.defaultContext().get().get<SettingsStore>())
     }
 }

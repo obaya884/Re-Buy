@@ -19,6 +19,10 @@ val fakeDatabase = FakeDatabase()
 /**
  * 設定値の置き場も差し替える。本番は `NSUserDefaults` なので、**差し替えないと選んだテーマが
  * シミュレータに残り**、テストの実行順で結果が変わる。
+ *
+ * **戻せるのは保存先までで、`ThemeRepository` が読み終えた値は戻らない**（`single` が
+ * プロセスに 1 つで、生成時に 1 度だけ読む）。選択に依存するテストは**事前状態を自分で
+ * assert すること**。
  */
 val fakeSettingsStore = FakeSettingsStore()
 

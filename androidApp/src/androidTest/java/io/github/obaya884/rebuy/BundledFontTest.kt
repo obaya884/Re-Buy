@@ -15,7 +15,10 @@ import org.junit.runner.RunWith
  * 見た目だけが変わる**。③ の段 3 で踏んだ「Compose Resources が assets ごと消える」事故と
  * 同じ形なので、`LicenseLibrariesTest` と同じくリソースの実在をここで押さえる。
  *
- * ライセンス（OFL-1.1）の一覧への掲載は `LicenseLibrariesTest` が見る。
+ * **ライセンス本文の同梱もここで見る。** OFL-1.1 は「フォントと一緒にライセンスを配ること」を
+ * 条件にしているので、APK に載っていること自体が守るべき対象。一覧への掲載（名前と id）は
+ * `LicenseLibrariesTest` が見る。**一覧に本文は入らない**（AboutLibraries は全ライセンスで
+ * 本文を持たない）ので、表示まで届けるのは別の案件（T-53）。
  */
 @RunWith(AndroidJUnit4::class)
 class BundledFontTest {
@@ -32,7 +35,7 @@ class BundledFontTest {
     }
 
     @Test
-    fun ライセンス文が同梱されている() {
+    fun ライセンス本文がAPKに載っている() {
         val text = runBlocking { Res.readBytes(LICENSE_PATH).decodeToString() }
 
         assertTrue("OFL の本文が入っていない", "SIL OPEN FONT LICENSE" in text.uppercase())

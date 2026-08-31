@@ -61,7 +61,7 @@ private val LocalReBuyColors = staticCompositionLocalOf {
  * 危険色の上に載る文字（表に無いので [ReBuyColors.onAccent] を流用）、`onSurfaceVariant` は
  * 選択面の上の補助文字（[ReBuyColors.muted]）。**新しい画面はこれらではなくトークンを直に引く。**
  */
-private fun ReBuyColors.toColorScheme(): ColorScheme {
+internal fun ReBuyColors.toColorScheme(): ColorScheme {
     val base = if (isDark) darkColorScheme() else lightColorScheme()
     return base.copy(
         primary = accent,

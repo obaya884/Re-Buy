@@ -8,6 +8,7 @@ import io.github.obaya884.rebuy.data.item.ItemDao
 import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.domain.DestinationRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
+import io.github.obaya884.rebuy.domain.ThemeRepository
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test
@@ -60,6 +61,12 @@ class KoinGraphTest {
     @Test
     fun DestinationRepositoryは1つだけ() {
         assertSame(koin.get<DestinationRepository>(), koin.get<DestinationRepository>())
+    }
+
+    /** factory に取り違えると、画面と `ReBuyApp` が別の実体を見てテーマが反映されない。 */
+    @Test
+    fun ThemeRepositoryは1つだけ() {
+        assertSame(koin.get<ThemeRepository>(), koin.get<ThemeRepository>())
     }
 
     @Test
