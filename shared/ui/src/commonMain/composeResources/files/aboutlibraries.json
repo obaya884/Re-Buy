@@ -23,6 +23,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -48,6 +51,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -73,6 +79,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -98,6 +107,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -123,6 +137,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -148,6 +165,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -173,6 +193,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -195,6 +218,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -217,6 +243,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -239,6 +268,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -264,6 +296,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -289,6 +326,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -314,6 +354,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -339,6 +382,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -364,6 +410,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -389,6 +438,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -414,6 +466,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -439,6 +494,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -464,6 +522,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -489,6 +550,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -514,6 +580,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -539,6 +610,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -564,6 +640,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -589,6 +670,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -614,6 +698,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -639,6 +726,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -664,6 +754,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -689,6 +782,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -714,6 +810,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -739,6 +838,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -761,6 +863,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -786,6 +891,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -811,6 +919,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -836,6 +947,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -858,6 +972,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -880,6 +997,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -902,6 +1022,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -924,6 +1047,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -946,6 +1072,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -968,6 +1097,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -993,6 +1125,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1018,6 +1153,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1043,6 +1181,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1065,6 +1206,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1090,6 +1234,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1115,6 +1264,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1140,6 +1292,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1165,6 +1320,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1190,6 +1348,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1215,6 +1376,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1240,6 +1404,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1265,6 +1434,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1290,6 +1464,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1315,6 +1492,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1340,6 +1522,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1365,6 +1552,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1390,6 +1580,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1415,6 +1610,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1437,6 +1637,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1462,6 +1665,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1487,6 +1695,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1512,6 +1723,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1537,6 +1753,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1562,6 +1783,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1584,6 +1808,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1609,6 +1836,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1634,6 +1866,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1659,6 +1896,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1684,6 +1926,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1709,6 +1956,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1734,6 +1984,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1759,6 +2014,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1784,6 +2044,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -1806,6 +2071,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1828,6 +2096,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1850,6 +2121,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1872,6 +2146,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1894,6 +2171,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1916,6 +2196,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1941,6 +2224,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1966,6 +2252,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -1989,6 +2278,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2012,6 +2306,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2035,6 +2334,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2059,6 +2363,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -2082,6 +2389,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2105,6 +2417,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2128,6 +2445,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2150,6 +2472,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -2172,6 +2497,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2194,6 +2524,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2216,6 +2551,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2238,6 +2578,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2260,6 +2605,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2284,6 +2634,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2308,6 +2663,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2332,6 +2692,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2356,6 +2721,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2380,6 +2750,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2404,6 +2779,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2428,6 +2808,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2452,6 +2837,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2476,6 +2866,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2500,6 +2895,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2524,6 +2924,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2548,6 +2953,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2572,6 +2982,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2596,6 +3011,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2620,6 +3040,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2644,6 +3069,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2668,6 +3098,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2692,6 +3127,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2716,6 +3156,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2740,6 +3185,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2764,6 +3214,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2788,6 +3243,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2812,6 +3272,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2836,6 +3301,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2860,6 +3330,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2884,6 +3359,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2908,6 +3388,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2932,6 +3417,39 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
+            ]
+        },
+        {
+            "uniqueId": "org.jetbrains.compose.ui:ui-uikit",
+            "artifactVersion": "1.12.0",
+            "name": "Compose UIKit",
+            "description": "Internal iOS UIKit utilities including Objective-C library.",
+            "website": "https://github.com/JetBrains/compose-multiplatform",
+            "developers": [
+                {
+                    "name": "Compose Multiplatform Team",
+                    "organisationUrl": "https://www.jetbrains.com"
+                }
+            ],
+            "scm": {
+                "connection": "scm:git:https://github.com/JetBrains/compose-multiplatform.git",
+                "developerConnection": "scm:git:https://github.com/JetBrains/compose-multiplatform.git",
+                "url": "https://github.com/JetBrains/compose-multiplatform"
+            },
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "funding": [
+                
+            ],
+            "targets": [
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2956,6 +3474,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -2980,6 +3503,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -3004,6 +3532,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -3028,6 +3561,35 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
+            ]
+        },
+        {
+            "uniqueId": "org.jetbrains.kotlinx:atomicfu",
+            "artifactVersion": "0.28.0",
+            "name": "atomicfu",
+            "description": "AtomicFU utilities",
+            "website": "https://github.com/Kotlin/kotlinx.atomicfu",
+            "developers": [
+                {
+                    "name": "JetBrains Team",
+                    "organisationUrl": "https://www.jetbrains.com"
+                }
+            ],
+            "scm": {
+                "url": "https://github.com/Kotlin/kotlinx.atomicfu"
+            },
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "funding": [
+                
+            ],
+            "targets": [
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -3050,6 +3612,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -3072,6 +3637,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -3094,6 +3662,37 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
+            ]
+        },
+        {
+            "uniqueId": "org.jetbrains.kotlinx:kotlinx-datetime",
+            "artifactVersion": "0.7.1",
+            "name": "kotlinx-datetime",
+            "description": "Kotlin Datetime Library",
+            "website": "https://github.com/Kotlin/kotlinx-datetime",
+            "developers": [
+                {
+                    "name": "JetBrains Team",
+                    "organisationUrl": "https://www.jetbrains.com"
+                }
+            ],
+            "scm": {
+                "url": "https://github.com/Kotlin/kotlinx-datetime"
+            },
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "funding": [
+                
+            ],
+            "targets": [
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -3116,6 +3715,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -3138,6 +3740,11 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -3160,6 +3767,39 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android",
+                "iosArm64",
+                "iosSimulatorArm64"
+            ]
+        },
+        {
+            "uniqueId": "org.jetbrains.skiko:skiko",
+            "artifactVersion": "0.150.1",
+            "name": "Skiko KMP",
+            "description": "Kotlin Skia bindings",
+            "website": "https://www.github.com/JetBrains/skiko",
+            "developers": [
+                {
+                    "name": "Compose Multiplatform Team",
+                    "organisationUrl": "https://www.jetbrains.com"
+                }
+            ],
+            "scm": {
+                "connection": "scm:git:https://www.github.com/JetBrains/skiko.git",
+                "developerConnection": "scm:git:https://www.github.com/JetBrains/skiko.git",
+                "url": "https://www.github.com/JetBrains/skiko"
+            },
+            "licenses": [
+                "Apache-2.0"
+            ],
+            "funding": [
+                
+            ],
+            "targets": [
+                "iosArm64",
+                "iosSimulatorArm64"
             ]
         },
         {
@@ -3184,6 +3824,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         },
         {
@@ -3207,6 +3850,9 @@
             ],
             "funding": [
                 
+            ],
+            "targets": [
+                "android"
             ]
         }
     ],
