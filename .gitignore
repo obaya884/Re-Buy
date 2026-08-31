@@ -15,6 +15,9 @@ local.properties
 # subagent-driven-development の作業領域
 .superpowers/
 
+# コミットしない手元のメモ（上流への報告の下書きなど）
+/notes/
+
 # Xcode の生成物。project.pbxproj はコミットする
 xcuserdata/
 **/xcshareddata/IDEWorkspaceChecks.plist
