@@ -5,6 +5,7 @@ import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.domain.CategoryRepository
+import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.ui.item
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -238,5 +239,107 @@ class CategoryEditViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isShowCategoryEditDialog)
+    }
+    // ---- 名前の検証（F-003）----
+
+    /** 保存できたらダイアログは ViewModel が閉じる。画面側は閉じる呼び出しを持たない。 */
+    @Test
+    fun 追加できたらダイアログが閉じてエラーも出ない() = runTest {
+        val viewModel = viewModel()
+        viewModel.showCategoryAddDialog()
+        advanceUntilIdle()
+
+        viewModel.addCategory("カテゴリーA")
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isShowCategoryAddDialog)
+        assertNull(viewModel.nameError.value)
+    }
+
+    /** 弾かれたらダイアログは開いたまま（画面定義書 §2）。 */
+    @Test
+    fun 同じ名前で追加するとダイアログが開いたままエラーが出る() = runTest {
+        db.seed(categories = listOf(category(1, name = "カテゴリーA")))
+        val viewModel = viewModel()
+        viewModel.showCategoryAddDialog()
+        advanceUntilIdle()
+
+        viewModel.addCategory("カテゴリーA")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isShowCategoryAddDialog)
+        assertEquals(NameError.DUPLICATE, viewModel.nameError.value)
+        assertEquals(1, db.storedCategories.size)
+    }
+
+    @Test
+    fun 空の名前で追加するとダイアログが開いたままエラーが出る() = runTest {
+        val viewModel = viewModel()
+        viewModel.showCategoryAddDialog()
+        advanceUntilIdle()
+
+        viewModel.addCategory("   ")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isShowCategoryAddDialog)
+        assertEquals(NameError.BLANK, viewModel.nameError.value)
+    }
+
+    /** 弾かれた後に直して確定し直す導線。**保存できた時点でエラーが消える。** */
+    @Test
+    fun 直して確定し直すとエラーが消えてダイアログが閉じる() = runTest {
+        db.seed(categories = listOf(category(1, name = "カテゴリーA")))
+        val viewModel = viewModel()
+        viewModel.showCategoryAddDialog()
+        viewModel.addCategory("カテゴリーA")
+        advanceUntilIdle()
+
+        viewModel.addCategory("カテゴリーB")
+        advanceUntilIdle()
+
+        assertNull(viewModel.nameError.value)
+        assertFalse(viewModel.uiState.value.isShowCategoryAddDialog)
+        assertEquals(2, db.storedCategories.size)
+    }
+
+    /** 消えるのは開き直したときも。**追加で弾かれた理由が編集ダイアログに残らない。** */
+    @Test
+    fun 編集ダイアログを開くと追加で出たエラーが消える() = runTest {
+        val viewModel = viewModel()
+        viewModel.addCategory("")
+        advanceUntilIdle()
+
+        viewModel.showCategoryEditDialog()
+        advanceUntilIdle()
+
+        assertNull(viewModel.nameError.value)
+    }
+
+    /** 開き直したら前回のエラーは消える。 */
+    @Test
+    fun ダイアログを開き直すとエラーが消える() = runTest {
+        val viewModel = viewModel()
+        viewModel.addCategory("")
+        advanceUntilIdle()
+
+        viewModel.showCategoryAddDialog()
+        advanceUntilIdle()
+
+        assertNull(viewModel.nameError.value)
+    }
+
+    @Test
+    fun 同じ名前へ改名するとダイアログが開いたままエラーが出る() = runTest {
+        db.seed(categories = listOf(category(1, name = "カテゴリーA"), category(2)))
+        val viewModel = viewModel()
+        viewModel.showCategoryEditDialog()
+        advanceUntilIdle()
+
+        viewModel.editCategoryName(2, "カテゴリーA")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isShowCategoryEditDialog)
+        assertEquals(NameError.DUPLICATE, viewModel.nameError.value)
+        assertEquals("カテゴリー2", db.storedCategories.single { it.id == 2 }.name)
     }
 }

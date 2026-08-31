@@ -35,6 +35,7 @@ fun CategoryEditScreen(
 ) {
     val viewModel = koinViewModel<CategoryEditViewModel>()
     val uiState by viewModel.uiState.collectAsState()
+    val nameError by viewModel.nameError.collectAsState()
     val editingCategory = uiState.editingCategory
 
     ReBuyAppScaffold(
@@ -120,9 +121,10 @@ fun CategoryEditScreen(
         if (uiState.isShowCategoryAddDialog) {
             TextFieldAddDialog(
                 title = stringResource(Res.string.category_edit_add_dialog_title),
+                error = nameError,
+                // 閉じるのは ViewModel。弾かれたらダイアログは開いたまま（画面定義書 §2）
                 onConfirm = {
                     viewModel.addCategory(it)
-                    viewModel.hideCategoryAddDialog()
                 },
                 onDismiss = {
                     viewModel.hideCategoryAddDialog()
@@ -135,9 +137,9 @@ fun CategoryEditScreen(
                 title = stringResource(Res.string.category_edit_edit_dialog_title),
                 editId = editingCategory.id,
                 editName = editingCategory.name,
+                error = nameError,
                 onConfirm = { id, name ->
                     viewModel.editCategoryName(id, name)
-                    viewModel.hideCategoryEditDialog()
                 },
                 onDismiss = {
                     viewModel.hideCategoryEditDialog()

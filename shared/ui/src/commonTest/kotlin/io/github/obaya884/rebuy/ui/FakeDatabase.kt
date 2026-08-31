@@ -98,6 +98,9 @@ class FakeDatabase {
             return id.toLong()
         }
 
+        override suspend fun existsName(name: String, exceptId: Int): Boolean =
+            items.value.any { it.name == name && it.id != exceptId }
+
         override suspend fun deleteItem(item: Item) {
             items.update { list -> list.filterNot { it.id == item.id } }
         }
@@ -164,6 +167,9 @@ class FakeDatabase {
             return id.toLong()
         }
 
+        override suspend fun existsName(name: String, exceptId: Int): Boolean =
+            categories.value.any { it.name == name && it.id != exceptId }
+
         override suspend fun delete(category: Category) {
             categories.update { list -> list.filterNot { it.id == category.id } }
             // Item.categoryId の外部キーは onDelete = SET_NULL
@@ -215,6 +221,9 @@ class FakeDatabase {
             }
             return id.toLong()
         }
+
+        override suspend fun existsName(name: String, exceptId: Int): Boolean =
+            destinations.value.any { it.name == name && it.id != exceptId }
 
         override suspend fun delete(destination: Destination) {
             destinations.update { list -> list.filterNot { it.id == destination.id } }

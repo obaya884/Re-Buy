@@ -5,6 +5,7 @@ import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
+import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.ui.item
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
@@ -282,5 +283,55 @@ class ItemEditViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isShowItemEditDialog)
+    }
+    // ---- 名前の検証（F-003）----
+
+    /**
+     * 判定そのもの（`applySaveResult`）はカテゴリー側で代表させているが、
+     * **どのダイアログを閉じるかの配線は品目側にも 4 か所ある**ので、追加と改名で 1 件ずつ見る。
+     */
+    @Test
+    fun 同じ名前で追加すると追加ダイアログが開いたままエラーが出る() = runTest {
+        db.seed(items = listOf(item(1, name = "アイテムA")))
+        val viewModel = viewModel()
+        viewModel.showItemAddDialog()
+        advanceUntilIdle()
+
+        viewModel.addItem("アイテムA")
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isShowItemAddDialog)
+        assertEquals(NameError.DUPLICATE, viewModel.nameError.value)
+        assertEquals(1, db.storedItems.size)
+    }
+
+    /** 追加と改名で**閉じるダイアログを取り違える**変異は、成功側でしか捕まらない。 */
+    @Test
+    fun 追加できたら追加ダイアログが閉じる() = runTest {
+        val viewModel = viewModel()
+        viewModel.showItemAddDialog()
+        advanceUntilIdle()
+
+        viewModel.addItem("アイテムA")
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isShowItemAddDialog)
+        assertNull(viewModel.nameError.value)
+        assertEquals("アイテムA", db.storedItems.single().name)
+    }
+
+    @Test
+    fun 改名できたら編集ダイアログが閉じる() = runTest {
+        db.seed(items = listOf(item(1)))
+        val viewModel = viewModel()
+        viewModel.showItemEditDialog()
+        advanceUntilIdle()
+
+        viewModel.editItemName(1, "アイテムA")
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isShowItemEditDialog)
+        assertNull(viewModel.nameError.value)
+        assertEquals("アイテムA", db.storedItem(1).name)
     }
 }

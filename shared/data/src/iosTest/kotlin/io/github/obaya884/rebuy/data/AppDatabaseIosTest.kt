@@ -15,7 +15,9 @@ import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 /**
@@ -232,6 +234,41 @@ class AppDatabaseIosTest {
 
         val stored = dao.getAllItems().first().single()
         assertEquals(boughtAt, stored.lastBoughtAt)
+    }
+
+    /**
+     * 同名の存在確認が本物の SQL で効くこと。**`AND id != :exceptId` を落とすと
+     * 「自分自身と同じ名前への改名」が重複として弾かれる**（画面では保存が通らなくなる）。
+     */
+    @Test
+    fun 品目の同名の存在確認は自分自身を除く() = runBlocking {
+        val dao = database.itemDao()
+        val id = dao.insertItem(item(name = "アイテム1")).toInt()
+        dao.insertItem(item(name = "アイテム2"))
+
+        assertFalse(dao.existsName("アイテム1", exceptId = id))
+        assertTrue(dao.existsName("アイテム2", exceptId = id))
+        // 新規（exceptId = 0）はどの行も除かない
+        assertTrue(dao.existsName("アイテム1", exceptId = 0))
+    }
+
+    /** 3 つの DAO が同じ SQL を別々に持つので、1 か所落ちても他は緑になる。 */
+    @Test
+    fun カテゴリーの同名の存在確認は自分自身を除く() = runBlocking {
+        val dao = database.categoryDao()
+        val id = dao.insert(category(name = "カテゴリー1")).toInt()
+
+        assertFalse(dao.existsName("カテゴリー1", exceptId = id))
+        assertTrue(dao.existsName("カテゴリー1", exceptId = 0))
+    }
+
+    @Test
+    fun 行き先の同名の存在確認は自分自身を除く() = runBlocking {
+        val dao = database.destinationDao()
+        val id = dao.insert(destination(name = "行き先1")).toInt()
+
+        assertFalse(dao.existsName("行き先1", exceptId = id))
+        assertTrue(dao.existsName("行き先1", exceptId = 0))
     }
 
     /**

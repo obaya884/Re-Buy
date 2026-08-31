@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.ui.resources.*
 import org.jetbrains.compose.resources.stringResource
 
@@ -15,14 +16,13 @@ fun TextFieldEditDialog(
     title: String,
     editId: Int,
     editName: String,
+    error: NameError?,
     onConfirm: (Int, String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var inputString by remember { mutableStateOf("") }
-
-    SideEffect {
-        inputString = editName
-    }
+    // 開いた対象が変わったときだけ入れ直す。**再コンポーズのたびに state へ代入する
+    // `SideEffect` は置かない**——書き込みが次の再コンポーズを呼ぶ形になっていた
+    var inputString by remember(editId) { mutableStateOf(editName) }
 
     Dialog(
         onDismissRequest = {
@@ -43,11 +43,10 @@ fun TextFieldEditDialog(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                TextField(
+                NameTextField(
                     value = inputString,
                     onValueChange = { inputString = it },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    error = error
                 )
                 Row(
                     horizontalArrangement = Arrangement.End,

@@ -25,6 +25,10 @@ interface ItemDao {
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertItem(item: Item): Long
 
+    /** 同じ名前が他の行にあるか（使い方は `NameValidation.kt`）。 */
+    @Query("SELECT EXISTS(SELECT 1 FROM items WHERE name = :name AND id != :exceptId)")
+    suspend fun existsName(name: String, exceptId: Int): Boolean
+
     @Delete
     suspend fun deleteItem(item: Item)
 

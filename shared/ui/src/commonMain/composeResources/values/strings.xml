@@ -1,4 +1,9 @@
 <resources>
+    <!-- 名前入力の共通文言（画面定義書 §2）。品目・カテゴリー・行き先で共通に使う -->
+    <string name="name_error_blank">名前を入力してください</string>
+    <string name="name_error_duplicate">同じ名前がすでにあります</string>
+    <string name="name_error_too_long">30 文字以内で入力してください</string>
+
     <string name="home_title">ホーム</string>
     <string name="home_bottom_sheet_title">買い物リスト</string>
     <string name="home_bottom_sheet_empty_message">アイテムを追加してください</string>

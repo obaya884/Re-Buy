@@ -20,5 +20,10 @@ kotlin {
             // domainModule を上の層へ公開する
             api(libs.koin.core)
         }
+
+        commonTest.dependencies {
+            // ターゲットごとに適切な実装（Android は JUnit4、iOS は kotlin.test.native）へ解決される
+            implementation(kotlin("test"))
+        }
     }
 }

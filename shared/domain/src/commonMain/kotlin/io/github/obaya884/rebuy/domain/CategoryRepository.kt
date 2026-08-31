@@ -7,14 +7,21 @@ import kotlinx.coroutines.flow.Flow
 class CategoryRepository(private val categoryDao: CategoryDao) {
     fun getAll(): Flow<List<Category>> = categoryDao.getAllCategories()
 
-    /** 新しいカテゴリーは並びの末尾に置く（データモデル定義書 §6）。 */
-    suspend fun insert(name: String) {
-        categoryDao.insert(Category(name = name, sortOrder = categoryDao.maxSortOrder() + 1))
-    }
+    /**
+     * 名前を検証してから、並びの末尾に置く（データモデル定義書 §5・§6）。
+     * 保存するのはトリム後の名前。
+     */
+    suspend fun insert(name: String): SaveResult =
+        saveWithValidatedName(name, exceptId = NEW_RECORD_ID, categoryDao::existsName) { normalized ->
+            categoryDao.insert(
+                Category(name = normalized, sortOrder = categoryDao.maxSortOrder() + 1)
+            )
+        }
 
-    suspend fun updateName(id: Int, newName: String) {
-        categoryDao.updateCategoryName(id, newName)
-    }
+    suspend fun updateName(id: Int, newName: String): SaveResult =
+        saveWithValidatedName(newName, exceptId = id, categoryDao::existsName) { normalized ->
+            categoryDao.updateCategoryName(id, normalized)
+        }
 
     suspend fun updateSortOrder(id: Int, newSortOrder: Int) {
         categoryDao.updateCategorySortOrder(id, newSortOrder)

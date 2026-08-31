@@ -7,16 +7,21 @@ import kotlinx.coroutines.flow.Flow
 class DestinationRepository(private val destinationDao: DestinationDao) {
     fun getAll(): Flow<List<Destination>> = destinationDao.getAllDestinations()
 
-    /** 新しい行き先は並びの末尾に置く（データモデル定義書 §6）。 */
-    suspend fun insert(name: String) {
-        destinationDao.insert(
-            Destination(name = name, sortOrder = destinationDao.maxSortOrder() + 1)
-        )
-    }
+    /**
+     * 名前を検証してから、並びの末尾に置く（データモデル定義書 §5・§6）。
+     * 保存するのはトリム後の名前。
+     */
+    suspend fun insert(name: String): SaveResult =
+        saveWithValidatedName(name, exceptId = NEW_RECORD_ID, destinationDao::existsName) { normalized ->
+            destinationDao.insert(
+                Destination(name = normalized, sortOrder = destinationDao.maxSortOrder() + 1)
+            )
+        }
 
-    suspend fun updateName(id: Int, newName: String) {
-        destinationDao.updateDestinationName(id, newName)
-    }
+    suspend fun updateName(id: Int, newName: String): SaveResult =
+        saveWithValidatedName(newName, exceptId = id, destinationDao::existsName) { normalized ->
+            destinationDao.updateDestinationName(id, normalized)
+        }
 
     suspend fun updateSortOrder(id: Int, newSortOrder: Int) {
         destinationDao.updateDestinationSortOrder(id, newSortOrder)

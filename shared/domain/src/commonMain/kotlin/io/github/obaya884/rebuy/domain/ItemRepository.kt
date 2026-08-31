@@ -11,20 +11,23 @@ class ItemRepository(private val itemDao: ItemDao) {
 
     fun getAllWithCategory(): Flow<List<ItemWithCategory>> = itemDao.getAllItemsWithCategory()
 
-    suspend fun insert(item: Item) {
-        itemDao.insertItem(item)
-    }
+    /**
+     * 名前を検証してから入れる（データモデル定義書 §5）。保存するのはトリム後の名前で、
+     * カテゴリーと行き先は渡されたまま。
+     */
+    suspend fun insert(item: Item): SaveResult =
+        saveWithValidatedName(item.name, exceptId = NEW_RECORD_ID, itemDao::existsName) { normalized ->
+            itemDao.insertItem(item.copy(name = normalized))
+        }
 
     suspend fun delete(item: Item) {
         itemDao.deleteItem(item)
     }
 
-    suspend fun updateName(id: Int, newName: String) {
-        itemDao.updateItemName(
-            itemId = id,
-            newName = newName
-        )
-    }
+    suspend fun updateName(id: Int, newName: String): SaveResult =
+        saveWithValidatedName(newName, exceptId = id, itemDao::existsName) { normalized ->
+            itemDao.updateItemName(itemId = id, newName = normalized)
+        }
 
     suspend fun updateCategory(id: Int, newCategoryId: Int?) {
         itemDao.updateItemCategoryId(

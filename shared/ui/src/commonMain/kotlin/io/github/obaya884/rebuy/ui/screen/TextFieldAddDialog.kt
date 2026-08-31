@@ -8,12 +8,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.ui.resources.*
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun TextFieldAddDialog(
     title: String,
+    error: NameError?,
     onConfirm: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -38,11 +40,10 @@ fun TextFieldAddDialog(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
-                TextField(
+                NameTextField(
                     value = inputString,
                     onValueChange = { inputString = it },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    error = error
                 )
                 Row(
                     horizontalArrangement = Arrangement.End,
@@ -81,6 +82,7 @@ fun TextFieldAddDialog(
 private fun TextFieldAddDialogPreview() {
     TextFieldAddDialog(
         title = "Add Item",
+        error = null,
         onConfirm = {},
         onDismiss = {}
     )
