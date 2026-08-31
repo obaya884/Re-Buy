@@ -35,6 +35,7 @@
 | T-31 | ③ 段 3 KMP/CMP 移植 | 内部設計 | 高 | 完了 2026-08-30 | [詳細](#t-31) |
 | T-42 | iOS の画面を機械で操作・検証できるようにする | テスト | 高 | 完了 2026-08-31 | [詳細](#t-42) |
 | T-48 | iOS のテストで DB を差し替えられるようにする | テスト | 中 | 完了 2026-08-31 | [詳細](#t-48) |
+| T-35 | iOS の DB と DI の経路にスモークテストを置く | テスト | 中 | 完了 2026-08-31 | [詳細](#t-35) |
 
 ## 詳細
 
@@ -219,11 +220,20 @@
 - 分担の見立て: **(c) と、(b)/(d) は競合ではない。** `NavigationStateRestorationTest`（プロセス death からの復元）と `LicenseLibrariesTest`（資産が APK に入っているか）は実物を起動しないと見られないので、厚みを (c) に置き、実物を起動する薄い層を (b) か (d) で持つ形になる
 - **結果（2026-08-31）: (c) `runComposeUiTest` を採り、`shared/ui/src/iosTest` に `NavigationIosTest`（10 件）と `IosTestKoinTest`（1 件）を置いた。** 6 画面の遷移・戻る矢印・ボトムナビ・空状態・品目がある行・カゴタブでの文言の出し分けを見る。DAO は [T-48](#t-48) の差し替えで `FakeDatabase` を使う。CI は `ios` ジョブがそのまま拾うので変更していない。**(d) Maestro は候補として生きている**（アクセシビリティ階層が見えることは実測済み）が、(c) で足りたので採らなかった。実測の内訳と判断の経緯は log_23
 - **達成していないこと**: **落とし穴 22 は再現せず、この網が止めるとは言えない**（[T-41](./23_技術改善バックログ.md#t-41)）
-- **残った穴**: 本物の Room を通らない（[T-35](./23_技術改善バックログ.md#t-35)）／実物の `.app` を起動しない（[T-46](./23_技術改善バックログ.md#t-46)）／ライセンス一覧の中身を見ていない（[T-39](./23_技術改善バックログ.md#t-39)）
-- 関連: T-31 のステップ 15。[T-35](./23_技術改善バックログ.md#t-35)（iOS の DB と DI のスモークテスト）とあわせて考える
+- **残った穴**: 本物の Room を通らない（[T-35](#t-35)）／実物の `.app` を起動しない（[T-46](./23_技術改善バックログ.md#t-46)）／ライセンス一覧の中身を見ていない（[T-39](./23_技術改善バックログ.md#t-39)）
+- 関連: T-31 のステップ 15。[T-35](#t-35)（iOS の DB と DI のスモークテスト）とあわせて考える
 
 ### T-48
 
 - 背景: [T-42](#t-42) で置いた `NavigationIosTest` は Koin をテスト自身が起動するため、`AppDatabase` が `NSDocumentDirectory` の**実ファイル**になっていた。**1 本の DB をテスト間でも実行と実行の間でも共有する**ので、品目が要る経路を書けず、書き込むテストを足した瞬間に状態が漏れる。**[T-21](./23_技術改善バックログ.md#t-21) では代わりにならない**——あちらは本物の `ReBuyApplication` が起動した Koin を差し替える Android 限定の手で、テスト自身が `startKoin` する iOS には当てはまらない。**着手より先に CI で露見した**——新品のシミュレータには `data/Documents` が無く、T-42 の PR で 8 件すべてが `Unable to open database` で落ちた
-- **結果（2026-08-31）: T-42 と同じ PR で入れた。** `startTestKoin()` が Koin 起動の直後に `ItemDao` / `CategoryDao` を `FakeDatabase` のものへ差し替え、テストごとに空へ戻す。Room に触らないのでファイルを作らない。**iOS で本物の Room が動くことは見ていない**（[T-35](./23_技術改善バックログ.md#t-35)）。作りの理由と実測は log_23 と `IosTestKoin.kt` の KDoc
-- 関連: [T-21](./23_技術改善バックログ.md#t-21)（Android 側の同じ問題。手は違う）／ [T-35](./23_技術改善バックログ.md#t-35) ／ [T-41](./23_技術改善バックログ.md#t-41)
+- **結果（2026-08-31）: T-42 と同じ PR で入れた。** `startTestKoin()` が Koin 起動の直後に `ItemDao` / `CategoryDao` を `FakeDatabase` のものへ差し替え、テストごとに空へ戻す。Room に触らないのでファイルを作らない。**iOS で本物の Room が動くことは見ていない**（[T-35](#t-35)）。作りの理由と実測は log_23 と `IosTestKoin.kt` の KDoc
+- 関連: [T-21](./23_技術改善バックログ.md#t-21)（Android 側の同じ問題。手は違う）／ [T-35](#t-35) ／ [T-41](./23_技術改善バックログ.md#t-41)
+
+### T-35
+
+- 背景: iOS で走るテストは Converter の純粋関数だけで、`AppDatabaseConstructor` の `actual` が KSP で生成されているか、`BundledSQLiteDriver` と Documents パスの配線が通るかは**シミュレータで起動するまで分からない**。CLAUDE.md の「Koin は依存グラフをコンパイル時に検証しない」から `KoinModulesTest` / `KoinGraphTest` を置いた理屈が、iOS 側では丸ごと抜けている
+- 対応方針: `shared/data/src/iosTest` に 1 件。`Room.inMemoryDatabaseBuilder<AppDatabase>()`（native にはある。common には無いので `commonTest` には置けない）＋ `BundledSQLiteDriver` で DB を組み、`insertItem` → `getAllItems().first()` の往復を見る。生成 `actual`・driver・`TypeConverters` が本物の SQLite を通ることまで一度に固定できる
+- **結果（2026-08-31）: `shared/data/src/iosTest` に `AppDatabaseIosTest`（2 件）を置いた。** in-memory の Room ＋ `BundledSQLiteDriver` で `insertItem` → `getAllItems()` の往復を見る。値がある場合と `lastBoughtAt` が null の場合を分けたのは、Room が生成する null 分岐が別経路だから（[T-25](./23_技術改善バックログ.md#t-25) の (b) と同じ観点）
+- **本番のパス（`NSDocumentDirectory`）は通っていない。** テストバイナリはアプリのサンドボックスで動かないので、実ファイルを開く経路は**実物のアプリを起動する層**でしか見られない（[T-46](./23_技術改善バックログ.md#t-46)）
+- 優先度の根拠: 段 3 を通して iOS 側は手動確認しか無い。ステップ 15 でシミュレータの往復（カテゴリー追加・削除）が通ることは人の目で見たが、**それを繰り返せる形にはなっていない**
+- 関連: T-31 のステップ 8 のレビューで test-reviewer が指摘。iOS の網という意味では [T-42](./closed_23_技術改善バックログ.md#t-42) と地続き
