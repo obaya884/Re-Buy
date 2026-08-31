@@ -1,7 +1,9 @@
 package io.github.obaya884.rebuy
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.mikepenz.aboutlibraries.Libs
 import io.github.obaya884.rebuy.ui.resources.Res
+import io.github.obaya884.rebuy.ui.screen.license.ABOUT_LIBRARIES_PATH
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -15,10 +17,9 @@ import org.junit.runner.RunWith
  * 見た目だけが変わる**。③ の段 3 で踏んだ「Compose Resources が assets ごと消える」事故と
  * 同じ形なので、`LicenseLibrariesTest` と同じくリソースの実在をここで押さえる。
  *
- * **ライセンス本文の同梱もここで見る。** OFL-1.1 は「フォントと一緒にライセンスを配ること」を
- * 条件にしているので、APK に載っていること自体が守るべき対象。一覧への掲載（名前と id）は
- * `LicenseLibrariesTest` が見る。**一覧に本文は入らない**（AboutLibraries は全ライセンスで
- * 本文を持たない）ので、表示まで届けるのは別の案件（T-53）。
+ * **ライセンス本文もここで見る。** OFL-1.1 は「フォントと一緒にライセンスを配ること」を
+ * 条件にしているので、**画面に出る本文とリポジトリに置いた本文が同じ**であることまでを守る。
+ * 一覧への掲載（entry があること）は `LicenseLibrariesTest`。
  */
 @RunWith(AndroidJUnit4::class)
 class BundledFontTest {
@@ -41,8 +42,33 @@ class BundledFontTest {
         assertTrue("OFL の本文が入っていない", "SIL OPEN FONT LICENSE" in text.uppercase())
     }
 
+    /**
+     * 画面に出る本文が、同梱した OFL の本文と**同じ**であること。
+     *
+     * 一覧の本文は `shared/ui/aboutlibraries/licenses/` に置いた定義から来る。
+     * **ここを手元に持っているのは、プラグインに解決させると本文の取得元によって
+     * 生成物が変わり、CI の「生成物が最新か」で落ちるため**（実際に踏んだ）。
+     */
+    @Test
+    fun 画面に出るライセンス本文が同梱したものと同じ() {
+        val bundled = runBlocking { Res.readBytes(LICENSE_PATH).decodeToString() }
+        val shown = runBlocking {
+            Libs.Builder()
+                .withJson(Res.readBytes(ABOUT_LIBRARIES_PATH).decodeToString())
+                .build()
+                .licenses
+                .single { it.hash == FONT_LICENSE_HASH }
+                .licenseContent
+        }
+
+        assertEquals(bundled, shown)
+    }
+
     private companion object {
         const val FONT_PATH = "font/zen_maru_gothic_bold.ttf"
         const val LICENSE_PATH = "files/zen_maru_gothic_OFL.txt"
+
+        /** `shared/ui/aboutlibraries/licenses/ofl_1_1.json` の hash。 */
+        const val FONT_LICENSE_HASH = "ofl-1.1-bundled"
     }
 }
