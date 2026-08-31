@@ -1,0 +1,935 @@
+<!doctype html>
+<html lang="ja">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Re-Buy 新画面モック</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap">
+<style>
+  :root {
+    --page: #ECEFE9;
+    --screen: #FAFBF7;
+    --card: #FFFFFF;
+    --ink: #232B21;
+    --muted: #6E7767;
+    --line: #DCE2D5;
+    --accent: #2E6B4A;
+    --on-accent: #F6FAF6;
+    --accent-soft: #E4EFE6;
+    --danger: #A8402E;
+    --scrim: rgba(30, 36, 28, 0.45);
+    --note: #857A55;
+    --note-bg: #F3EFDF;
+  }
+  :root[data-palette="ai"] {
+    --page: #EBEDF1;
+    --screen: #F8F9FB;
+    --line: #DBDFE7;
+    --accent: #34558B;
+    --on-accent: #F4F7FB;
+    --accent-soft: #E2E9F4;
+  }
+  :root[data-palette="kaki"] {
+    --page: #F1EDE6;
+    --screen: #FBF8F3;
+    --line: #E5DCCE;
+    --accent: #B5541F;
+    --on-accent: #FCF7F2;
+    --accent-soft: #F5E6D8;
+  }
+  :root:not([data-theme="light"]) {
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #171B15;
+      --screen: #20261E;
+      --card: #2A3127;
+      --ink: #E7ECE1;
+      --muted: #9BA492;
+      --line: #3A4234;
+      --accent: #74BD93;
+      --on-accent: #14201A;
+      --accent-soft: #2D3E33;
+      --danger: #E08A77;
+      --scrim: rgba(5, 8, 4, 0.55);
+      --note: #C8BC8E;
+      --note-bg: #33301F;
+      color-scheme: dark;
+    }
+    :root:not([data-theme="light"])[data-palette="ai"] {
+      --page: #14171C;
+      --screen: #1D2127;
+      --card: #262B33;
+      --line: #3A414C;
+      --accent: #8FB0E3;
+      --on-accent: #111927;
+      --accent-soft: #2B3644;
+    }
+    :root:not([data-theme="light"])[data-palette="kaki"] {
+      --page: #1C1712;
+      --screen: #26201A;
+      --card: #302921;
+      --line: #463B2E;
+      --accent: #DC9660;
+      --on-accent: #251507;
+      --accent-soft: #413228;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #171B15;
+    --screen: #20261E;
+    --card: #2A3127;
+    --ink: #E7ECE1;
+    --muted: #9BA492;
+    --line: #3A4234;
+    --accent: #74BD93;
+    --on-accent: #14201A;
+    --accent-soft: #2D3E33;
+    --danger: #E08A77;
+    --scrim: rgba(5, 8, 4, 0.55);
+    --note: #C8BC8E;
+    --note-bg: #33301F;
+    color-scheme: dark;
+  }
+  :root[data-theme="dark"][data-palette="ai"] {
+    --page: #14171C;
+    --screen: #1D2127;
+    --card: #262B33;
+    --line: #3A414C;
+    --accent: #8FB0E3;
+    --on-accent: #111927;
+    --accent-soft: #2B3644;
+  }
+  :root[data-theme="dark"][data-palette="kaki"] {
+    --page: #1C1712;
+    --screen: #26201A;
+    --card: #302921;
+    --line: #463B2E;
+    --accent: #DC9660;
+    --on-accent: #251507;
+    --accent-soft: #413228;
+  }
+
+  body {
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Noto Sans JP", "Hiragino Sans", sans-serif;
+    font-size: 14px;
+    line-height: 1.7;
+    padding: 40px 24px 72px;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+
+  header.intro { max-width: 640px; margin-bottom: 40px; }
+  h1 {
+    font-family: "Zen Maru Gothic", "Noto Sans JP", sans-serif;
+    font-size: 30px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    text-wrap: balance;
+  }
+  .subtitle { color: var(--muted); margin: 0 0 18px; }
+  .decisions {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 14px 18px;
+    margin: 0;
+  }
+  .decisions dt { font-weight: 700; font-size: 12.5px; color: var(--accent); letter-spacing: 0.04em; }
+  .decisions dd { margin: 0 0 8px; font-size: 13px; }
+  .decisions dd:last-child { margin-bottom: 0; }
+  .palette-picker {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .palette-picker .chip { cursor: pointer; font-family: inherit; font-size: 12px; }
+  .palette-picker .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 36px 28px;
+    align-items: flex-start;
+  }
+  .group { margin-bottom: 46px; }
+  .group-label {
+    font-family: "Zen Maru Gothic", "Noto Sans JP", sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    border-left: 4px solid var(--accent);
+    padding-left: 10px;
+    margin-bottom: 18px;
+  }
+  figure.shot { margin: 0; width: 302px; }
+  figcaption { margin-top: 14px; }
+  figcaption .no {
+    font-family: "Zen Maru Gothic", sans-serif;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 13px;
+    letter-spacing: 0.06em;
+  }
+  figcaption h2 {
+    font-family: "Zen Maru Gothic", sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    display: inline;
+  }
+  figcaption p { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+  figcaption .issue {
+    display: block;
+    margin-top: 8px;
+    background: var(--note-bg);
+    color: var(--note);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* ---- 端末フレーム ---- */
+  .phone {
+    position: relative;
+    width: 300px;
+    height: 620px;
+    background: var(--screen);
+    border: 1px solid var(--line);
+    border-radius: 30px;
+    box-shadow: 0 18px 40px -22px rgba(20, 28, 18, 0.45);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .statusbar {
+    height: 26px;
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    font-size: 10px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .appbar {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px 6px;
+  }
+  .appbar .brand {
+    font-family: "Zen Maru Gothic", sans-serif;
+    font-weight: 700;
+    font-size: 20px;
+  }
+  .appbar .brand small { font-size: 11px; color: var(--muted); font-weight: 500; margin-left: 6px; }
+  .icon-btn {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: var(--card);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--muted);
+  }
+  .appbar.sub { gap: 10px; justify-content: flex-start; }
+  .appbar.sub .title { font-family: "Zen Maru Gothic", sans-serif; font-weight: 700; font-size: 17px; }
+
+  .chips {
+    flex: none;
+    display: flex;
+    gap: 6px;
+    padding: 6px 16px 10px;
+    overflow: hidden;
+  }
+  .chip {
+    flex: none;
+    font-size: 11.5px;
+    padding: 4px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: var(--card);
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .chip.on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+  }
+
+  .list { flex: 1; overflow: hidden; padding: 0 12px; display: flex; flex-direction: column; gap: 7px; }
+  .row {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    padding: 9px 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .row .body { flex: 1; min-width: 0; }
+  .row .name { font-weight: 500; font-size: 14px; }
+  .row .meta { font-size: 10.5px; color: var(--muted); display: flex; gap: 6px; margin-top: 1px; }
+  .tag { border: 1px solid var(--line); border-radius: 5px; padding: 0 5px; }
+  .tag.dest { color: var(--accent); border-color: var(--accent-soft); background: var(--accent-soft); }
+  .row .date { font-size: 10.5px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; flex: none; }
+  .row .date b { display: block; font-weight: 500; font-size: 11.5px; color: var(--ink); }
+
+  .toggle {
+    flex: none;
+    width: 34px; height: 34px;
+    border-radius: 11px;
+    border: 1.5px solid var(--line);
+    background: var(--screen);
+    color: var(--muted);
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .row.in-basket { border-color: var(--accent); background: var(--accent-soft); }
+  .row.in-basket .toggle { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+  .bottombar { flex: none; padding: 10px 14px 18px; }
+  .cta {
+    width: 100%;
+    border: none;
+    border-radius: 15px;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-family: "Zen Maru Gothic", sans-serif;
+    font-weight: 700;
+    font-size: 15.5px;
+    padding: 13px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .cta .count {
+    background: var(--on-accent);
+    color: var(--accent);
+    border-radius: 999px;
+    font-size: 12px;
+    padding: 0 8px;
+    font-variant-numeric: tabular-nums;
+  }
+  .cta.ghost { background: var(--card); color: var(--accent); border: 1.5px solid var(--accent); }
+  .cta:disabled { opacity: 0.45; }
+
+  .fab {
+    position: absolute;
+    right: 16px;
+    bottom: 76px;
+    width: 48px; height: 48px;
+    border-radius: 17px;
+    background: var(--ink);
+    color: var(--screen);
+    font-size: 24px;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 8px 18px -8px rgba(20, 28, 18, 0.6);
+  }
+
+  /* ---- シート ---- */
+  .scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--scrim);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .sheet {
+    background: var(--screen);
+    border-radius: 22px 22px 0 0;
+    padding: 10px 18px 22px;
+  }
+  .grip { width: 36px; height: 4px; border-radius: 2px; background: var(--line); margin: 0 auto 12px; }
+  .sheet h3 {
+    font-family: "Zen Maru Gothic", sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0 0 12px;
+  }
+  .field {
+    background: var(--card);
+    border: 1.5px solid var(--accent);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  .field.placeholder { color: var(--muted); border-color: var(--line); }
+  .field-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    margin-bottom: 6px;
+  }
+  .sheet .chips { padding: 0 0 14px; flex-wrap: wrap; }
+  .sheet-actions { display: flex; gap: 10px; margin-top: 4px; }
+  .sheet-actions .cta { flex: 1; }
+  .danger-link { text-align: center; color: var(--danger); font-size: 12.5px; margin-top: 14px; }
+
+  /* 開始シートの行き先グループ */
+  .dest-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .dest-group .dname { font-family: "Zen Maru Gothic", sans-serif; font-weight: 700; font-size: 14.5px; flex: 1; }
+  .dest-group .items { font-size: 11px; color: var(--muted); display: block; font-weight: 400; font-family: "Noto Sans JP", sans-serif; }
+  .dest-group .n { font-variant-numeric: tabular-nums; color: var(--muted); font-size: 12px; flex: none; }
+  .dest-group .go {
+    flex: none;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 12px;
+    padding: 5px 13px;
+  }
+
+  /* 買い物モード */
+  .check-row {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    padding: 13px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .cbox {
+    width: 26px; height: 26px;
+    border-radius: 9px;
+    border: 2px solid var(--line);
+    flex: none;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .check-row .name { font-size: 15px; font-weight: 500; flex: 1; }
+  .check-row.done { opacity: 0.75; }
+  .check-row.done .cbox { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+  .check-row.done .name { text-decoration: line-through; color: var(--muted); font-weight: 400; }
+  .progress { font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+  /* 設定・管理 */
+  .settings-row {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    padding: 13px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+  }
+  .settings-row .chev { margin-left: auto; color: var(--muted); }
+  .drag { color: var(--muted); font-size: 15px; letter-spacing: -1px; }
+  .version { text-align: center; color: var(--muted); font-size: 11px; margin-top: auto; padding-bottom: 8px; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <h1>Re-Buy 新画面モック</h1>
+    <p class="subtitle">④ 機能・UX 見直し — タブ廃止・買い物モード構造の画面案（2026-08-31 ブレスト時点）</p>
+    <dl class="decisions">
+      <dt>反映している決定</dt>
+      <dd>タブ全廃。プールが唯一の根で、買い物は「開始 → チェック → 終了」のモード。カテゴリ＝自由な区別タグ、行き先＝別概念（品目 1 つにつき 0〜1）。追加は名前＋チップの 1 シート。</dd>
+      <dt>見た目のトーン（提案）</dt>
+      <dd>丸ゴシック見出し＋やわらかい地色＋低彩度アクセント。素の Material から離れ、「台所のメモ」寄りの面構え。配色は下のボタンで 3 案を比較できる。テーマ（配色）のユーザー選択は MVP に含める。既定は藍。</dd>
+    </dl>
+    <div class="palette-picker">配色を試す:
+      <button class="chip on" data-p="">若葉</button>
+      <button class="chip" data-p="ai">藍</button>
+      <button class="chip" data-p="kaki">柿</button>
+    </div>
+  </header>
+
+  <section class="group">
+  <div class="group-label">平時 — プールと登録・編集</div>
+  <div class="gallery">
+
+    <!-- 01 プール -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar">
+          <span class="brand">Re-Buy<small>全 12 件</small></span>
+          <span style="display:flex; gap:8px">
+            <span class="icon-btn">＋</span>
+            <span class="icon-btn">⚙</span>
+          </span>
+        </div>
+        <div class="chips">
+          <span class="chip on">すべて</span>
+          <span class="chip">食品</span>
+          <span class="chip">日用品</span>
+          <span class="chip">🏬 スーパー</span>
+          <span class="chip">🏬 薬局</span>
+          <span class="chip">🏬 どこでも</span>
+        </div>
+        <div class="list">
+          <div class="row in-basket">
+            <div class="body">
+              <div class="name">牛乳</div>
+              <div class="meta"><span class="tag">食品</span><span class="tag dest">スーパー</span></div>
+            </div>
+            <div class="date">前回<b>8/24</b></div>
+            <div class="toggle">✓</div>
+          </div>
+          <div class="row in-basket">
+            <div class="body">
+              <div class="name">食パン</div>
+              <div class="meta"><span class="tag">食品</span><span class="tag dest">スーパー</span></div>
+            </div>
+            <div class="date">前回<b>8/24</b></div>
+            <div class="toggle">✓</div>
+          </div>
+          <div class="row">
+            <div class="body">
+              <div class="name">卵</div>
+              <div class="meta"><span class="tag">食品</span><span class="tag dest">スーパー</span></div>
+            </div>
+            <div class="date">前回<b>8/17</b></div>
+            <div class="toggle">＋</div>
+          </div>
+          <div class="row in-basket">
+            <div class="body">
+              <div class="name">ティッシュ</div>
+              <div class="meta"><span class="tag">日用品</span><span class="tag dest">薬局</span></div>
+            </div>
+            <div class="date">前回<b>7/30</b></div>
+            <div class="toggle">✓</div>
+          </div>
+          <div class="row">
+            <div class="body">
+              <div class="name">洗剤</div>
+              <div class="meta"><span class="tag">日用品</span><span class="tag dest">薬局</span></div>
+            </div>
+            <div class="date">前回<b>7/12</b></div>
+            <div class="toggle">＋</div>
+          </div>
+          <div class="row in-basket">
+            <div class="body">
+              <div class="name">電池</div>
+              <div class="meta"><span class="tag">日用品</span></div>
+            </div>
+            <div class="date">前回<b>—</b></div>
+            <div class="toggle">✓</div>
+          </div>
+        </div>
+        <div class="bottombar">
+          <button class="cta">買い物を始める <span class="count">4</span></button>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">01</span> <h2>プール（根）</h2>
+        <p>唯一の常駐画面。<b>行タップ＝カゴ出し入れ</b>、<b>長押し＝編集シート 06</b>。カゴ入りは色で示し、上には寄せない。チップはカテゴリ・行き先を各 0〜1 個の AND、「すべて」で解除。行き先フィルタは厳密で、行き先なしは「🏬 どこでも」（🏬 はシステムが表示時に前置）。登録はアプリバーの＋から 02。FAB なし。</p>
+        <span class="issue">論点: 長押しの発見性をどう補うか（初回ヒントなど）</span>
+      </figcaption>
+    </figure>
+
+    <!-- 02 登録シート -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar"><span class="brand">Re-Buy</span></div>
+        <div class="scrim">
+          <div class="sheet">
+            <div class="grip"></div>
+            <h3>新しく登録</h3>
+            <div class="field">シャンプー<span style="opacity:.5">|</span></div>
+            <div class="field-label">カテゴリ（任意）</div>
+            <div class="chips">
+              <span class="chip">食品</span>
+              <span class="chip on">日用品</span>
+              <span class="chip">＋ 新しいカテゴリ</span>
+            </div>
+            <div class="field-label">行き先（任意）</div>
+            <div class="chips">
+              <span class="chip">スーパー</span>
+              <span class="chip on">薬局</span>
+              <span class="chip">＋ 新しい行き先</span>
+            </div>
+            <div class="sheet-actions">
+              <button class="cta ghost">続けて登録</button>
+              <button class="cta">登録</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">02</span> <h2>登録シート</h2>
+        <p>名前だけで確定可、カテゴリ・行き先は任意（＋新規は 02b）。「登録」は閉じる。「続けて登録」は名前だけクリアし、チップ選択を保持して開いたまま。語彙は「登録＝品目を作る」「追加＝買うものに入れる」。</p>
+      </figcaption>
+    </figure>
+
+    <!-- 02b 新しいカテゴリのダイアログ -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar"><span class="brand">Re-Buy</span></div>
+        <div class="scrim" style="justify-content:center; padding:0 26px">
+          <div style="background:var(--screen); border-radius:18px; padding:18px 18px 16px">
+            <h3 style="font-family:'Zen Maru Gothic',sans-serif; font-size:16px; font-weight:700; margin:0 0 12px">新しいカテゴリ</h3>
+            <div class="field">冷凍食品<span style="opacity:.5">|</span></div>
+            <div class="sheet-actions">
+              <button class="cta ghost">キャンセル</button>
+              <button class="cta">作成</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">02b</span> <h2>「＋ 新しいカテゴリ」タップ後</h2>
+        <p>名前だけの小ダイアログ。作成で即登録され、チップ列に<b>選択済み</b>で現れる。バリデーションは管理画面と同一。「＋ 新しい行き先」と編集シート（06）も同じ作法。</p>
+      </figcaption>
+    </figure>
+
+    <!-- 06 品目編集シート -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar"><span class="brand">Re-Buy</span></div>
+        <div class="scrim">
+          <div class="sheet">
+            <div class="grip"></div>
+            <h3>牛乳</h3>
+            <div class="field">牛乳</div>
+            <div class="field-label">カテゴリ</div>
+            <div class="chips">
+              <span class="chip on">食品</span>
+              <span class="chip">日用品</span>
+              <span class="chip">なし</span>
+              <span class="chip">＋ 新しいカテゴリ</span>
+            </div>
+            <div class="field-label">行き先</div>
+            <div class="chips">
+              <span class="chip on">スーパー</span>
+              <span class="chip">薬局</span>
+              <span class="chip">なし</span>
+              <span class="chip">＋ 新しい行き先</span>
+            </div>
+            <p style="font-size:12px; color:var(--muted); margin:0 0 10px">最終購入日: 2026-08-24</p>
+            <div class="sheet-actions">
+              <button class="cta">保存</button>
+            </div>
+            <div class="danger-link">「牛乳」を削除…</div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">06</span> <h2>品目編集シート</h2>
+        <p>プールの行の長押しで開く。登録シートと同じ型。独立した品目編集画面は廃止。</p>
+      </figcaption>
+    </figure>
+
+  </div>
+  </section>
+
+  <section class="group">
+  <div class="group-label">買い物 — 出発前から店内まで</div>
+  <div class="gallery">
+
+    <!-- 03 買い物開始シート -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar"><span class="brand">Re-Buy</span></div>
+        <div class="scrim">
+          <div class="sheet">
+            <div class="grip"></div>
+            <h3>今日はどこへ？</h3>
+            <p style="font-size:12px; color:var(--muted); margin:0 0 12px">行き先を選ぶと、買い物が始まります</p>
+            <div class="dest-group">
+              <span class="dname">スーパー<span class="items">牛乳・食パン</span></span>
+              <span class="n">2＋1 件</span>
+              <span class="chev" style="color:var(--muted)">›</span>
+            </div>
+            <div class="dest-group">
+              <span class="dname">薬局<span class="items">ティッシュ</span></span>
+              <span class="n">1＋1 件</span>
+              <span class="chev" style="color:var(--muted)">›</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">03</span> <h2>買い物開始シート＝出発前ビュー</h2>
+        <p>「買い物を始める」で開き、カゴを行き先別に内訳表示。行タップでその行き先のモードへ。どこでも買えるもの（行き先なし）は全行き先に付き、件数の「＋n」でのみ表現。プレビューは表示順の先頭 2 件固定。行き先付きが 1 件も無ければ「n 件で開始」の 1 行のみ。</p>
+      </figcaption>
+    </figure>
+
+    <!-- 04 買い物モード -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:41</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar sub">
+          <span class="icon-btn">←</span>
+          <span class="title">スーパーで買い物中</span>
+          <span class="progress" style="margin-left:auto">1 / 3</span>
+        </div>
+        <div class="list" style="padding-top:6px">
+          <div class="check-row done">
+            <span class="cbox">✓</span><span class="name">牛乳</span>
+          </div>
+          <div class="check-row">
+            <span class="cbox"></span><span class="name">食パン</span>
+          </div>
+          <div style="font-size: 10.5px; color: var(--muted); padding: 2px 4px 0">どこでも買えるもの</div>
+          <div class="check-row">
+            <span class="cbox"></span><span class="name">電池</span>
+          </div>
+          <div class="row" style="border-style:dashed; justify-content:center; color:var(--muted); font-size:12.5px">＋ 気づいたものを足す</div>
+        </div>
+        <div class="bottombar">
+          <button class="cta">買い物を終了する</button>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">04</span> <h2>買い物モード</h2>
+        <p>一覧＝選んだ行き先の品目＋「どこでも買えるもの」区切り。行タップでチェック。「買い物を終了」でチェック済みだけプールへ戻る（最終購入日記録）。未チェックはカゴに残る。←・システムバックは確認ダイアログ。アプリを閉じてもチェックは残り、プールから再入場。破線行で 05。</p>
+      </figcaption>
+    </figure>
+
+    <!-- 05 気づいたものを足すシート -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:44</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar sub">
+          <span class="icon-btn">←</span>
+          <span class="title">スーパーで買い物中</span>
+        </div>
+        <div class="scrim">
+          <div class="sheet">
+            <div class="grip"></div>
+            <h3>気づいたものを足す</h3>
+            <div class="field placeholder">名前で探す…</div>
+            <div class="field-label">未追加のものから選ぶ</div>
+            <div class="list" style="padding: 0 0 4px; flex: none">
+              <div class="row">
+                <div class="body">
+                  <div class="name">卵</div>
+                  <div class="meta"><span class="tag">食品</span><span class="tag dest">スーパー</span></div>
+                </div>
+                <div class="toggle">＋</div>
+              </div>
+              <div class="row">
+                <div class="body">
+                  <div class="name">ラップ</div>
+                  <div class="meta"><span class="tag">日用品</span><span class="tag dest">スーパー</span></div>
+                </div>
+                <div class="toggle">＋</div>
+              </div>
+              <div style="font-size: 10.5px; color: var(--muted); padding: 2px 4px 0">どこでも買えるもの</div>
+              <div class="row">
+                <div class="body">
+                  <div class="name">輪ゴム</div>
+                  <div class="meta"><span class="tag">日用品</span></div>
+                </div>
+                <div class="toggle">＋</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">05</span> <h2>気づいたものを足すシート（開いた直後）</h2>
+        <p>初期表示は今の行き先＋どこでも買えるものの未追加分。タップで即カゴ入りし、<b>シートは自動で閉じる</b>。</p>
+      </figcaption>
+    </figure>
+
+    <!-- 05b 同・入力中 -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:45</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar sub">
+          <span class="icon-btn">←</span>
+          <span class="title">スーパーで買い物中</span>
+        </div>
+        <div class="scrim">
+          <div class="sheet">
+            <div class="grip"></div>
+            <h3>気づいたものを足す</h3>
+            <div class="field">洗<span style="opacity:.5">|</span></div>
+            <div class="field-label">未追加のものから選ぶ</div>
+            <div class="list" style="padding: 0 0 4px; flex: none">
+              <div class="row">
+                <div class="body">
+                  <div class="name">食器用洗剤</div>
+                  <div class="meta"><span class="tag">日用品</span><span class="tag dest">スーパー</span></div>
+                </div>
+                <div class="toggle">＋</div>
+              </div>
+              <div style="font-size: 10.5px; color: var(--muted); padding: 2px 4px 0">どこでも買えるもの</div>
+              <div class="row">
+                <div class="body">
+                  <div class="name">洗濯ネット</div>
+                  <div class="meta"><span class="tag">日用品</span></div>
+                </div>
+                <div class="toggle">＋</div>
+              </div>
+              <div style="font-size: 10.5px; color: var(--muted); padding: 2px 4px 0">他の行き先から</div>
+              <div class="row">
+                <div class="body">
+                  <div class="name">洗顔フォーム</div>
+                  <div class="meta"><span class="tag">日用品</span><span class="tag dest">薬局</span></div>
+                </div>
+                <div class="toggle">＋</div>
+              </div>
+              <div class="row" style="border-color: var(--accent); color: var(--accent); justify-content: center; font-weight: 700; font-size: 13px">
+                ＋ この名前で登録する
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">05b</span> <h2>同・入力中</h2>
+        <p>検索は全品目対象（追加済みは「追加済み」表示・タップ無効）。空のセクションは出さない。<b>他の行き先のヒットはタップでその行き先のカゴに入るだけ</b>——今のモードには現れず、スナックバー「薬局に追加しました」で通知（「あの店で買うものを思い出した」用）。ヒットが無ければ<b>「この名前で登録する」ボタンでのみ</b>新規登録（行き先＝今の店・即カゴ入り。キーボード確定では登録しない）。どの経路も 1 件で自動クローズ。図は全セクションヒットの最大ケース。</p>
+      </figcaption>
+    </figure>
+
+  </div>
+  </section>
+
+  <section class="group">
+  <div class="group-label">設定と管理</div>
+  <div class="gallery">
+
+    <!-- 07 設定 -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar sub">
+          <span class="icon-btn">←</span>
+          <span class="title">設定</span>
+        </div>
+        <div class="list" style="padding-top:6px">
+          <div class="settings-row">カテゴリの管理 <span class="chev">›</span></div>
+          <div class="settings-row">行き先の管理 <span class="chev">›</span></div>
+          <div class="settings-row">テーマ <span class="chev">藍 ›</span></div>
+          <div class="settings-row">ライセンス <span class="chev">›</span></div>
+          <div class="version">Re-Buy 1.0.0</div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">07</span> <h2>設定</h2>
+        <p>カテゴリ・行き先の管理、テーマ（現在値表示）、ライセンス。規約・プラポリ・問い合わせはリリース前まで行ごと出さない。</p>
+      </figcaption>
+    </figure>
+
+    <!-- 08 テーマ -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar sub">
+          <span class="icon-btn">←</span>
+          <span class="title">テーマ</span>
+        </div>
+        <div class="list" style="padding-top:6px">
+          <div class="settings-row">
+            <span style="width:20px;height:20px;border-radius:50%;background:#2E6B4A;border:3px solid #FAFBF7;box-shadow:0 0 0 1px var(--line);flex:none"></span>
+            若葉
+          </div>
+          <div class="settings-row" style="border-color:var(--accent)">
+            <span style="width:20px;height:20px;border-radius:50%;background:#34558B;border:3px solid #F8F9FB;box-shadow:0 0 0 1px var(--line);flex:none"></span>
+            藍
+            <span class="chev" style="color:var(--accent);font-weight:700">✓</span>
+          </div>
+          <div class="settings-row">
+            <span style="width:20px;height:20px;border-radius:50%;background:#B5541F;border:3px solid #FBF8F3;box-shadow:0 0 0 1px var(--line);flex:none"></span>
+            柿
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">08</span> <h2>テーマ</h2>
+        <p>タップで即時反映（保存ボタンなし）。既定は藍。明暗は OS 設定に追従。選択は端末内に保存。</p>
+      </figcaption>
+    </figure>
+
+    <!-- 09 行き先の管理 -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar sub">
+          <span class="icon-btn">←</span>
+          <span class="title">行き先の管理</span>
+        </div>
+        <div class="list" style="padding-top:6px">
+          <div class="settings-row"><span class="drag">≡</span> スーパー</div>
+          <div class="settings-row"><span class="drag">≡</span> 薬局</div>
+          <div class="settings-row"><span class="drag">≡</span> ホームセンター</div>
+          <div class="row" style="border-style:dashed; justify-content:center; color:var(--muted); font-size:12.5px">＋ 行き先を追加</div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">09</span> <h2>行き先の管理（カテゴリも同型）</h2>
+        <p>ドラッグで並び替え、追加はその場、<b>長押しで編集シート 09b</b>（削除もその中）。カテゴリ管理も同型。</p>
+      </figcaption>
+    </figure>
+
+    <!-- 09b 行き先の編集シート -->
+    <figure class="shot">
+      <div class="phone">
+        <div class="statusbar"><span>20:05</span><span>▲ ▂ ▉</span></div>
+        <div class="appbar sub">
+          <span class="icon-btn">←</span>
+          <span class="title">行き先の管理</span>
+        </div>
+        <div class="scrim">
+          <div class="sheet">
+            <div class="grip"></div>
+            <h3>スーパー</h3>
+            <div class="field">スーパー<span style="opacity:.5">|</span></div>
+            <div class="sheet-actions">
+              <button class="cta">保存</button>
+            </div>
+            <div class="danger-link">「スーパー」を削除…</div>
+          </div>
+        </div>
+      </div>
+      <figcaption>
+        <span class="no">09b</span> <h2>行き先の編集シート（削除はここから）</h2>
+        <p>06 と同じ型。削除は確認ダイアログで<b>影響を件数提示</b>——「紐づく 3 件は『どこでも買えるもの』になります」（カテゴリなら「カテゴリなし」）。品目は消えない。</p>
+      </figcaption>
+    </figure>
+
+  </div>
+  </section>
+</div>
+<script>
+  (function () {
+    var chips = document.querySelectorAll('.palette-picker .chip');
+    chips.forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        if (btn.dataset.p) {
+          document.documentElement.dataset.palette = btn.dataset.p;
+        } else {
+          delete document.documentElement.dataset.palette;
+        }
+        chips.forEach(function (b) { b.classList.toggle('on', b === btn); });
+      });
+    });
+  })();
+</script>
+</html>
