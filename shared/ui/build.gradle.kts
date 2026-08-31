@@ -1,3 +1,4 @@
+import org.jetbrains.compose.ExperimentalComposeLibrary
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
@@ -176,6 +177,13 @@ kotlin {
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)
+        }
+
+        // 画面を動かすテスト。**commonTest ではなくここに置く**（理由は
+        // ../../docs/仕様/17_テスト戦略定義書.md §1）
+        iosTest.dependencies {
+            @OptIn(ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
         }
 
         // androidHostTest は withHostTest が動的に作るので型付きアクセサが無い。
