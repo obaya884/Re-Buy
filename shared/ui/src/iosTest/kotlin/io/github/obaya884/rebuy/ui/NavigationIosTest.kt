@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
+import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.resources.category_edit_title
 import io.github.obaya884.rebuy.ui.resources.home_no_item_button
@@ -32,14 +33,19 @@ import kotlin.test.Test
  * **端末の戻るを踏む 6 件は持たない。** iOS にハードウェアの戻るが無いため。
  * 代わりに戻る矢印で 2 段降りる 1 件を持つ（Android 版の「1 段ずつ帰る」に対応）。
  *
- * ### 前提と穴
+ * ### DB
  *
- * **DB が空であることを前提にしている。** 空状態を assert する 2 件がその前提を守る番人で、
- * ここが落ちたら DB にデータが残っている。書き込むテストを足すときは [ensureKoinStarted] を読むこと。
+ * **本物の Room は使わない。** [ensureKoinStarted] が DAO を [FakeDatabase] に差し替えるので、
+ * 各テストは空から始まり、品目が要るなら `prepare` で置く。
+ * **iOS で本物の Room が動くことは `:shared:data` の iosTest が見る**（T-35）。
  *
- * **実物の `.app` は起動しない**ので Swift の起動経路と同梱は見ない（T-46）。
- * **ライセンス画面はタイトルまでしか見ていない**——一覧の中身は非同期に読むので、
- * そこは Android の `LicenseLibrariesTest` にあたるものが iOS に要る（T-39）。
+ * ### この網が見ないもの
+ *
+ * **実物の `.app` を起動しない**ので Swift の起動経路と `.app` への同梱は見ない（T-46）。
+ * **ライセンス画面はタイトルまで**——一覧の中身は非同期に読むので、Android の
+ * `LicenseLibrariesTest` にあたるものが iOS に要る（T-39）。
+ * **カゴタブの行は踏んでいない**——`HomeListItemRow` は「すべて」タブでしか通しておらず、
+ * 落とし穴 22 の 3 か所目（`tab == HomeTab.InBasket` の分岐）はまだ未検証（T-41）。
  */
 @OptIn(ExperimentalTestApi::class)
 class NavigationIosTest {
@@ -58,9 +64,19 @@ class NavigationIosTest {
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
 
-    /** Koin を起動して [ReBuyApp] を描き、[block] を実行する。起動の作法は [ensureKoinStarted]。 */
-    private fun app(block: ComposeUiTest.() -> Unit) = runComposeUiTest {
+    /**
+     * [ReBuyApp] を描いて [block] を実行する。起動と DAO の差し替えは [ensureKoinStarted]。
+     *
+     * **毎回 [FakeDatabase] を空に戻してから [prepare] を適用する。** Koin をプロセスにつき
+     * 1 回しか起動しないので fake もテスト間で共有され、戻さないと前のテストの品目が残る。
+     */
+    private fun app(
+        prepare: FakeDatabase.() -> Unit = {},
+        block: ComposeUiTest.() -> Unit
+    ) = runComposeUiTest {
         ensureKoinStarted()
+        fakeDatabase.seed()
+        fakeDatabase.prepare()
         setContent { ReBuyApp() }
         block()
     }
@@ -98,6 +114,20 @@ class NavigationIosTest {
     fun 空状態のボタンからアイテム一覧へ遷移する() = app {
         onNodeWithText(noItemButton).performClick()
         assertCurrentScreenIs(itemEditTitle)
+    }
+
+    /**
+     * 品目があるときは行が出る。**iOS で `HomeListItemRow` を通す唯一のテスト。**
+     *
+     * 空状態の裏返しであると同時に、[ensureKoinStarted] の差し替えが効いていることの証明でもある
+     * （fake に置いた品目が画面に出るなら、本番の DB ではなく fake を見ている）。
+     */
+    @Test
+    fun 品目があるホームは空状態ではなく行を出す() = app(
+        prepare = { seed(items = listOf(item(id = 1, name = "アイテム1", status = ItemStatus.IN_SHOPPING_LIST))) }
+    ) {
+        onNodeWithText("アイテム1").assertExists()
+        onNodeWithText(noItemMessage).assertDoesNotExist()
     }
 
     @Test

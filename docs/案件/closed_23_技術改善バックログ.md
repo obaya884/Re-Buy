@@ -34,6 +34,7 @@
 | T-32 | テストが 0 件で緑になるのを機械で止める | ツール整備 | 中 | 完了 2026-08-30 | [詳細](#t-32) |
 | T-31 | ③ 段 3 KMP/CMP 移植 | 内部設計 | 高 | 完了 2026-08-30 | [詳細](#t-31) |
 | T-42 | iOS の画面を機械で操作・検証できるようにする | テスト | 高 | 完了 2026-08-31 | [詳細](#t-42) |
+| T-48 | iOS のテストで DB を差し替えられるようにする | テスト | 中 | 完了 2026-08-31 | [詳細](#t-48) |
 
 ## 詳細
 
@@ -216,7 +217,16 @@
   - (c) Compose Multiplatform の `runComposeUiTest` を `commonTest` に置く。UI 階層ではなく Compose のセマンティクスを直接叩くので、**`NavigationTest` など既存の instrumented テストを `commonTest` へ移せる可能性がある**。文言を `Res.string.*` から引けるので、既存の方針をそのまま延長できる
   - (d) Maestro。YAML の flow 1 本が Android と iOS の両方で回り、Swift も Kotlin も書かない。**ただし iOS ではネイティブのアクセシビリティツリーを見るので、1 枚の `UIView` に描く Compose の階層が見えるかが分かれ目**（Maestro 側に issue #1549 がある。CMP 1.8.0 で同期が遅延化され `testTag` が `accessibilityIdentifier` に対応づくとされており、本リポジトリの 1.12.0 では直っている可能性が高いが**未実測**）。採るなら **`testTag` で選び `testTag` で assert する**——YAML から `Res.string.*` は引けないので、文言で assert すると「文言を変えたらテストが古い値を主張する」状態に戻る
 - 分担の見立て: **(c) と、(b)/(d) は競合ではない。** `NavigationStateRestorationTest`（プロセス death からの復元）と `LicenseLibrariesTest`（資産が APK に入っているか）は実物を起動しないと見られないので、厚みを (c) に置き、実物を起動する薄い層を (b) か (d) で持つ形になる
-- **結果（2026-08-31）: (c) `runComposeUiTest` を採り、`shared/ui/src/iosTest` に `NavigationIosTest`（8 件）を置いた。** 6 画面の遷移・戻る矢印・ボトムナビ・空状態を見る。CI は `ios` ジョブがそのまま拾うので変更していない。**(d) Maestro は候補として生きている**（アクセシビリティ階層が見えることは実測済み）が、(c) で足りたので採らなかった。実測の内訳と判断の経緯は log_23
+- **結果（2026-08-31）: (c) `runComposeUiTest` を採り、`shared/ui/src/iosTest` に `NavigationIosTest`（9 件）を置いた。** 6 画面の遷移・戻る矢印・ボトムナビ・空状態・品目がある行を見る。DAO は [T-48](#t-48) の差し替えで `FakeDatabase` を使う。CI は `ios` ジョブがそのまま拾うので変更していない。**(d) Maestro は候補として生きている**（アクセシビリティ階層が見えることは実測済み）が、(c) で足りたので採らなかった。実測の内訳と判断の経緯は log_23
 - **達成していないこと**: **落とし穴 22 は再現せず、この網が止めるとは言えない**（[T-41](./23_技術改善バックログ.md#t-41)）
-- **残った穴**: DB が空の状態しか見られない（[T-48](./23_技術改善バックログ.md#t-48)）／実物の `.app` を起動しない（[T-46](./23_技術改善バックログ.md#t-46)）／ライセンス一覧の中身を見ていない（[T-39](./23_技術改善バックログ.md#t-39)）
+- **残った穴**: 本物の Room を通らない（[T-35](./23_技術改善バックログ.md#t-35)）／実物の `.app` を起動しない（[T-46](./23_技術改善バックログ.md#t-46)）／ライセンス一覧の中身を見ていない（[T-39](./23_技術改善バックログ.md#t-39)）
 - 関連: T-31 のステップ 15。[T-35](./23_技術改善バックログ.md#t-35)（iOS の DB と DI のスモークテスト）とあわせて考える
+
+### T-48
+
+- 背景: [T-42](./closed_23_技術改善バックログ.md#t-42) で置いた `NavigationIosTest` は Koin をテスト自身が起動するため、`AppDatabase` が `NSDocumentDirectory` の**実ファイル**になっていた。**新品のシミュレータでは開けない**——テストバイナリはアプリのサンドボックスではなくシミュレータ共有のデータ領域で動くので `data/Documents` が無く、CI で 8 件すべてが `Unable to open database` で落ちた。加えて 1 本のファイルを共有するので、書き込むテストを足すと実行と実行の間にも状態が漏れる。**[T-21](./23_技術改善バックログ.md#t-21) では代わりにならない**——あちらは本物の `ReBuyApplication` が起動した Koin を差し替える Android 限定の手で、テスト自身が `startKoin` する iOS には当てはまらない
+- **結果（2026-08-31）: T-42 の CI 失敗をきっかけに、同じ PR で入れた。** `ensureKoinStarted()` が Koin 起動の直後に `loadModules(..., allowOverride = true)` で `ItemDao` / `CategoryDao` を `FakeDatabase` のものへ差し替える。Room には一切触らないので、ファイルを作らず品目も `seed()` で置ける
+  - **`allowOverride` は本番の方針を緩めていない。** `startKoin { allowOverride(false) }` は起動時の `modules()` にしか効かず、起動後の `loadModules` は既定で `allowOverride = true`（Koin 4.1.0 のソースで確認）
+  - **差し替えは `setContent` より前でなければ効かない。** `AppDatabase` → DAO → Repository はすべて `single` で、上書きは「これから作るもの」にしか効かない。1 度でも画面を描いた後だと Repository が古い DAO を掴んだままになる
+  - **iOS で本物の Room が動くことは見ていない。** そこは [T-35](./23_技術改善バックログ.md#t-35) が持つ
+- 関連: [T-21](./23_技術改善バックログ.md#t-21)（Android 側の同じ問題。手は違う）／ [T-35](./23_技術改善バックログ.md#t-35) ／ [T-41](./23_技術改善バックログ.md#t-41)
