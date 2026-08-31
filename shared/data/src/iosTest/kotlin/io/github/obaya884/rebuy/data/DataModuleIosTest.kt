@@ -4,6 +4,7 @@ import io.github.obaya884.rebuy.data.category.CategoryDao
 import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.di.dataModule
 import io.github.obaya884.rebuy.data.item.ItemDao
+import io.github.obaya884.rebuy.data.settings.SettingsStore
 import org.koin.dsl.koinApplication
 import kotlin.test.Test
 import kotlin.test.assertSame
@@ -45,6 +46,8 @@ class DataModuleIosTest {
             assertSame(app.koin.get<ItemDao>(), app.koin.get<ItemDao>())
             assertSame(app.koin.get<CategoryDao>(), app.koin.get<CategoryDao>())
             assertSame(app.koin.get<DestinationDao>(), app.koin.get<DestinationDao>())
+            // DB の外に置く設定値（データモデル定義書 §9）。本番の定義はここでしか解かれない
+            assertSame(app.koin.get<SettingsStore>(), app.koin.get<SettingsStore>())
         } finally {
             app.close()
         }

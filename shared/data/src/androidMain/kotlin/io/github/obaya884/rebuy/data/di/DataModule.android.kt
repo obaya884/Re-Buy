@@ -5,6 +5,8 @@ import androidx.room.Room
 import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import io.github.obaya884.rebuy.data.APP_DATABASE_NAME
 import io.github.obaya884.rebuy.data.AppDatabase
+import io.github.obaya884.rebuy.data.settings.SettingsStore
+import io.github.obaya884.rebuy.data.settings.SharedPreferencesSettingsStore
 import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
@@ -12,6 +14,7 @@ import org.koin.dsl.module
 
 actual val platformDataModule: Module = module {
     single { createAppDatabase(androidContext()) }
+    single<SettingsStore> { SharedPreferencesSettingsStore(androidContext()) }
 }
 
 /**

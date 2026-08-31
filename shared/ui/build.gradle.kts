@@ -28,6 +28,9 @@ aboutLibraries {
         // 構成名をフルで名指しする
         all = true
         includeTargets = true
+        // 依存として解決されないもの（同梱フォントなど）を手で足す。**ここで足した entry には
+        // targets が付かない**ので、表示側は targets が空の entry を出す側に倒している
+        configPath = file("aboutlibraries")
         filterVariants.set(
             setOf(
                 "androidCompileClasspath",

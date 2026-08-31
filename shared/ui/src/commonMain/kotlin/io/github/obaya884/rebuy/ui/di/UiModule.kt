@@ -5,6 +5,7 @@ import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditViewModel
 import io.github.obaya884.rebuy.ui.screen.home.HomeViewModel
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditViewModel
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingViewModel
+import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
 import org.koin.core.context.startKoin
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.KoinAppDeclaration
@@ -24,6 +25,7 @@ val uiModule = module {
     viewModelOf(::ShoppingViewModel)
     viewModelOf(::CategoryEditViewModel)
     viewModelOf(::ItemEditViewModel)
+    viewModelOf(::ThemeViewModel)
 }
 
 /**

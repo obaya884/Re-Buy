@@ -18,6 +18,7 @@ import io.github.obaya884.rebuy.ui.resources.home_title
 import io.github.obaya884.rebuy.ui.resources.item_edit_title
 import io.github.obaya884.rebuy.ui.resources.setting_title
 import io.github.obaya884.rebuy.ui.resources.shopping_title
+import io.github.obaya884.rebuy.ui.resources.theme_title
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import io.github.obaya884.rebuy.ui.screen.home.HomeTab
 import kotlinx.coroutines.runBlocking
@@ -55,6 +56,7 @@ class NavigationIosTest {
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
+    private val themeLabel = string(Res.string.theme_title)
 
     /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
     private fun oneItem(status: ItemStatus): FakeDatabase.() -> Unit =
@@ -130,6 +132,16 @@ class NavigationIosTest {
     fun 空状態のボタンからアイテム一覧へ遷移する() = app {
         onNodeWithText(noItemButton).performClick()
         assertCurrentScreenIs(itemEditTitle)
+    }
+
+    @Test
+    fun 設定からテーマへ遷移して戻る矢印で設定に帰る() = app {
+        onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        onNodeWithText(themeLabel).performClick()
+        assertCurrentScreenIs(themeLabel)
+
+        tapBackArrow()
+        assertCurrentScreenIs(settingTitle)
     }
 
     @Test
