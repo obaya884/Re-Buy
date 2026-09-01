@@ -28,3 +28,26 @@ DerivedData/
 keystore.properties
 *.jks
 *.keystore
+*.mobileprovision
+*.provisionprofile
+*.p12
+*.pfx
+*.pkcs12
+*.p8
+*.cer
+*.certSigningRequest
+*.der
+*.crt
+*.p7b
+*.keychain
+*.keychain-db
+*.ipa
+*.pem
+*.key
+
+# Python の生成物。**絶対パス（＝ホームディレクトリ名）が埋まる**
+__pycache__/
+*.pyc
+
+# 手元だけのビルド設定
+Local.xcconfig

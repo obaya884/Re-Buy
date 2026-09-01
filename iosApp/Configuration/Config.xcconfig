@@ -4,11 +4,15 @@
 //
 // この方針の裏返しとして、iosApp の設定は Xcode の GUI ではなくこのファイルか
 // pbxproj の直編集で行う。GUI で保存すると pbxproj 全体が書き直されて差分が読めなくなる
+//
+// **コメントにも実値を書かないこと。** 説明のつもりの 1 行でも public に出るのは同じ。
+// そのうえで、説明で設定名を出すときは直後に `=` を書かない——実値を書いた例示と
+// 区別できないので、scripts/check-ios-signing.py が鳴る
 
-// TEAM_ID は空のままにする。このリポジトリは public で、実機ビルドに要る値は
-// 各自が手元で入れる（Xcode の Signing & Capabilities から選ぶと自動で入る）。
-// シミュレータで動かすだけなら空で足りる
+// 手元ごとに変わる値はここでは空にし、末尾で読む Local.xcconfig に各自が置く。
+// 空のままでもシミュレータのビルドは通る
 TEAM_ID =
+
 BUNDLE_ID = io.github.obaya884.rebuy
 APP_NAME = ReBuy
 
@@ -49,3 +53,11 @@ CODE_SIGN_STYLE = Automatic
 GENERATE_INFOPLIST_FILE = NO
 INFOPLIST_FILE = iosApp/Info.plist
 ENABLE_PREVIEWS = YES
+
+// 手元だけの上書き。`?` 付きなのでファイルが無くても失敗しない。
+//
+// **参照は使う時点で解決される**ので、TEAM_ID を入れるだけならこの行の位置は
+// 問わない（上にある DEVELOPMENT_TEAM への代入にも後から効く）。位置が効くのは
+// Local が DEVELOPMENT_TEAM や BUNDLE_ID を直に書いた場合で、**後で定義した値が
+// 勝つ**ため、どの設定も上書きできるようファイルの末尾に置く
+#include? "Local.xcconfig"

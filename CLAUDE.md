@@ -25,10 +25,10 @@ Re-Buy（仮称）は「くりかえし使える買い物リスト」。品目�
 
 - **詳細は下位文書に 1 か所だけ書く**。上位文書は 1〜2 行の要約＋参照リンク
 - **判断の経緯（「なぜそうしたか」）は本文に書かず、同階層の `log_<文書名>.md` へ日付順に積む**。本文は現在の仕様だけ。決定ログを持たない文書は最初のエントリが出た時点で作る
-- **台帳（22・23）の完了エントリは、状態更新と同じコミットで同階層の `closed_<文書名>.md` へ移す**（`sh scripts/ledger-move.sh T-XX`）
+- **台帳（21・22・23）の完了エントリは、状態更新と同じコミットで同階層の `closed_<文書名>.md` へ移す**（21・23 は `sh scripts/ledger-move.sh <FB-XX|T-XX>`。22 は手で展開する）
 - **文書の分離・改番・節の移動をしたら、旧参照を grep で洗い出して追随させてから閉じる**。参照は docs 内だけでなく本書・README・`.claude/` にも散る
 - 表のセル内に `|` を書かない（`docs-check` が列を数えられなくなる）
-- 機械検査は `sh scripts/docs-check.sh`（表構造・台帳の書式・リンクとアンカーの実在。CI の `docs` ジョブが同じものを回す）
+- 機械検査は `sh scripts/docs-check.sh`（表構造・台帳の書式・リンクとアンカーの実在）。CI の `docs` ジョブはこれに加えて署名の検査も回す（[17](./docs/仕様/17_テスト戦略定義書.md) §5）
 
 ## 技術スタックとビルド
 
@@ -68,7 +68,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 |---|---|---|
 | 着手前の調査 | 組み込み `Explore` | 既存コードの把握・影響範囲の特定（結論だけ受け取る） |
 | 実装方式の設計 | 組み込み `Plan` | 実装方針の立案・トレードオフ整理 |
-| 実装の一区切り | `verifier` | build（lint・unit test）・GMD でのインストルメンテーションテスト・docs 検査 |
+| 実装の一区切り | `verifier` | build（lint・unit test）・GMD でのインストルメンテーションテスト・docs 検査・署名の検査 |
 | 実装の一区切り | `code-quality-reviewer` | 可読性・重複・命名・簡潔さ（verifier と並列起動可） |
 | docs の条項に触れたとき | `spec-reviewer` | docs との整合＋設計原則チェック |
 | テストファイルに触れたとき | `test-reviewer` | テスト観点の網羅性・正しさ（spec-reviewer と並列起動可） |
@@ -119,6 +119,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - `./gradlew installDebug` — 端末・エミュレータへインストール
 - `./gradlew clean` — KSP（Room。`:shared:data` だけで回る）の生成コードが壊れたとき
 - `sh scripts/docs-check.sh` — docs・本書・README・`.claude/` の機械検査
+- `python3 scripts/check-ios-signing.py [--staged]` — 署名の設定と実体が追跡ファイルに入っていないか（`--staged` は index を見る。pre-commit が使う）。検査自身のテストは `python3 scripts/test/check-ios-signing_test.py`
 - `sh scripts/ledger-move.sh <FB-XX|T-XX> [--status '完了 YYYY-MM-DD']` — 台帳 21・23 のエントリを完了記録へ移す
 - `android emulator list` / `android emulator start <name>` — エミュレータ（`android` CLI）
 
@@ -126,7 +127,8 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 
 `obaya884/Re-Buy` は公開リポジトリ。**到達手段・実データ・資格情報につながる記述はコミットしない**。コミットの author（氏名・メールアドレス）だけは例外として受け入れている（要求定義書 §11）。
 
-- 署名鍵（`*.jks` `*.keystore`）・`keystore.properties`・Play Console / App Store Connect の内部 ID・API キーは値も所在も書かない（`.claude/settings.json` の deny で読み取りも塞いである）
+- 署名鍵・証明書・プロビジョニングプロファイル・API 鍵と、それらの設定は値も所在も書かない。**対象の全量は `.gitignore` と `.claude/settings.json` の deny が正**（拡張子を足すときは `scripts/check-ios-signing.py` の `MATERIAL_SUFFIXES` と 3 点セットで）
+- **iOS のビルド設定は `iosApp/Configuration/` の xcconfig に置き、`project.pbxproj` には入れない**。`python3 scripts/check-ios-signing.py` が pre-commit と CI で見る（[git 運用定義書](./docs/仕様/16_git運用定義書.md) §1.4。**clone 後に 1 回設定が要る**）
 - オーナーの生活が読み取れる実データ（品目名・カテゴリ名）を docs の例示に使わない
 - 一度 push した内容は履歴から消せない。迷ったら書かない
 - ソースは閲覧のみ可（README「ライセンス」）。他者の PR は受け付けない

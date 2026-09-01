@@ -1,0 +1,9 @@
+#!/bin/sh
+# コミットに入る内容だけを見る（作業ツリーではなく index）。
+# CI は押した後にしか鳴らないので、その前に止めるのがここの役目。
+#
+# 有効にするには 1 回だけ:  git config core.hooksPath .githooks
+# （`.git/hooks` は追跡できないので、clone ごとに設定が要る）
+set -eu
+
+python3 scripts/check-ios-signing.py --staged
