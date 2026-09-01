@@ -7,6 +7,7 @@ import io.github.obaya884.rebuy.ui.screen.register.RegisterViewModel
 import io.github.obaya884.rebuy.ui.screen.shopping_start.ShoppingStartViewModel
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditViewModel
 import io.github.obaya884.rebuy.ui.Screen
+import io.github.obaya884.rebuy.ui.screen.add_noticed.AddNoticedViewModel
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingViewModel
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
 import org.koin.core.context.startKoin
@@ -29,6 +30,13 @@ val uiModule = module {
     viewModelOf(::RegisterViewModel)
     viewModelOf(::ShoppingStartViewModel)
     // 行き先はルートが持つ。渡ってくるのはキーそのもの（`ShoppingScreen` の KDoc）
+    viewModel { (route: Screen.Shopping) ->
+        AddNoticedViewModel(
+            itemRepository = get(),
+            destinationRepository = get(),
+            destinationId = route.destinationId
+        )
+    }
     viewModel { (route: Screen.Shopping) ->
         ShoppingViewModel(
             itemRepository = get(),

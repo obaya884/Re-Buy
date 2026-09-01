@@ -14,19 +14,29 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -37,6 +47,7 @@ import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.add_noticed.AddNoticedSheet
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
 import io.github.obaya884.rebuy.ui.screen.SystemBackHandler
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
@@ -65,6 +76,18 @@ fun ShoppingScreen(
     val viewModel = koinViewModel<ShoppingViewModel> { parametersOf(route) }
     val uiState by viewModel.uiState.collectAsState()
     var isLeaveDialogOpen by remember { mutableStateOf(false) }
+    var isAddNoticedSheetOpen by remember { mutableStateOf(false) }
+    // 他の行き先へ足したことの通知。**画面に変化が見えない操作**なのでスナックバー（§2）
+    var addedElsewhere by remember { mutableStateOf<String?>(null) }
+
+    val addedElsewhereMessage = addedElsewhere
+        ?.let { stringResource(Res.string.add_noticed_added_elsewhere, it) }
+    LaunchedEffect(addedElsewhereMessage) {
+        addedElsewhereMessage?.let {
+            snackbarHostState.showSnackbar(it)
+            addedElsewhere = null
+        }
+    }
 
     SystemBackHandler { isLeaveDialogOpen = true }
 
@@ -103,7 +126,7 @@ fun ShoppingScreen(
                     item { AnywhereSectionLabel() }
                     shoppingRows(uiState.anywhereItems, viewModel::toggleCheck)
                 }
-                // 暫定: 一覧末尾の「＋ 気づいたものを足す」（05 へ）は F-010
+                item { AddNoticedRow(onTap = { isAddNoticedSheetOpen = true }) }
             }
 
             Button(
@@ -116,6 +139,14 @@ fun ShoppingScreen(
                 Text(stringResource(Res.string.shopping_finish))
             }
         }
+    }
+
+    if (isAddNoticedSheetOpen) {
+        AddNoticedSheet(
+            route = route,
+            onAddedElsewhere = { addedElsewhere = it },
+            onDismiss = { isAddNoticedSheetOpen = false }
+        )
     }
 
     if (isLeaveDialogOpen) {
@@ -169,6 +200,42 @@ private fun ShoppingRow(item: Item, onTap: () -> Unit) {
         }
     }
 }
+
+/**
+ * 一覧の末尾の「＋ 気づいたものを足す」（→ 05）。
+ *
+ * **破線で囲う**（画面 04）——品目の行と同じ面に見えると、押すとチェックが付くものに見える。
+ */
+@Composable
+private fun AddNoticedRow(onTap: () -> Unit) {
+    val outline = ReBuyTheme.colors.muted
+    Text(
+        text = stringResource(Res.string.shopping_add_noticed),
+        style = MaterialTheme.typography.bodyLarge,
+        color = outline,
+        textAlign = TextAlign.Center,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(CardDefaults.shape)
+            .clickable(role = Role.Button, onClick = onTap)
+            .drawBehind {
+                drawRoundRect(
+                    color = outline,
+                    style = Stroke(
+                        width = 1.dp.toPx(),
+                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(DASH_ON, DASH_OFF))
+                    ),
+                    cornerRadius = CornerRadius(12.dp.toPx())
+                )
+            }
+            .padding(vertical = 16.dp)
+            .testTag(TestTags.SHOPPING_ADD_NOTICED_ROW)
+    )
+}
+
+/** 破線の刻み（px）。 */
+private const val DASH_ON = 12f
+private const val DASH_OFF = 8f
 
 /** 「どこでも買えるもの」の区切り。全件モードでは出ない（群が 1 つしかない）。 */
 @Composable
