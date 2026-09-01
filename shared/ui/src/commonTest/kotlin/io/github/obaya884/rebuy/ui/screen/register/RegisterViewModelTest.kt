@@ -69,18 +69,28 @@ class RegisterViewModelTest : ViewModelTestBase() {
         assertEquals(1, stored.destinationId)
     }
 
-    /** 同じチップをもう一度押すと外れる（各 0〜1 個）。 */
+    /**
+     * 同じチップをもう一度押すと外れる（画面定義書 §2）。
+     * **カテゴリと行き先は別のコードなので両方見る。**
+     */
     @Test
     fun 同じチップをもう一度押すと外れる() = runTest {
-        db.seed(categories = listOf(category(1)))
+        db.seed(categories = listOf(category(1)), destinations = listOf(destination(1)))
         val viewModel = viewModel()
         advanceUntilIdle()
 
         viewModel.selectCategory(1)
+        viewModel.selectDestination(1)
+        advanceUntilIdle()
+        assertEquals(1, viewModel.uiState.value.selectedCategoryId)
+        assertEquals(1, viewModel.uiState.value.selectedDestinationId)
+
         viewModel.selectCategory(1)
+        viewModel.selectDestination(1)
         advanceUntilIdle()
 
         assertNull(viewModel.uiState.value.selectedCategoryId)
+        assertNull(viewModel.uiState.value.selectedDestinationId)
     }
 
     /** 保存できたときだけシートを閉じる合図を出す。 */
@@ -163,6 +173,58 @@ class RegisterViewModelTest : ViewModelTestBase() {
         assertEquals(listOf(1, 1), db.storedItems.map { it.categoryId })
     }
 
+    /**
+     * **閉じるときに捨てるもの**（画面定義書 §2「保存されていない入力は破棄」）。
+     *
+     * ViewModel はシートより長生きするので、捨て漏らすと次に開いたときに残る。
+     * 捨てる先が 6 つあるので、**1 つずつ落とす変異が捕まるように 6 つとも見る**。
+     */
+    @Test
+    fun 閉じると入力もエラーもダイアログも捨てる() = runTest {
+        db.seed(
+            items = listOf(item(1, name = "アイテムA")),
+            categories = listOf(category(1)),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        // 重複で弾かれた状態を作り、チップも 02b も開いておく
+        viewModel.changeName("アイテムA")
+        viewModel.selectCategory(1)
+        viewModel.selectDestination(1)
+        viewModel.register()
+        advanceUntilIdle()
+        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        advanceUntilIdle()
+
+        viewModel.reset()
+        advanceUntilIdle()
+
+        val uiState = viewModel.uiState.value
+        assertEquals("", uiState.name)
+        assertNull(uiState.nameError)
+        assertNull(uiState.selectedCategoryId)
+        assertNull(uiState.selectedDestinationId)
+        assertNull(uiState.newNameDialog)
+        assertEquals(0, viewModel.closeRequests.value)
+    }
+
+    /** 続けて登録でも、弾かれたら**名前を消さない**（直して押し直せるように）。 */
+    @Test
+    fun 続けて登録で弾かれたら名前は残る() = runTest {
+        db.seed(items = listOf(item(1, name = "アイテムA")))
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        viewModel.changeName("アイテムA")
+        viewModel.registerAndContinue()
+        advanceUntilIdle()
+
+        assertEquals("アイテムA", viewModel.uiState.value.name)
+        assertEquals(NameError.DUPLICATE, viewModel.uiState.value.nameError)
+        assertEquals(1, db.storedItems.size)
+    }
+
     // ---- 02b 新しいカテゴリ／行き先 ----
 
     /** **作ったものは選択済みで現れる**（画面 02b）。 */
@@ -207,7 +269,28 @@ class RegisterViewModelTest : ViewModelTestBase() {
         viewModel.createNewName()
         advanceUntilIdle()
 
-        assertEquals(6, db.storedCategories.single { it.name == "カテゴリA" }.sortOrder)
+        val created = db.storedCategories.single { it.name == "カテゴリA" }
+        assertEquals(6, created.sortOrder)
+        // id・sortOrder・既存 id がすべて別値なので、取り違えるとここで落ちる
+        assertEquals(2, created.id)
+        assertEquals(2, viewModel.uiState.value.selectedCategoryId)
+    }
+
+    @Test
+    fun 作った行き先も並びの末尾に付いて選ばれる() = runTest {
+        db.seed(destinations = listOf(destination(1, sortOrder = 5)))
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.showNewNameDialog(NewNameTarget.DESTINATION)
+        viewModel.changeNewName("行き先A")
+
+        viewModel.createNewName()
+        advanceUntilIdle()
+
+        val created = db.storedDestinations.single { it.name == "行き先A" }
+        assertEquals(6, created.sortOrder)
+        assertEquals(2, created.id)
+        assertEquals(2, viewModel.uiState.value.selectedDestinationId)
     }
 
     @Test
@@ -234,6 +317,9 @@ class RegisterViewModelTest : ViewModelTestBase() {
         viewModel.changeNewName("カテゴリA")
 
         viewModel.dismissNewNameDialog()
+        advanceUntilIdle()
+        assertNull(viewModel.uiState.value.newNameDialog)
+
         viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
         advanceUntilIdle()
 

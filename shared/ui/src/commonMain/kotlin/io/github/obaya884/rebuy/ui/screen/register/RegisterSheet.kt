@@ -64,9 +64,11 @@ fun RegisterSheet(onDismiss: () -> Unit) {
     LaunchedEffect(closeRequests) {
         if (closeRequests > 0) dismiss()
     }
+    // 開いたら打ち始められる（画面 02 の「自動フォーカス」）
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
+
 
     ModalBottomSheet(onDismissRequest = dismiss) {
         Column(

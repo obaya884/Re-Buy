@@ -1,5 +1,6 @@
 package io.github.obaya884.rebuy
 
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
@@ -116,6 +117,25 @@ class NavigationTest {
 
         tapBackArrow()
         assertCurrentScreenIs(settingTitle)
+    }
+
+    /**
+     * ＋ で登録シートが開き、端末の戻るで閉じる（画面 02・§2）。
+     *
+     * **`ModalBottomSheet` は Android と skiko で実装が分かれる**ので、iOS の
+     * `PoolIosTest` だけでは Android 固有の壊れ方を止められない（テスト戦略定義書 §2.4）。
+     * 登録まで踏むと本物の DB に品目が残るので、開いて閉じるところまで。
+     */
+    @Test
+    fun プールの追加ボタンで登録シートが開いて端末の戻るで閉じる() {
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsDisplayed()
+
+        pressBack()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertDoesNotExist()
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test

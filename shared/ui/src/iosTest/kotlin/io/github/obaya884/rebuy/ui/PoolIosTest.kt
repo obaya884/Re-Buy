@@ -3,11 +3,15 @@ package io.github.obaya884.rebuy.ui
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.v2.runComposeUiTest
 import kotlin.test.Test
 import kotlin.time.Instant
@@ -105,6 +109,14 @@ class PoolIosTest {
      * シートの ViewModel はプールの entry に属するので、シートを閉じても破棄されない。
      * 閉じる合図や入力が残ると、2 回目に開いた瞬間に閉じる／前回の入力が残る。
      */
+    /** 開いたら名前欄にフォーカスが入る（画面 02）。**打ち始められる状態**であること。 */
+    @Test
+    fun 開くと名前欄にフォーカスが入る() = pool {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsFocused()
+    }
+
     @Test
     fun 登録した後にもう一度シートを開ける() = pool {
         onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
@@ -116,20 +128,24 @@ class PoolIosTest {
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsDisplayed()
     }
 
-    /** 閉じたら入力は捨てる（画面定義書 §2）。 */
+    /**
+     * **保存せずに閉じたら入力は捨てる**（画面定義書 §2）。
+     *
+     * 下スワイプで閉じる経路を `Dismiss` のセマンティクスから踏む——`ModalBottomSheet` の
+     * グリップが持っているので、ピクセルを動かさずに同じ道を通れる。
+     */
     @Test
-    fun 閉じると入力は残らない() = pool {
+    fun 保存せずに閉じると入力は残らない() = pool {
         onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
-        onNodeWithTag(TestTags.REGISTER_SUBMIT_AND_CONTINUE).performClick()
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("書きかけ")
 
-        // スクリムの外をタップする代わりに、シートの閉じる要求を直接踏む経路が無いので
-        // 「続けて登録」で残った入力を、開き直しで確かめる
-        onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+        onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.Dismiss))
+            .performSemanticsAction(SemanticsActions.Dismiss)
         onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
 
-        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertTextContains("名前")
+        onNodeWithText("書きかけ").assertDoesNotExist()
+        // 品目としても残っていない
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertDoesNotExist()
     }
 
     /** 「続けて登録」はシートを開いたままにする（画面 02）。 */
@@ -166,6 +182,34 @@ class PoolIosTest {
 
         // 作ったカテゴリが選ばれたまま登録されるので、行にタグが出る
         onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("カテゴリA")
+    }
+
+    /** 行き先側の結線はカテゴリとは別のコピーなので、こちらも 1 件見る。 */
+    @Test
+    fun 新しい行き先を作るとその品目に付く() = pool {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        onNodeWithTag(TestTags.REGISTER_NEW_DESTINATION_CHIP).performClick()
+        onNodeWithTag(TestTags.REGISTER_DIALOG_NAME_FIELD).performTextInput("行き先A")
+        onNodeWithTag(TestTags.REGISTER_DIALOG_CREATE).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
+        onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("🏬 行き先A")
+    }
+
+    /** すでにあるチップを選ぶ経路。**作る経路とは別の結線**。 */
+    @Test
+    fun 既存のチップを選ぶとその品目に付く() = pool(twoItems()) {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        onNodeWithTag(TestTags.registerCategoryChip(categoryId = 1)).performClick()
+        onNodeWithTag(TestTags.registerDestinationChip(destinationId = 1)).performClick()
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムC")
+        onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+
+        val row = onNodeWithTag(TestTags.poolRow(itemId = 3))
+        row.assertTextContains("カテゴリー1")
+        row.assertTextContains("🏬 行き先1")
     }
 
     // ---- 絞り込みチップ（画面 01） ----
