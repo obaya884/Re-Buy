@@ -101,8 +101,10 @@ class FakeDatabase {
         override suspend fun existsName(name: String, exceptId: Int): Boolean =
             items.value.any { it.name == name && it.id != exceptId }
 
-        override suspend fun deleteItem(item: Item) {
-            items.update { list -> list.filterNot { it.id == item.id } }
+        override suspend fun deleteItem(item: Item) = deleteItemById(item.id)
+
+        override suspend fun deleteItemById(itemId: Int) {
+            items.update { list -> list.filterNot { it.id == itemId } }
         }
 
         override suspend fun updateItemName(itemId: Int, newName: String, updatedAt: Instant) {

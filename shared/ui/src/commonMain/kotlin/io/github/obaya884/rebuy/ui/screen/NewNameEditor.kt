@@ -62,8 +62,3 @@ data class NewNameDialogState(
     val error: NameError? = null
 )
 
-/**
- * チップ 1 つぶん。カテゴリと行き先は形が同じなので、**チップ列は同じ型で扱う**
- * （どちらを描いているかは呼び出し側が知っている）。
- */
-data class ChipItem(val id: Int, val label: String)

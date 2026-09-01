@@ -1,16 +1,12 @@
 package io.github.obaya884.rebuy.ui.screen.register
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -93,29 +89,29 @@ fun RegisterSheet(onDismiss: () -> Unit) {
                 value = uiState.name,
                 onValueChange = viewModel::changeName,
                 error = uiState.nameError,
-                placeholder = stringResource(Res.string.register_name_placeholder),
+                placeholder = stringResource(Res.string.item_form_name_placeholder),
                 modifier = Modifier.focusRequester(focusRequester).testTag(TestTags.REGISTER_NAME_FIELD)
             )
 
             ChipRow(
-                label = stringResource(Res.string.register_category_label),
+                label = stringResource(Res.string.item_form_category_label),
                 chips = uiState.categoryChips,
                 selectedId = uiState.selectedCategoryId,
-                newLabel = stringResource(Res.string.register_new_category),
+                newLabel = stringResource(Res.string.item_form_new_category),
                 onSelect = viewModel::selectCategory,
                 onCreate = { viewModel.showNewNameDialog(NewNameTarget.CATEGORY) },
-                newChipTag = TestTags.REGISTER_NEW_CATEGORY_CHIP,
-                chipTag = TestTags::registerCategoryChip
+                newChipTag = TestTags.ITEM_FORM_NEW_CATEGORY_CHIP,
+                chipTag = TestTags::itemFormCategoryChip
             )
             ChipRow(
-                label = stringResource(Res.string.register_destination_label),
+                label = stringResource(Res.string.item_form_destination_label),
                 chips = uiState.destinationChips,
                 selectedId = uiState.selectedDestinationId,
-                newLabel = stringResource(Res.string.register_new_destination),
+                newLabel = stringResource(Res.string.item_form_new_destination),
                 onSelect = viewModel::selectDestination,
                 onCreate = { viewModel.showNewNameDialog(NewNameTarget.DESTINATION) },
-                newChipTag = TestTags.REGISTER_NEW_DESTINATION_CHIP,
-                chipTag = TestTags::registerDestinationChip
+                newChipTag = TestTags.ITEM_FORM_NEW_DESTINATION_CHIP,
+                chipTag = TestTags::itemFormDestinationChip
             )
 
             Row(

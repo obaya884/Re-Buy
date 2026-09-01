@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Instant
 
@@ -84,14 +85,14 @@ class ItemEditViewModel(
 
     /** 同じチップをもう一度押すと外れる（画面定義書 §2）。「なし」チップでも外せる。 */
     fun selectCategory(categoryId: Int) {
-        editing.value = editing.value?.let {
-            it.copy(categoryId = categoryId.takeIf { id -> id != it.categoryId })
+        editing.update { current ->
+            current?.copy(categoryId = categoryId.takeIf { it != current.categoryId })
         }
     }
 
     fun selectDestination(destinationId: Int) {
-        editing.value = editing.value?.let {
-            it.copy(destinationId = destinationId.takeIf { id -> id != it.destinationId })
+        editing.update { current ->
+            current?.copy(destinationId = destinationId.takeIf { it != current.destinationId })
         }
     }
 
@@ -107,12 +108,13 @@ class ItemEditViewModel(
     fun save() {
         val current = editing.value ?: return
         viewModelScope.launch {
-            val result = itemRepository.updateName(current.id, current.name)
-            nameError.applySaveResult(result) {
-                itemRepository.updateCategory(current.id, current.categoryId)
-                itemRepository.updateDestination(current.id, current.destinationId)
-                _closeRequests.value += 1
-            }
+            val result = itemRepository.update(
+                id = current.id,
+                name = current.name,
+                categoryId = current.categoryId,
+                destinationId = current.destinationId
+            )
+            nameError.applySaveResult(result) { _closeRequests.value += 1 }
         }
     }
 
@@ -120,7 +122,7 @@ class ItemEditViewModel(
     fun delete() {
         val current = editing.value ?: return
         viewModelScope.launch {
-            itemRepository.delete(Item(id = current.id, name = current.originalName))
+            itemRepository.delete(current.id)
             _closeRequests.value += 1
         }
     }
@@ -163,6 +165,7 @@ data class ItemEditSheetUiState(
     val destinations: List<Destination> = emptyList(),
     val newNameDialog: NewNameDialogState? = null
 ) {
-    val categoryChips: List<ChipItem> = categories.map { ChipItem(it.id, it.name) }
-    val destinationChips: List<ChipItem> = destinations.map { ChipItem(it.id, it.name) }
+    // 1 度しか読まないので get()（アーキテクチャ定義書 §4.3）
+    val categoryChips: List<ChipItem> get() = categories.map { ChipItem(it.id, it.name) }
+    val destinationChips: List<ChipItem> get() = destinations.map { ChipItem(it.id, it.name) }
 }

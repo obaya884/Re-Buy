@@ -31,6 +31,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ChipRow
 import io.github.obaya884.rebuy.ui.screen.NameTextField
 import io.github.obaya884.rebuy.ui.screen.NewNameDialog
+import io.github.obaya884.rebuy.ui.screen.NoneChip
 import io.github.obaya884.rebuy.ui.screen.NewNameTarget
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import org.jetbrains.compose.resources.stringResource
@@ -86,35 +87,39 @@ fun ItemEditSheet(item: Item, onDismiss: () -> Unit) {
                 value = editing.name,
                 onValueChange = viewModel::changeName,
                 error = uiState.nameError,
-                placeholder = stringResource(Res.string.register_name_placeholder),
+                placeholder = stringResource(Res.string.item_form_name_placeholder),
                 modifier = Modifier.testTag(TestTags.ITEM_SHEET_NAME_FIELD)
             )
 
             ChipRow(
-                label = stringResource(Res.string.register_category_label),
+                label = stringResource(Res.string.item_form_category_label),
                 chips = uiState.categoryChips,
                 selectedId = editing.categoryId,
-                newLabel = stringResource(Res.string.register_new_category),
+                newLabel = stringResource(Res.string.item_form_new_category),
                 onSelect = viewModel::selectCategory,
                 onCreate = { viewModel.showNewNameDialog(NewNameTarget.CATEGORY) },
-                newChipTag = TestTags.REGISTER_NEW_CATEGORY_CHIP,
-                chipTag = TestTags::registerCategoryChip,
-                noneLabel = stringResource(Res.string.item_sheet_none),
-                onSelectNone = viewModel::clearCategory,
-                noneChipTag = TestTags.ITEM_SHEET_CATEGORY_NONE_CHIP
+                newChipTag = TestTags.ITEM_FORM_NEW_CATEGORY_CHIP,
+                chipTag = TestTags::itemFormCategoryChip,
+                noneChip = NoneChip(
+                    label = stringResource(Res.string.item_sheet_none),
+                    tag = TestTags.ITEM_SHEET_CATEGORY_NONE_CHIP,
+                    onSelect = viewModel::clearCategory
+                )
             )
             ChipRow(
-                label = stringResource(Res.string.register_destination_label),
+                label = stringResource(Res.string.item_form_destination_label),
                 chips = uiState.destinationChips,
                 selectedId = editing.destinationId,
-                newLabel = stringResource(Res.string.register_new_destination),
+                newLabel = stringResource(Res.string.item_form_new_destination),
                 onSelect = viewModel::selectDestination,
                 onCreate = { viewModel.showNewNameDialog(NewNameTarget.DESTINATION) },
-                newChipTag = TestTags.REGISTER_NEW_DESTINATION_CHIP,
-                chipTag = TestTags::registerDestinationChip,
-                noneLabel = stringResource(Res.string.item_sheet_none),
-                onSelectNone = viewModel::clearDestination,
-                noneChipTag = TestTags.ITEM_SHEET_DESTINATION_NONE_CHIP
+                newChipTag = TestTags.ITEM_FORM_NEW_DESTINATION_CHIP,
+                chipTag = TestTags::itemFormDestinationChip,
+                noneChip = NoneChip(
+                    label = stringResource(Res.string.item_sheet_none),
+                    tag = TestTags.ITEM_SHEET_DESTINATION_NONE_CHIP,
+                    onSelect = viewModel::clearDestination
+                )
             )
 
             Text(

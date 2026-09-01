@@ -16,19 +16,19 @@
     <string name="pool_empty_title">まだ何も登録されていません</string>
     <string name="pool_empty_message">右上の ＋ から登録できます</string>
     <string name="pool_filtered_empty">この条件のものはありません</string>
-    <!-- 02 登録シート・02b 新しいカテゴリ／行き先ダイアログ（画面定義書 画面 02・02b） -->
+    <!-- 02 と 06 が共通で使う文言（名前入力・チップ列・02b のダイアログ） -->
     <string name="register_title">新しく登録</string>
-    <string name="register_name_placeholder">名前</string>
-    <string name="register_category_label">カテゴリ（任意）</string>
-    <string name="register_destination_label">行き先（任意）</string>
-    <string name="register_new_category">＋ 新しいカテゴリ</string>
-    <string name="register_new_destination">＋ 新しい行き先</string>
+    <string name="item_form_name_placeholder">名前</string>
+    <string name="item_form_category_label">カテゴリ（任意）</string>
+    <string name="item_form_destination_label">行き先（任意）</string>
+    <string name="item_form_new_category">＋ 新しいカテゴリ</string>
+    <string name="item_form_new_destination">＋ 新しい行き先</string>
     <string name="register_submit">登録</string>
     <string name="register_submit_and_continue">続けて登録</string>
-    <string name="register_dialog_category_title">新しいカテゴリ</string>
-    <string name="register_dialog_destination_title">新しい行き先</string>
-    <string name="register_dialog_create">作成</string>
-    <string name="register_dialog_cancel">キャンセル</string>
+    <string name="item_form_dialog_category_title">新しいカテゴリ</string>
+    <string name="item_form_dialog_destination_title">新しい行き先</string>
+    <string name="item_form_dialog_create">作成</string>
+    <string name="item_form_dialog_cancel">キャンセル</string>
 
     <!-- 06 品目編集シート（画面定義書 画面 06） -->
     <string name="item_sheet_none">なし</string>
@@ -55,16 +55,6 @@
     <string name="shopping_finish_alert_dialog_positive_button">買い物を終わる</string>
     <string name="shopping_finish_alert_dialog_negative_button">戻る</string>
 
-    <string name="item_edit_title">アイテム</string>
-    <string name="item_edit_add_dialog_title">アイテム追加</string>
-    <string name="item_edit_edit_dialog_title">アイテム名変更</string>
-    <string name="item_edit_delete_dialog_title">アイテムの削除</string>
-    <string name="item_edit_delete_dialog_message">%1$sを削除しますか？</string>
-    <string name="item_edit_delete_dialog_positive_button">削除</string>
-    <string name="item_edit_delete_dialog_negative_button">キャンセル</string>
-    <string name="item_edit_empty_message">アイテムがありません</string>
-    <string name="item_edit_add_item_suggestion">アイテムを追加しましょう</string>
-
     <string name="category_edit_title">カテゴリー</string>
     <string name="category_edit_add_dialog_title">カテゴリー追加</string>
     <string name="category_edit_edit_dialog_title">カテゴリー名変更</string>
@@ -81,7 +71,6 @@
     <string name="theme_kaki">柿</string>
 
     <string name="setting_title">設定</string>
-    <string name="setting_row_item_edit">アイテム一覧</string>
     <string name="setting_row_category_edit">カテゴリの管理</string>
 
     <string name="text_field_add_dialog_positive_button">追加</string>

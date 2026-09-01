@@ -152,7 +152,8 @@ data class RegisterSheetUiState(
     val selectedDestinationId: Int? = null,
     val newNameDialog: NewNameDialogState? = null
 ) {
-    val categoryChips: List<ChipItem> = categories.map { ChipItem(it.id, it.name) }
-    val destinationChips: List<ChipItem> = destinations.map { ChipItem(it.id, it.name) }
+    // 1 度しか読まないので get()（アーキテクチャ定義書 §4.3）
+    val categoryChips: List<ChipItem> get() = categories.map { ChipItem(it.id, it.name) }
+    val destinationChips: List<ChipItem> get() = destinations.map { ChipItem(it.id, it.name) }
 }
 
