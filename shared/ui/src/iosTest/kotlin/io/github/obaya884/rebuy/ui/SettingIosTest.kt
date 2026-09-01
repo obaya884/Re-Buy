@@ -73,7 +73,8 @@ class SettingIosTest {
     }
 
     /**
-     * バージョンは**行より下**に出る（画面 07 の「最下部に」）。
+     * バージョンは**画面の下端に固定**される（画面 07）。行のすぐ下ではないので、
+     * 最後の行との間が空く。
      *
      * 固定しているのは書式「Re-Buy x.y.z」で、版そのものではない。`VERSION_NAME` を
      * 組み合わせに使うのは**自己参照にならない**から——書式は `setting_version` が持ち、
@@ -83,8 +84,16 @@ class SettingIosTest {
     fun 最下部にバージョンが出る() = setting {
         onNodeWithTag(TestTags.SETTING_VERSION).assertTextEquals("Re-Buy $VERSION_NAME")
 
-        val license = onNodeWithTag(TestTags.SETTING_ROW_LICENSE).fetchSemanticsNode().positionInRoot.y
-        val version = onNodeWithTag(TestTags.SETTING_VERSION).fetchSemanticsNode().positionInRoot.y
-        assertTrue(license < version, "バージョンは行より下")
+        val licenseNode = onNodeWithTag(TestTags.SETTING_ROW_LICENSE).fetchSemanticsNode()
+        val versionNode = onNodeWithTag(TestTags.SETTING_VERSION).fetchSemanticsNode()
+        val gap = versionNode.positionInRoot.y - (licenseNode.positionInRoot.y + licenseNode.size.height)
+
+        // **最後の行の直下ではない。** 行の直下に置く実装だと隙間はほぼ 0 になる
+        assertTrue(gap > MIN_BOTTOM_GAP, "バージョンは画面の下端に固定される（隙間 $gap）")
+    }
+
+    private companion object {
+        /** 「下端に固定」と「行の直下」を見分けるための隙間（px）。 */
+        const val MIN_BOTTOM_GAP = 100f
     }
 }

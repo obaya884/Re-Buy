@@ -3,6 +3,8 @@ package io.github.obaya884.rebuy.ui.screen.setting
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -65,7 +67,7 @@ fun SettingScreen(
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxWidth().padding(innerPadding)) {
+        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             SettingRow(
                 label = stringResource(Res.string.setting_row_category_edit),
                 testTag = TestTags.SETTING_ROW_CATEGORY_EDIT,
@@ -86,6 +88,10 @@ fun SettingScreen(
                 testTag = TestTags.SETTING_ROW_LICENSE,
                 onTap = { navigator.navigate(Screen.License) }
             )
+
+            // **画面の下端に貼り付ける**（画面 07）。行が増えても位置が変わらないほうが、
+            // 探しに来たときに見つけやすい
+            Spacer(modifier = Modifier.weight(1f))
 
             Text(
                 text = stringResource(Res.string.setting_version, VERSION_NAME),
