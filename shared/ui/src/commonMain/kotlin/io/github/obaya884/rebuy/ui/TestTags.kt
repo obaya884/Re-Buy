@@ -50,6 +50,18 @@ object TestTags {
     fun shoppingStartRow(destinationId: Int): String = "shopping_start_row_$destinationId"
     const val SHOPPING_START_ALL_ROW = "shopping_start_row_all"
 
+    /** カテゴリの管理／行き先の管理（画面 09）と編集シート（09b）。 */
+    fun manageRow(id: Int): String = "manage_row_$id"
+
+    /** 行が**画面に出ている順**を数えるための共通タグ。並びの検証は座標ではなくこれで見る。 */
+    const val MANAGE_ROW = "manage_row"
+    fun manageHandle(id: Int): String = "manage_handle_$id"
+    const val MANAGE_ADD_ROW = "manage_add_row"
+    const val MANAGE_SHEET_NAME_FIELD = "manage_sheet_name_field"
+    const val MANAGE_SHEET_SAVE = "manage_sheet_save"
+    const val MANAGE_SHEET_DELETE = "manage_sheet_delete"
+    const val MANAGE_SHEET_DELETE_CONFIRM = "manage_sheet_delete_confirm"
+
     /**
      * 設定（画面 07）。行の文言は他の画面のタイトルとも重なるので、タグで掴む。
      *

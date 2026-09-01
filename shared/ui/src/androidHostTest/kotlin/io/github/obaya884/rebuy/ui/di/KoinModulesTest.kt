@@ -1,6 +1,7 @@
 package io.github.obaya884.rebuy.ui.di
 
 import android.content.Context
+import io.github.obaya884.rebuy.ui.screen.NameTarget
 import kotlin.test.Test
 import org.koin.core.annotation.KoinExperimentalAPI
 import org.koin.test.verify.verify
@@ -13,8 +14,8 @@ import org.koin.test.verify.verify
  * コンストラクタ引数の型がグラフに居るかを見るので、定義が増えれば自動で対象に入る
  * （画面を開くテストの到達性に依存しない）。
  *
- * `extraTypes` に [Context] を挙げているのは、`androidContext()` が Koin の外から
- * 注入される値で、定義としては現れないため。
+ * `extraTypes` に挙げているのは**グラフの外から来る値**。[Context] は `androidContext()` が、
+ * [NameTarget] は画面のルート（`Screen.Manage`）が渡す。どちらも定義としては現れない。
  */
 class KoinModulesTest {
 
@@ -22,6 +23,6 @@ class KoinModulesTest {
     @Test
     fun uiModuleから全層の依存グラフが組み立てられる() {
         // uiModule が includes で domainModule を、domainModule が dataModule を連れてくる
-        uiModule.verify(extraTypes = listOf(Context::class))
+        uiModule.verify(extraTypes = listOf(Context::class, NameTarget::class))
     }
 }

@@ -44,7 +44,7 @@ class NavigationTest {
 
     private val poolTitle = string(Res.string.pool_title)
     private val settingTitle = string(Res.string.setting_title)
-    private val categoryEditTitle = string(Res.string.category_edit_title)
+    private val categoryManageTitle = string(Res.string.manage_category_title)
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val shoppingTitleAll = string(Res.string.shopping_title_all)
 
@@ -97,8 +97,8 @@ class NavigationTest {
         composeRule.waitForIdle()
     }
 
-    /** 設定の下にあるカテゴリーの管理を開く。 */
-    private fun openCategoryEdit() {
+    /** 設定の下にあるカテゴリの管理を開く。 */
+    private fun openCategoryManage() {
         composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(categoryEditLabel).performClick()
     }
@@ -267,18 +267,18 @@ class NavigationTest {
     }
 
     @Test
-    fun 設定からカテゴリー一覧へ遷移して端末の戻るで設定に帰る() {
-        openCategoryEdit()
-        assertCurrentScreenIs(categoryEditTitle)
+    fun 設定からカテゴリの管理へ遷移して端末の戻るで設定に帰る() {
+        openCategoryManage()
+        assertCurrentScreenIs(categoryManageTitle)
 
         pressBack()
         assertCurrentScreenIs(settingTitle)
     }
 
     @Test
-    fun カテゴリー一覧の戻る矢印で設定に帰る() {
-        openCategoryEdit()
-        assertCurrentScreenIs(categoryEditTitle)
+    fun カテゴリの管理の戻る矢印で設定に帰る() {
+        openCategoryManage()
+        assertCurrentScreenIs(categoryManageTitle)
 
         tapBackArrow()
         assertCurrentScreenIs(settingTitle)

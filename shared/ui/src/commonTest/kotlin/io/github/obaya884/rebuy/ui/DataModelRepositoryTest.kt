@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 
 /**
@@ -74,7 +75,7 @@ class DataModelRepositoryTest {
             )
         )
 
-        destinationRepository.updateSortOrder(id = 2, newSortOrder = 0)
+        destinationRepository.updateOrder(listOf(2, 1))
 
         assertEquals(listOf(2, 1), destinationRepository.getAll().first().map { it.id })
     }
@@ -88,9 +89,51 @@ class DataModelRepositoryTest {
             )
         )
 
-        categoryRepository.updateSortOrder(id = 2, newSortOrder = 0)
+        categoryRepository.updateOrder(listOf(2, 1))
 
         assertEquals(listOf(2, 1), categoryRepository.getAll().first().map { it.id })
+    }
+
+    /** 渡した順に 1..n が振り直される（歯抜けや重複もここで揃う）。 */
+    @Test
+    fun 並び替えは渡した順に1からnを振り直す() = runTest {
+        db.seed(
+            categories = listOf(
+                category(id = 1, sortOrder = 5),
+                category(id = 2, sortOrder = 5),
+                category(id = 3, sortOrder = 9)
+            )
+        )
+
+        categoryRepository.updateOrder(listOf(3, 1, 2))
+
+        assertEquals(
+            listOf(1, 2, 3),
+            categoryRepository.getAll().first().map { it.sortOrder }
+        )
+        assertEquals(listOf(3, 1, 2), categoryRepository.getAll().first().map { it.id })
+    }
+
+    /**
+     * **値が変わらない行は書かない**（テスト戦略定義書 §3 の「同じ状態への更新は no-op」）。
+     * 並び替えは全件を渡すので、これが無いと動かしていない行の `updatedAt` まで動く。
+     */
+    @Test
+    fun 並び替えで位置が変わらない行は更新しない() = runTest {
+        db.seed(
+            categories = listOf(
+                category(id = 1, sortOrder = 1),
+                category(id = 2, sortOrder = 2),
+                category(id = 3, sortOrder = 3)
+            )
+        )
+
+        // 2 と 3 を入れ替える。1 は動かない
+        categoryRepository.updateOrder(listOf(1, 3, 2))
+
+        val stored = categoryRepository.getAll().first().associateBy { it.id }
+        assertEquals(CREATED_AT, stored.getValue(1).updatedAt)
+        assertNotEquals(CREATED_AT, stored.getValue(2).updatedAt)
     }
 
     /**

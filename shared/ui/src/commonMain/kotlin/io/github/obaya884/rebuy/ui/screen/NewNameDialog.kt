@@ -31,8 +31,8 @@ fun NewNameDialog(
         title = {
             Text(
                 when (state.target) {
-                    NewNameTarget.CATEGORY -> stringResource(Res.string.item_form_dialog_category_title)
-                    NewNameTarget.DESTINATION ->
+                    NameTarget.CATEGORY -> stringResource(Res.string.item_form_dialog_category_title)
+                    NameTarget.DESTINATION ->
                         stringResource(Res.string.item_form_dialog_destination_title)
                 }
             )

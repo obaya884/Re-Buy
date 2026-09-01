@@ -1,6 +1,7 @@
 package io.github.obaya884.rebuy.ui
 
 import androidx.navigation3.runtime.NavKey
+import io.github.obaya884.rebuy.ui.screen.NameTarget
 import kotlinx.serialization.descriptors.elementNames
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,7 +28,8 @@ class ScreenSerializationTest {
         Screen.Shopping(destinationId = 1),
         Screen.Shopping(destinationId = null),
         Screen.Setting,
-        Screen.CategoryEdit,
+        Screen.Manage(NameTarget.CATEGORY),
+        Screen.Manage(NameTarget.DESTINATION),
         Screen.License,
         Screen.Theme
     )
@@ -68,7 +70,7 @@ class ScreenSerializationTest {
 
         assertEquals(declared, routes.map { it::class.simpleName }.toSet())
         assertEquals(
-            setOf("Pool", "Shopping", "Setting", "CategoryEdit", "License", "Theme"),
+            setOf("Pool", "Shopping", "Setting", "Manage", "License", "Theme"),
             declared
         )
     }

@@ -69,15 +69,20 @@
     <string name="shopping_leave_dialog_confirm">やめる</string>
     <string name="shopping_leave_dialog_cancel">続ける</string>
 
-    <string name="category_edit_title">カテゴリー</string>
-    <string name="category_edit_add_dialog_title">カテゴリー追加</string>
-    <string name="category_edit_edit_dialog_title">カテゴリー名変更</string>
-    <string name="category_edit_delete_dialog_title">カテゴリの削除</string>
-    <string name="category_edit_delete_dialog_message">%1$sを削除しますか？\nこのカテゴリに設定されたアイテムのカテゴリは未設定になります。</string>
-    <string name="category_edit_delete_dialog_positive_button">削除</string>
-    <string name="category_edit_delete_dialog_negative_button">キャンセル</string>
-    <string name="category_edit_empty_message">カテゴリーがありません</string>
-    <string name="category_edit_add_item_suggestion">カテゴリーを追加しましょう</string>
+    <!-- 09 カテゴリの管理／行き先の管理・09b 編集シート（画面定義書 画面 09・09b） -->
+    <string name="manage_category_title">カテゴリの管理</string>
+    <string name="manage_destination_title">行き先の管理</string>
+    <string name="manage_add_category">＋ カテゴリを追加</string>
+    <string name="manage_add_destination">＋ 行き先を追加</string>
+    <string name="manage_sheet_save">保存</string>
+    <string name="manage_sheet_delete">「%1$s」を削除…</string>
+    <string name="manage_sheet_delete_dialog_title">「%1$s」を削除しますか？</string>
+    <string name="manage_sheet_delete_dialog_category">紐づく %1$s 件はカテゴリなしになります。</string>
+    <string name="manage_sheet_delete_dialog_destination">紐づく %1$s 件は「どこでも買えるもの」になります。</string>
+    <string name="manage_sheet_delete_dialog_none">紐づくものはありません。</string>
+    <string name="manage_sheet_delete_dialog_confirm">削除する</string>
+    <string name="manage_sheet_delete_dialog_cancel">キャンセル</string>
+
 
     <string name="theme_title">テーマ</string>
     <string name="theme_wakaba">若葉</string>

@@ -38,13 +38,14 @@ fun ReBuyRowCard(
     role: Role = Role.Checkbox,
     enabled: Boolean = true,
     onLongPress: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
     content: @Composable RowScope.() -> Unit
 ) {
     Card(
         colors = CardDefaults.cardColors(
             containerColor = if (highlighted) ReBuyTheme.colors.accentSoft else ReBuyTheme.colors.card
         ),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             // **clip を先に置く**。後ろに置くとリップルがカードの角丸からはみ出る
             .clip(CardDefaults.shape)

@@ -29,6 +29,7 @@ import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.VERSION_NAME
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
+import io.github.obaya884.rebuy.ui.screen.NameTarget
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
 import io.github.obaya884.rebuy.ui.theme.labelResource
@@ -71,8 +72,7 @@ fun SettingScreen(
             SettingRow(
                 label = stringResource(Res.string.setting_row_category_edit),
                 testTag = TestTags.SETTING_ROW_CATEGORY_EDIT,
-                // 暫定: 09 カテゴリの管理は F-012。いまは旧画面へ入る
-                onTap = { navigator.navigate(Screen.CategoryEdit) }
+                onTap = { navigator.navigate(Screen.Manage(NameTarget.CATEGORY)) }
             )
             // 暫定: ここに「行き先の管理」が入る（F-013。管理画面がまだ無いので出していない）
 

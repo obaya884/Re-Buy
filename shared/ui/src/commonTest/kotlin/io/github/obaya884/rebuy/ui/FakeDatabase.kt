@@ -1,5 +1,6 @@
 package io.github.obaya884.rebuy.ui
 
+import io.github.obaya884.rebuy.data.SortOrderRow
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.category.CategoryDao
 import io.github.obaya884.rebuy.data.destination.Destination
@@ -180,6 +181,10 @@ class FakeDatabase {
             }
         }
 
+        override suspend fun deleteById(id: Int) {
+            categories.value.firstOrNull { it.id == id }?.let { delete(it) }
+        }
+
         override suspend fun updateCategoryName(id: Int, newName: String, updatedAt: Instant) {
             requireNameIsFree(newName, exceptId = id)
             updateCategory(id) { it.copy(name = newName, updatedAt = updatedAt) }
@@ -190,6 +195,10 @@ class FakeDatabase {
             newSortOrder: Int,
             updatedAt: Instant
         ) = updateCategory(id) { it.copy(sortOrder = newSortOrder, updatedAt = updatedAt) }
+
+        /** `updateSortOrders` の既定実装がここを読む（本物と同じく id と並び順だけ）。 */
+        override suspend fun currentSortOrders(): List<SortOrderRow> =
+            categories.value.map { SortOrderRow(it.id, it.sortOrder) }
 
         override suspend fun maxSortOrder(): Int = categories.value.maxOfOrNull { it.sortOrder } ?: 0
 
@@ -237,6 +246,10 @@ class FakeDatabase {
             }
         }
 
+        override suspend fun deleteById(id: Int) {
+            destinations.value.firstOrNull { it.id == id }?.let { delete(it) }
+        }
+
         override suspend fun updateDestinationName(id: Int, newName: String, updatedAt: Instant) {
             requireNameIsFree(newName, exceptId = id)
             updateDestination(id) { it.copy(name = newName, updatedAt = updatedAt) }
@@ -247,6 +260,10 @@ class FakeDatabase {
             newSortOrder: Int,
             updatedAt: Instant
         ) = updateDestination(id) { it.copy(sortOrder = newSortOrder, updatedAt = updatedAt) }
+
+        /** `updateSortOrders` の既定実装がここを読む（本物と同じく id と並び順だけ）。 */
+        override suspend fun currentSortOrders(): List<SortOrderRow> =
+            destinations.value.map { SortOrderRow(it.id, it.sortOrder) }
 
         override suspend fun maxSortOrder(): Int =
             destinations.value.maxOfOrNull { it.sortOrder } ?: 0

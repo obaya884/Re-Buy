@@ -16,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
@@ -220,6 +221,29 @@ class AppDatabaseIosTest {
      * 効くこと。`onConflict` は生成される DAO のコードにしか出ず、**スキーマ JSON にも
      * `RoomMigrationTest` にも現れない**ので、3 テーブルとも実物で見る。
      */
+    /**
+     * 並び替えの保存（画面 09）。**`@Transaction` の既定実装は `FakeDatabase` が
+     * そのまま継ぐ**ので、本当に 1 回の変更になることは本物でしか見られない。
+     *
+     * 位置が変わらない行を書かないことも、`updatedAt` が動かないことで見る。
+     */
+    @Test
+    fun 並び替えは渡した順に振り直し動かない行は書かない() = runBlocking {
+        val dao = database.destinationDao()
+        val first = dao.insert(destination(name = "行き先1", sortOrder = 1)).toInt()
+        val second = dao.insert(destination(name = "行き先2", sortOrder = 2)).toInt()
+        val third = dao.insert(destination(name = "行き先3", sortOrder = 3)).toInt()
+
+        // 2 と 3 を入れ替える。1 は動かない
+        dao.updateSortOrders(listOf(first, third, second))
+
+        val stored = dao.getAllDestinations().first()
+        assertEquals(listOf(first, third, second), stored.map { it.id })
+        assertEquals(listOf(1, 2, 3), stored.map { it.sortOrder })
+        assertEquals(createdAt, stored.single { it.id == first }.updatedAt)
+        assertNotEquals(createdAt, stored.single { it.id == third }.updatedAt)
+    }
+
     @Test
     fun 同じ名前の行き先は入らない() = runBlocking {
         val dao = database.destinationDao()

@@ -13,7 +13,7 @@ import io.github.obaya884.rebuy.ui.applySaveResult
 import io.github.obaya884.rebuy.ui.screen.ChipItem
 import io.github.obaya884.rebuy.ui.screen.NewNameDialogState
 import io.github.obaya884.rebuy.ui.screen.NewNameEditor
-import io.github.obaya884.rebuy.ui.screen.NewNameTarget
+import io.github.obaya884.rebuy.ui.screen.NameTarget
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -127,7 +127,7 @@ class ItemEditViewModel(
         }
     }
 
-    fun showNewNameDialog(target: NewNameTarget) = newNameEditor.show(target)
+    fun showNewNameDialog(target: NameTarget) = newNameEditor.show(target)
 
     fun changeNewName(newName: String) = newNameEditor.changeName(newName)
 
@@ -137,8 +137,8 @@ class ItemEditViewModel(
         viewModelScope.launch {
             newNameEditor.create { target, id ->
                 editing.value = when (target) {
-                    NewNameTarget.CATEGORY -> editing.value?.copy(categoryId = id)
-                    NewNameTarget.DESTINATION -> editing.value?.copy(destinationId = id)
+                    NameTarget.CATEGORY -> editing.value?.copy(categoryId = id)
+                    NameTarget.DESTINATION -> editing.value?.copy(destinationId = id)
                 }
             }
         }
