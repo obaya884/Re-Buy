@@ -1,7 +1,6 @@
 package io.github.obaya884.rebuy.ui.screen.add_noticed
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -16,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.isInBasket
@@ -25,6 +25,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.NameTextField
 import io.github.obaya884.rebuy.ui.screen.ReBuyBottomSheet
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
+import io.github.obaya884.rebuy.ui.screen.SectionLabel
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -89,7 +90,7 @@ fun AddNoticedSheet(
             if (uiState.anywhereItems.isNotEmpty()) {
                 SectionLabel(
                     text = stringResource(Res.string.shopping_anywhere_section),
-                    testTag = TestTags.SHOPPING_ANYWHERE_SECTION
+                    testTag = TestTags.ADD_NOTICED_SECTION_ANYWHERE
                 )
                 uiState.anywhereItems.forEach { NoticedRow(it, onTap = viewModel::add) }
             }
@@ -116,16 +117,6 @@ fun AddNoticedSheet(
     }
 }
 
-@Composable
-private fun ColumnScope.SectionLabel(text: String, testTag: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelMedium,
-        color = ReBuyTheme.colors.muted,
-        modifier = Modifier.padding(top = 8.dp).testTag(testTag)
-    )
-}
-
 /**
  * 1 行。**追加済みはタップできない**（画面 05）——押しても何も起きない行に見せるより、
  * 「追加済み」と添えて理由を出す。
@@ -137,8 +128,11 @@ private fun NoticedRow(item: Item, onTap: (Item) -> Unit, destinationName: Strin
     val isAdded = item.isInBasket
     ReBuyRowCard(
         highlighted = isAdded,
-        onTap = { if (!isAdded) onTap(item) },
-        testTag = TestTags.addNoticedRow(item.id)
+        onTap = { onTap(item) },
+        testTag = TestTags.addNoticedRow(item.id),
+        // 選んで閉じるだけで、✓ を付け外しする行ではない
+        role = Role.Button,
+        enabled = !isAdded
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(

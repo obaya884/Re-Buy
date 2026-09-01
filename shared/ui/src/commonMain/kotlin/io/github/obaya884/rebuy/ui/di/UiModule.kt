@@ -29,7 +29,7 @@ val uiModule = module {
     viewModelOf(::PoolViewModel)
     viewModelOf(::RegisterViewModel)
     viewModelOf(::ShoppingStartViewModel)
-    // 行き先はルートが持つ。渡ってくるのはキーそのもの（`ShoppingScreen` の KDoc）
+    // 買い物中の 2 つは、行き先をルートのキーごと受け取る（`ShoppingScreen` の KDoc）
     viewModel { (route: Screen.Shopping) ->
         AddNoticedViewModel(
             itemRepository = get(),

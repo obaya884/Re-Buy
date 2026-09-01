@@ -51,6 +51,9 @@ class NavigationTest {
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
 
+    /** シートが開くまでの待ち。GMD では既定の 1 秒に収まらないことがある。 */
+    private val SHEET_TIMEOUT_MS = 5_000L
+
     /** 現在表示されている画面を TopAppBar のタイトルで判定する。 */
     private fun assertCurrentScreenIs(title: String) {
         composeRule.onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals(title)
@@ -73,11 +76,20 @@ class NavigationTest {
      * 行・シートの見出し・入力欄の 3 か所に出ていて `onNodeWithText` が一意に解けない（実測）。
      */
     private fun deleteItem(name: String) {
+        // 直前の遷移が終わってから触る。動いている最中は長押しが行に届かない
+        composeRule.waitForIdle()
         val isSheetOpen = composeRule.onAllNodesWithTag(TestTags.ITEM_SHEET_DELETE)
             .fetchSemanticsNodes()
             .isNotEmpty()
         if (!isSheetOpen) {
             composeRule.onNodeWithText(name).performTouchInput { longClick() }
+            // シートが出るまで待つ。**waitForIdle では間に合わないことがある**（GMD で実測）。
+            // 既定の 1 秒では GMD の負荷でシートの開くアニメーションに間に合わない
+            composeRule.waitUntil(timeoutMillis = SHEET_TIMEOUT_MS) {
+                composeRule.onAllNodesWithTag(TestTags.ITEM_SHEET_DELETE)
+                    .fetchSemanticsNodes()
+                    .isNotEmpty()
+            }
         }
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
@@ -216,6 +228,40 @@ class NavigationTest {
             assertCurrentScreenIs(poolTitle)
         } finally {
             deleteItem("離脱確認の確認用")
+        }
+    }
+
+    /**
+     * **05 表示中の戻るはシートを閉じるだけ**（画面 04）。離脱確認は出さない。
+     *
+     * `AddNoticedSheetIosTest` は端末の戻るを踏めない（iOS に無い）ので、
+     * 04 の `SystemBackHandler` がシートに横取りされていないことはここでしか見られない。
+     * **`ModalBottomSheet` が Android と skiko で実装が分かれる**ことも同じ理由（§2.4）。
+     */
+    @Test
+    fun 気づいたものを足すシートの端末の戻るはシートだけ閉じる() {
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("05 の確認用")
+        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+        composeRule.waitForIdle()
+
+        try {
+            composeRule.onNodeWithText("05 の確認用").performClick()
+            composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
+            composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
+            composeRule.onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
+            composeRule.onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertIsDisplayed()
+
+            pressBack()
+
+            composeRule.onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
+            // 離脱確認は出さない。04 に留まる
+            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).assertDoesNotExist()
+            assertCurrentScreenIs(shoppingTitleAll)
+        } finally {
+            pressBack()
+            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
+            deleteItem("05 の確認用")
         }
     }
 

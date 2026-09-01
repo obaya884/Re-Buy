@@ -30,9 +30,9 @@ class AddNoticedSheetIosTest {
         seed(
             items = listOf(
                 item(1, status = inBasket, destinationId = 1, name = "カゴの品"),
-                item(2, destinationId = 1, name = "こめ"),
-                item(3, destinationId = 2, name = "こむぎ"),
-                item(4, name = "こおり")
+                item(2, destinationId = 1, name = "アイテムA"),
+                item(3, destinationId = 2, name = "アイテムB"),
+                item(4, name = "アイテムC")
             ),
             destinations = listOf(destination(1), destination(2, name = "行き先B"))
         )
@@ -63,11 +63,13 @@ class AddNoticedSheetIosTest {
     /** 検索欄は自動フォーカス（画面 05）。打つと当たりが仕分けられる。 */
     @Test
     fun 打つと他の行き先の枠が出る() = sheet {
-        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("こむぎ")
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("アイテムB")
 
         onNodeWithTag(TestTags.ADD_NOTICED_SECTION_ELSEWHERE).assertExists()
+        // 当たりが他の行き先だけなら、未追加の見出しは出さない（画面 05）
+        onNodeWithTag(TestTags.ADD_NOTICED_SECTION_UNADDED).assertDoesNotExist()
         // どの店のものかを添える（画面 05）
-        onNodeWithTag(TestTags.addNoticedRow(itemId = 3)).assertTextEquals("こむぎ", "🏬 行き先B")
+        onNodeWithTag(TestTags.addNoticedRow(itemId = 3)).assertTextEquals("アイテムB", "🏬 行き先B")
     }
 
     /** 今の行き先のものを足すと閉じて、**04 の一覧に現れる**（画面 05）。 */
@@ -85,10 +87,12 @@ class AddNoticedSheetIosTest {
      */
     @Test
     fun 他の行き先のものを足すとスナックバーで知らせる() = sheet {
-        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("こむぎ")
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("アイテムB")
         onNodeWithTag(TestTags.addNoticedRow(itemId = 3)).performClick()
 
         onNodeWithText("行き先Bに追加しました").assertExists()
+        // 通知して**閉じる**（画面 05）。シートが残ったままでもスナックバーは見つかる
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
         onNodeWithTag(TestTags.shoppingRow(itemId = 3)).assertDoesNotExist()
     }
 
@@ -117,7 +121,7 @@ class AddNoticedSheetIosTest {
     /** 弾かれたらシートは閉じず、理由が検索欄の下に出る（画面定義書 §2）。 */
     @Test
     fun 同じ名前では弾かれて閉じない() = sheet {
-        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("こめ")
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("アイテムA")
         onNodeWithTag(TestTags.ADD_NOTICED_REGISTER).performClick()
 
         onNodeWithText("同じ名前がすでにあります").assertExists()
@@ -130,13 +134,16 @@ class AddNoticedSheetIosTest {
      */
     @Test
     fun 一度足したあとでもう一度開ける() = sheet {
+        // 打ちかけの検索語を残したまま閉じる。「アイテム」は 3 件とも当たる
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("アイテム")
+        onNodeWithTag(TestTags.ADD_NOTICED_SECTION_ELSEWHERE).assertExists()
         onNodeWithTag(TestTags.addNoticedRow(itemId = 2)).performClick()
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
 
         onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
 
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertExists()
-        // 打ちかけの検索語も残らない（画面定義書 §2）
+        // 打ちかけの検索語は残らない（画面定義書 §2）
         onNodeWithTag(TestTags.ADD_NOTICED_SECTION_ELSEWHERE).assertDoesNotExist()
     }
 }

@@ -18,13 +18,16 @@ import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 
 /**
- * 一覧の 1 行（01 と 04 で共通）。
+ * 一覧の 1 行（01・04・05 で共通）。
  *
- * **タップは ✓ の付け外し**——01 はカゴの出し入れ、04 はチェック——なので、
- * どちらも [Role.Checkbox] を名乗る。[highlighted] が立っている行は面の色を変え、
- * 中身が置く ✓ と合わせて**2 通りで分かる**ようにする。
+ * [highlighted] が立っている行は面の色を変え、中身が置く ✓ や添え文言と合わせて
+ * **2 通りで分かる**ようにする。
  *
- * @param onLongPress 長押しの行き先。無い画面（04）は null
+ * @param role 01 と 04 は ✓ の付け外しなので [Role.Checkbox]、
+ *   選んで閉じるだけの 05 は [Role.Button]
+ * @param enabled false のときは押せない。**リップルも読み上げの操作も出さない**ので、
+ *   「押せそうに見えて何も起きない」行にならない（05 の追加済み）
+ * @param onLongPress 長押しの行き先。無い画面（04・05）は null
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -32,6 +35,8 @@ fun ReBuyRowCard(
     highlighted: Boolean,
     onTap: () -> Unit,
     testTag: String,
+    role: Role = Role.Checkbox,
+    enabled: Boolean = true,
     onLongPress: (() -> Unit)? = null,
     content: @Composable RowScope.() -> Unit
 ) {
@@ -43,7 +48,12 @@ fun ReBuyRowCard(
             .fillMaxWidth()
             // **clip を先に置く**。後ろに置くとリップルがカードの角丸からはみ出る
             .clip(CardDefaults.shape)
-            .combinedClickable(role = Role.Checkbox, onClick = onTap, onLongClick = onLongPress)
+            .combinedClickable(
+                enabled = enabled,
+                role = role,
+                onClick = onTap,
+                onLongClick = onLongPress
+            )
             .testTag(testTag)
     ) {
         Row(

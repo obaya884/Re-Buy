@@ -37,9 +37,9 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
     /** 行き先 1（今の店）・行き先 2（他の店）・どこでも買えるもの、それぞれ 1 件ずつ。 */
     private fun seedThreePlaces() = db.seed(
         items = listOf(
-            item(1, destinationId = 1, name = "こめ"),
-            item(2, destinationId = 2, name = "こむぎ"),
-            item(3, name = "こおり")
+            item(1, destinationId = 1, name = "アイテムA"),
+            item(2, destinationId = 2, name = "アイテムB"),
+            item(3, name = "アイテムC")
         ),
         destinations = listOf(destination(1), destination(2, name = "行き先B"))
     )
@@ -121,7 +121,7 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeQuery("こ")
+        viewModel.changeQuery("アイテム")
         advanceUntilIdle()
 
         val uiState = viewModel.uiState.value
@@ -138,7 +138,7 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeQuery("さ")
+        viewModel.changeQuery("該当なし")
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isUnaddedSectionVisible)
@@ -149,29 +149,29 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
     @Test
     fun 検索では追加済みも当たりに含む() = runTest {
         db.seed(
-            items = listOf(item(1, status = inBasket, destinationId = 1, name = "こめ")),
+            items = listOf(item(1, status = inBasket, destinationId = 1, name = "アイテムA")),
             destinations = listOf(destination(1))
         )
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeQuery("こめ")
+        viewModel.changeQuery("アイテムA")
         advanceUntilIdle()
 
         assertEquals(listOf(1), viewModel.uiState.value.hereItems.map { it.id })
     }
 
-    /** ひらがな・カタカナの同一視はしない（画面 05）。 */
+    /** 全角・半角やかな・カナの同一視はしない。**素の部分一致**（画面 05）。 */
     @Test
-    fun かなとカナは同一視しない() = runTest {
+    fun 表記が違えば当たらない() = runTest {
         db.seed(
-            items = listOf(item(1, destinationId = 1, name = "こめ")),
+            items = listOf(item(1, destinationId = 1, name = "アイテムA")),
             destinations = listOf(destination(1))
         )
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeQuery("コメ")
+        viewModel.changeQuery("アイテムＡ")
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isUnaddedSectionVisible)
@@ -180,13 +180,13 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
     @Test
     fun 前後の空白は落として探す() = runTest {
         db.seed(
-            items = listOf(item(1, destinationId = 1, name = "こめ")),
+            items = listOf(item(1, destinationId = 1, name = "アイテムA")),
             destinations = listOf(destination(1))
         )
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeQuery("  こめ  ")
+        viewModel.changeQuery("  アイテムA  ")
         advanceUntilIdle()
 
         assertEquals(listOf(1), viewModel.uiState.value.hereItems.map { it.id })
@@ -209,10 +209,102 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeQuery("こめ")
+        viewModel.changeQuery("アイテムA")
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.canRegisterQuery)
+    }
+
+    /**
+     * 今の行き先に未追加が無くても、**どこでも買えるものは出す**。
+     * 見出しの条件から片方を落とすと、どこでもの行が丸ごと消える。
+     */
+    @Test
+    fun 今の行き先に未追加が無くてもどこでも買えるものは出る() = runTest {
+        db.seed(
+            items = listOf(item(1, status = inBasket, destinationId = 1), item(2, name = "アイテムC")),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
+
+        advanceUntilIdle()
+
+        assertEquals(emptyList(), viewModel.uiState.value.hereItems)
+        assertEquals(listOf(2), viewModel.uiState.value.anywhereItems.map { it.id })
+        assertTrue(viewModel.uiState.value.isUnaddedSectionVisible)
+    }
+
+    /** 当たりが他の行き先だけなら、「未追加のものから選ぶ」の見出しは出さない（画面 05）。 */
+    @Test
+    fun 他の行き先しか当たらなければ未追加の見出しは出さない() = runTest {
+        seedThreePlaces()
+        val viewModel = viewModel(destinationId = 1)
+        advanceUntilIdle()
+
+        viewModel.changeQuery("アイテムB")
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.isUnaddedSectionVisible)
+        assertEquals(listOf(2), viewModel.uiState.value.elsewhereRows.map { it.item.id })
+    }
+
+    /** 並びは登録順（画面 05）。セクションの中でも入れ替えない。 */
+    @Test
+    fun セクションの中は登録順に並ぶ() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, destinationId = 1),
+                item(2),
+                item(3, destinationId = 1),
+                item(4)
+            ),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
+
+        advanceUntilIdle()
+
+        assertEquals(listOf(1, 3), viewModel.uiState.value.hereItems.map { it.id })
+        assertEquals(listOf(2, 4), viewModel.uiState.value.anywhereItems.map { it.id })
+    }
+
+    /**
+     * 追加済みを当たりに含める規則は**どのセクションでも同じ**。
+     * 「もう入れたのか入れ忘れたのか」が分からなくなるのは、他の店やどこでもでも変わらない。
+     */
+    @Test
+    fun 検索ではどこでもと他の行き先の追加済みも当たりに含む() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = inBasket, name = "アイテムC"),
+                item(2, status = inBasket, destinationId = 2, name = "アイテムB")
+            ),
+            destinations = listOf(destination(1), destination(2, name = "行き先B"))
+        )
+        val viewModel = viewModel(destinationId = 1)
+        advanceUntilIdle()
+
+        viewModel.changeQuery("アイテム")
+        advanceUntilIdle()
+
+        assertEquals(listOf(1), viewModel.uiState.value.anywhereItems.map { it.id })
+        assertEquals(listOf(2), viewModel.uiState.value.elsewhereRows.map { it.item.id })
+        assertEquals(listOf("行き先B"), viewModel.uiState.value.elsewhereRows.map { it.destinationName })
+    }
+
+    /** 全件モードは**検索中も**行き先で仕分けない（画面 05）。 */
+    @Test
+    fun 全件モードは検索しても1群のまま() = runTest {
+        seedThreePlaces()
+        val viewModel = viewModel(destinationId = null)
+        advanceUntilIdle()
+
+        viewModel.changeQuery("アイテム")
+        advanceUntilIdle()
+
+        assertEquals(listOf(1, 2, 3), viewModel.uiState.value.hereItems.map { it.id })
+        assertEquals(emptyList(), viewModel.uiState.value.anywhereItems)
+        assertEquals(emptyList(), viewModel.uiState.value.elsewhereRows)
     }
 
     // ---- 足す ----
@@ -280,12 +372,12 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeQuery("こめ")
+        viewModel.changeQuery("アイテムA")
         viewModel.registerQuery()
         advanceUntilIdle()
 
         val stored = db.storedItems.single()
-        assertEquals("こめ", stored.name)
+        assertEquals("アイテムA", stored.name)
         assertEquals(inBasket, stored.status)
         assertEquals(1, stored.destinationId)
         // カテゴリは付けない（画面 05）
@@ -299,7 +391,7 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
         val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
 
-        viewModel.changeQuery("こめ")
+        viewModel.changeQuery("アイテムA")
         viewModel.registerQuery()
         advanceUntilIdle()
 
@@ -309,11 +401,11 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
     /** 検証は §2 と同じ。**弾かれたら閉じない**。 */
     @Test
     fun 同じ名前があると弾かれて閉じない() = runTest {
-        db.seed(items = listOf(item(1, name = "こめ")))
+        db.seed(items = listOf(item(1, name = "アイテムA")))
         val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
 
-        viewModel.changeQuery("こめ")
+        viewModel.changeQuery("アイテムA")
         viewModel.registerQuery()
         advanceUntilIdle()
 
@@ -327,11 +419,11 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
         val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
 
-        viewModel.changeQuery("  こめ  ")
+        viewModel.changeQuery("  アイテムA  ")
         viewModel.registerQuery()
         advanceUntilIdle()
 
-        assertEquals("こめ", db.storedItems.single().name)
+        assertEquals("アイテムA", db.storedItems.single().name)
     }
 
     // ---- 閉じたあと ----
@@ -345,7 +437,7 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
         seedThreePlaces()
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
-        viewModel.changeQuery("こ")
+        viewModel.changeQuery("アイテム")
         viewModel.add(db.storedItem(1))
         advanceUntilIdle()
 

@@ -1,5 +1,6 @@
 package io.github.obaya884.rebuy.ui.screen.shopping
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,19 +10,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.foundation.clickable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -35,9 +35,9 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.data.item.Item
@@ -49,6 +49,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.add_noticed.AddNoticedSheet
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
+import io.github.obaya884.rebuy.ui.screen.SectionLabel
 import io.github.obaya884.rebuy.ui.screen.SystemBackHandler
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import io.github.obaya884.rebuy.ui.theme.tabularNumbers
@@ -77,19 +78,18 @@ fun ShoppingScreen(
     val uiState by viewModel.uiState.collectAsState()
     var isLeaveDialogOpen by remember { mutableStateOf(false) }
     var isAddNoticedSheetOpen by remember { mutableStateOf(false) }
-    // 他の行き先へ足したことの通知。**画面に変化が見えない操作**なのでスナックバー（§2）
-    var addedElsewhere by remember { mutableStateOf<String?>(null) }
+    // 他の行き先へ足したことの通知。**画面に変化が見えない操作**なのでスナックバー（§2）。
+    // **連番を添える**——同じ行き先へ続けて足したとき、文言が同じでも 2 通目を取りこぼさない
+    var notice by remember { mutableStateOf<ElsewhereNotice?>(null) }
 
-    val addedElsewhereMessage = addedElsewhere
-        ?.let { stringResource(Res.string.add_noticed_added_elsewhere, it) }
-    LaunchedEffect(addedElsewhereMessage) {
-        addedElsewhereMessage?.let {
-            snackbarHostState.showSnackbar(it)
-            addedElsewhere = null
-        }
+    val noticeMessage = notice
+        ?.let { stringResource(Res.string.add_noticed_added_elsewhere, it.destinationName) }
+    LaunchedEffect(notice) {
+        noticeMessage?.let { snackbarHostState.showSnackbar(it) }
     }
 
-    SystemBackHandler { isLeaveDialogOpen = true }
+    // **05 が開いている間は受けない。** バックはシートを閉じるだけ（画面 04）
+    SystemBackHandler(enabled = !isAddNoticedSheetOpen) { isLeaveDialogOpen = true }
 
     ReBuyAppScaffold(
         topBarTitle = shoppingTitle(uiState),
@@ -123,7 +123,12 @@ fun ShoppingScreen(
             ) {
                 shoppingRows(uiState.destinationItems, viewModel::toggleCheck)
                 if (uiState.anywhereItems.isNotEmpty()) {
-                    item { AnywhereSectionLabel() }
+                    item {
+                        SectionLabel(
+                            text = stringResource(Res.string.shopping_anywhere_section),
+                            testTag = TestTags.SHOPPING_ANYWHERE_SECTION
+                        )
+                    }
                     shoppingRows(uiState.anywhereItems, viewModel::toggleCheck)
                 }
                 item { AddNoticedRow(onTap = { isAddNoticedSheetOpen = true }) }
@@ -144,7 +149,9 @@ fun ShoppingScreen(
     if (isAddNoticedSheetOpen) {
         AddNoticedSheet(
             route = route,
-            onAddedElsewhere = { addedElsewhere = it },
+            onAddedElsewhere = { name ->
+                notice = ElsewhereNotice((notice?.serial ?: 0) + 1, name)
+            },
             onDismiss = { isAddNoticedSheetOpen = false }
         )
     }
@@ -216,16 +223,19 @@ private fun AddNoticedRow(onTap: () -> Unit) {
         textAlign = TextAlign.Center,
         modifier = Modifier
             .fillMaxWidth()
-            .clip(CardDefaults.shape)
+            // リップルと破線の角丸を 1 か所から引く。別々に書くと枠と波紋の形がずれる
+            .clip(RoundedCornerShape(ADD_NOTICED_CORNER))
             .clickable(role = Role.Button, onClick = onTap)
             .drawBehind {
                 drawRoundRect(
                     color = outline,
                     style = Stroke(
                         width = 1.dp.toPx(),
-                        pathEffect = PathEffect.dashPathEffect(floatArrayOf(DASH_ON, DASH_OFF))
+                        pathEffect = PathEffect.dashPathEffect(
+                            floatArrayOf(DASH_ON.toPx(), DASH_OFF.toPx())
+                        )
                     ),
-                    cornerRadius = CornerRadius(12.dp.toPx())
+                    cornerRadius = CornerRadius(ADD_NOTICED_CORNER.toPx())
                 )
             }
             .padding(vertical = 16.dp)
@@ -233,20 +243,13 @@ private fun AddNoticedRow(onTap: () -> Unit) {
     )
 }
 
-/** 破線の刻み（px）。 */
-private const val DASH_ON = 12f
-private const val DASH_OFF = 8f
+/** 破線の刻みと角丸。密度で見え方が変わらないよう dp で持つ。 */
+private val DASH_ON = 6.dp
+private val DASH_OFF = 4.dp
+private val ADD_NOTICED_CORNER = 12.dp
 
-/** 「どこでも買えるもの」の区切り。全件モードでは出ない（群が 1 つしかない）。 */
-@Composable
-private fun AnywhereSectionLabel() {
-    Text(
-        text = stringResource(Res.string.shopping_anywhere_section),
-        style = MaterialTheme.typography.labelMedium,
-        color = ReBuyTheme.colors.muted,
-        modifier = Modifier.padding(top = 8.dp).testTag(TestTags.SHOPPING_ANYWHERE_SECTION)
-    )
-}
+/** 他の行き先へ足したことの通知。**同じ行き先が続いても別物として扱う**ための連番を持つ。 */
+private data class ElsewhereNotice(val serial: Int, val destinationName: String)
 
 @Composable
 private fun LeaveDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {

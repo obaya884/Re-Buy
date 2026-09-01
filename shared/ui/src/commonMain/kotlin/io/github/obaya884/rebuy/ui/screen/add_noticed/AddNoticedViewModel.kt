@@ -111,7 +111,7 @@ class AddNoticedViewModel(
 /**
  * 閉じる合図。
  *
- * @param count 閉じた回数。**0 のうちは開いたまま**（[AddNoticedViewModel.reset] が 0 に戻す）
+ * @param count 閉じる要求の回数。**0 のうちは開いたまま**（[AddNoticedViewModel.reset] が 0 に戻す）
  * @param addedElsewhere 足した先の行き先名。今の店・どこでも買えるものなら null
  */
 data class CloseRequest(val count: Int = 0, val addedElsewhere: String? = null)
@@ -135,7 +135,7 @@ data class AddNoticedSheetUiState(
 
     private val trimmed: String = query.trim()
 
-    val isSearching: Boolean = trimmed.isNotEmpty()
+    private val isSearching: Boolean = trimmed.isNotEmpty()
 
     /** ひらがな・カタカナの同一視はしない。**単純な部分一致**（画面 05）。 */
     private val hits: List<Item> =
@@ -161,11 +161,13 @@ data class AddNoticedSheetUiState(
         }
     }
 
-    /** 空のセクションは見出しごと出さない（画面 05）。 */
-    val isUnaddedSectionVisible: Boolean = hereItems.isNotEmpty() || anywhereItems.isNotEmpty()
+    // 1 度しか読まないので get()（アーキテクチャ定義書 §4.3）
+
+    /** 空のセクションは見出しごと出さない（画面 05）。**当たりが他の行き先だけなら出さない。** */
+    val isUnaddedSectionVisible: Boolean get() = hereItems.isNotEmpty() || anywhereItems.isNotEmpty()
 
     /** 「＋ この名前で登録する」は**入力が空白のみでない間は常に末尾に出る**（画面 05）。 */
-    val canRegisterQuery: Boolean = isSearching
+    val canRegisterQuery: Boolean get() = isSearching
 
     /**
      * [item] が「他の行き先」のものなら、その行き先名。今の店・どこでも買えるもの・
