@@ -51,6 +51,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditSheet
 import io.github.obaya884.rebuy.ui.screen.register.RegisterSheet
+import io.github.obaya884.rebuy.ui.screen.shopping_start.ShoppingStartSheet
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import io.github.obaya884.rebuy.ui.theme.tabularNumbers
 import org.jetbrains.compose.resources.stringResource
@@ -62,8 +63,8 @@ import org.koin.compose.viewmodel.koinViewModel
  * 行タップはカゴの出し入れで、**カゴに入れても行は動かない**（一覧の上に寄せない）。
  * 押した場所がそのまま結果になるほうが、連続して触るときに迷わないため。
  *
- * 行の長押しで編集シート（06）を開く。「買い物を始める」は 03 が入る F-008 まで
- * 旧画面へ暫定で繋いである——`// 暫定:` で grep できる。
+ * 行の長押しで編集シート（06）を、「買い物を始める」で開始シート（03）を開く。
+ * 04 買い物モードは F-009 なので、そこだけ旧画面へ暫定で繋いである（`// 暫定:` で grep）。
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -75,6 +76,7 @@ fun PoolScreen(
     val uiState by viewModel.uiState.collectAsState()
     var isRegisterSheetOpen by remember { mutableStateOf(false) }
     var editingItem by remember { mutableStateOf<Item?>(null) }
+    var isShoppingStartSheetOpen by remember { mutableStateOf(false) }
 
     ReBuyAppScaffold(
         topBarTitle = stringResource(Res.string.pool_title),
@@ -142,8 +144,7 @@ fun PoolScreen(
             StartShoppingButton(
                 basketCount = uiState.basketCount,
                 enabled = uiState.canStartShopping,
-                // 暫定: 03 買い物開始シートは F-008
-                onClick = { navigator.navigate(Screen.Shopping) }
+                onClick = { isShoppingStartSheetOpen = true }
             )
         }
     }
@@ -153,6 +154,16 @@ fun PoolScreen(
     }
     editingItem?.let { item ->
         ItemEditSheet(item = item, onDismiss = { editingItem = null })
+    }
+    if (isShoppingStartSheetOpen) {
+        ShoppingStartSheet(
+            // 暫定: 04 買い物モードは F-009。いまは行き先を持たない旧画面へ入る
+            onEnterShopping = {
+                isShoppingStartSheetOpen = false
+                navigator.navigate(Screen.Shopping)
+            },
+            onDismiss = { isShoppingStartSheetOpen = false }
+        )
     }
 }
 

@@ -48,6 +48,10 @@ object TestTags {
     fun itemFormCategoryChip(categoryId: Int): String = "item_form_chip_category_$categoryId"
     fun itemFormDestinationChip(destinationId: Int): String = "item_form_chip_destination_$destinationId"
 
+    /** 買い物開始シート（画面 03）。 */
+    fun shoppingStartRow(destinationId: Int): String = "shopping_start_row_$destinationId"
+    const val SHOPPING_START_ALL_ROW = "shopping_start_row_all"
+
     /** 品目編集シート（画面 06）。 */
     const val ITEM_SHEET_NAME_FIELD = "item_sheet_name_field"
     const val ITEM_SHEET_SAVE = "item_sheet_save"
