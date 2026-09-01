@@ -5,7 +5,10 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.espresso.Espresso
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
@@ -127,6 +130,33 @@ class NavigationTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertDoesNotExist()
+        assertCurrentScreenIs(poolTitle)
+    }
+
+    /**
+     * 行の長押しで編集シートが開き、端末の戻るで閉じる（画面 01・06）。
+     *
+     * **`ModalBottomSheet` も長押しのジェスチャも Android と skiko で実装が分かれる**ので、
+     * iOS の `ItemEditSheetIosTest` だけでは Android 固有の壊れ方を止められない（§2.4）。
+     * 品目が要るので、登録シートから 1 件入れてから踏む。
+     */
+    @Test
+    fun 行の長押しで編集シートが開いて端末の戻るで閉じる() {
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD)
+            .performTextInput("長押しの確認用")
+        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("長押しの確認用").performTouchInput { longClick() }
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertIsDisplayed()
+
+        // 後始末: 実機の DB に残さない
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
         assertCurrentScreenIs(poolTitle)
     }
 

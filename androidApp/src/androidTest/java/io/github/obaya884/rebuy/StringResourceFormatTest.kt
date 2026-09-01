@@ -59,5 +59,9 @@ class StringResourceFormatTest {
             "「アイテムA」を削除…",
             string(Res.string.item_sheet_delete, "アイテムA")
         )
+        assertEquals(
+            "最終購入日: 2026-08-29",
+            string(Res.string.item_sheet_last_bought_at, "2026-08-29")
+        )
     }
 }

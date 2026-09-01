@@ -64,12 +64,15 @@ class ItemEditViewModelTest : ViewModelTestBase() {
      */
     @Test
     fun 別の品目を開くと前の状態は残らない() = runTest {
-        db.seed(items = listOf(item(1), item(2)))
+        db.seed(
+            items = listOf(item(1, categoryId = 1), item(2, name = "アイテムB")),
+            categories = listOf(category(1))
+        )
         val viewModel = viewModel()
         advanceUntilIdle()
         viewModel.start(db.storedItem(1))
         // 重複で弾かれた状態と、開いた 02b を作る
-        viewModel.changeName("アイテム2")
+        viewModel.changeName("アイテムB")
         viewModel.save()
         advanceUntilIdle()
         viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
@@ -78,31 +81,71 @@ class ItemEditViewModelTest : ViewModelTestBase() {
         viewModel.start(db.storedItem(2))
         advanceUntilIdle()
 
-        assertEquals("アイテム2", assertNotNull(viewModel.uiState.value.editing).name)
+        val editing = assertNotNull(viewModel.uiState.value.editing)
+        assertEquals(2, editing.id)
+        assertEquals("アイテムB", editing.name)
+        assertNull(editing.categoryId)
         assertNull(viewModel.uiState.value.nameError)
         assertNull(viewModel.uiState.value.newNameDialog)
+    }
+
+    /** **保存できた後も閉じる合図は残らない**（残ると 2 回目に開いた瞬間に閉じる）。 */
+    @Test
+    fun 保存できた後に開き直すと閉じる合図が残らない() = runTest {
+        db.seed(items = listOf(item(1), item(2)))
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.start(db.storedItem(1))
+        viewModel.save()
+        advanceUntilIdle()
+        assertEquals(1, viewModel.closeRequests.value)
+
+        viewModel.start(db.storedItem(2))
+        advanceUntilIdle()
+
+        assertEquals(0, viewModel.closeRequests.value)
     }
 
     // ---- 保存 ----
 
     @Test
     fun 名前とカテゴリと行き先をまとめて保存する() = runTest {
-        seedOneItem()
+        // **カテゴリと行き先を入れ替えた id で始める。** 同じ値だと 2 つを取り違えても気づけない
+        db.seed(
+            items = listOf(item(id = 1, categoryId = 1, destinationId = 2)),
+            categories = listOf(category(id = 1), category(id = 2)),
+            destinations = listOf(destination(id = 1), destination(id = 2))
+        )
         val viewModel = viewModel()
         advanceUntilIdle()
         viewModel.start(db.storedItem(1))
 
         viewModel.changeName("アイテムA")
         viewModel.selectCategory(2)
-        viewModel.selectDestination(2)
+        viewModel.selectDestination(1)
         viewModel.save()
         advanceUntilIdle()
 
         val stored = db.storedItem(1)
         assertEquals("アイテムA", stored.name)
         assertEquals(2, stored.categoryId)
-        assertEquals(2, stored.destinationId)
+        assertEquals(1, stored.destinationId)
         assertEquals(1, viewModel.closeRequests.value)
+    }
+
+    /** 保存するのは**トリム後の名前**（データモデル定義書 §5）。 */
+    @Test
+    fun 保存はトリム後の名前で書かれる() = runTest {
+        seedOneItem()
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        viewModel.start(db.storedItem(1))
+
+        viewModel.changeName("  アイテムA　")
+        viewModel.save()
+        advanceUntilIdle()
+
+        assertEquals("アイテムA", db.storedItem(1).name)
     }
 
     /** **重複判定から自分自身は除く**（画面 06）。名前を変えずに保存できる。 */

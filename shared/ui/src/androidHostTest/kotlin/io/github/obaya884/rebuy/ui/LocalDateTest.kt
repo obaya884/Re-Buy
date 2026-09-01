@@ -14,7 +14,7 @@ import kotlin.time.Instant
  * タイムゾーンだけを固定する。**期待値はリテラルで書く**（テスト戦略定義書 §2.1）。
  *
  * タイムゾーンを差し替える API が common に無いので JVM 側に置いている。
- * iOS の actual は文字列を見ずに済む不変条件を `MonthDayIosTest` が押さえる。
+ * iOS の actual は文字列を見ずに済む不変条件を `LocalDateIosTest` が押さえる。
  */
 class LocalDateTest {
 
