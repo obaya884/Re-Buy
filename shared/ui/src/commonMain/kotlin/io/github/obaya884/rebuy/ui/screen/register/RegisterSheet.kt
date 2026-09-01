@@ -1,15 +1,10 @@
 package io.github.obaya884.rebuy.ui.screen.register
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -28,7 +23,7 @@ import io.github.obaya884.rebuy.ui.screen.ChipRow
 import io.github.obaya884.rebuy.ui.screen.NameTextField
 import io.github.obaya884.rebuy.ui.screen.NewNameDialog
 import io.github.obaya884.rebuy.ui.screen.NewNameTarget
-import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
+import io.github.obaya884.rebuy.ui.screen.ReBuyBottomSheet
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 
@@ -39,11 +34,9 @@ import org.koin.compose.viewmodel.koinViewModel
  * その場で作れる。「続けて登録」は名前だけ消してチップの選択を残す——同じ売り場のものを
  * 続けて入れるときに、選び直さなくて済むように。
  *
- * 閉じ方（スクリムタップ・下スワイプ・システムバック）は `ModalBottomSheet` に任せる。
  * **保存していない入力は破棄**（画面定義書 §2）——閉じる道をすべて `dismiss` に通し、
  * そこで ViewModel の状態を捨てる（ViewModel はシートより長生きする。`RegisterViewModel` の KDoc）。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterSheet(onDismiss: () -> Unit) {
     val viewModel = koinViewModel<RegisterViewModel>()
@@ -69,67 +62,51 @@ fun RegisterSheet(onDismiss: () -> Unit) {
         focusRequester.requestFocus()
     }
 
+    ReBuyBottomSheet(title = stringResource(Res.string.register_title), onDismiss = dismiss) {
+        NameTextField(
+            value = uiState.name,
+            onValueChange = viewModel::changeName,
+            error = uiState.nameError,
+            placeholder = stringResource(Res.string.item_form_name_placeholder),
+            modifier = Modifier.focusRequester(focusRequester).testTag(TestTags.REGISTER_NAME_FIELD)
+        )
 
-    // 半開きにしない（品目編集シートと同じ理由。下のボタンが画面の外に出る）
-    ModalBottomSheet(
-        onDismissRequest = dismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 32.dp)
+        ChipRow(
+            label = stringResource(Res.string.item_form_category_label),
+            chips = uiState.categoryChips,
+            selectedId = uiState.selectedCategoryId,
+            newLabel = stringResource(Res.string.item_form_new_category),
+            onSelect = viewModel::selectCategory,
+            onCreate = { viewModel.showNewNameDialog(NewNameTarget.CATEGORY) },
+            newChipTag = TestTags.ITEM_FORM_NEW_CATEGORY_CHIP,
+            chipTag = TestTags::itemFormCategoryChip
+        )
+        ChipRow(
+            label = stringResource(Res.string.item_form_destination_label),
+            chips = uiState.destinationChips,
+            selectedId = uiState.selectedDestinationId,
+            newLabel = stringResource(Res.string.item_form_new_destination),
+            onSelect = viewModel::selectDestination,
+            onCreate = { viewModel.showNewNameDialog(NewNameTarget.DESTINATION) },
+            newChipTag = TestTags.ITEM_FORM_NEW_DESTINATION_CHIP,
+            chipTag = TestTags::itemFormDestinationChip
+        )
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = stringResource(Res.string.register_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = ReBuyTheme.colors.ink
-            )
-
-            NameTextField(
-                value = uiState.name,
-                onValueChange = viewModel::changeName,
-                error = uiState.nameError,
-                placeholder = stringResource(Res.string.item_form_name_placeholder),
-                modifier = Modifier.focusRequester(focusRequester).testTag(TestTags.REGISTER_NAME_FIELD)
-            )
-
-            ChipRow(
-                label = stringResource(Res.string.item_form_category_label),
-                chips = uiState.categoryChips,
-                selectedId = uiState.selectedCategoryId,
-                newLabel = stringResource(Res.string.item_form_new_category),
-                onSelect = viewModel::selectCategory,
-                onCreate = { viewModel.showNewNameDialog(NewNameTarget.CATEGORY) },
-                newChipTag = TestTags.ITEM_FORM_NEW_CATEGORY_CHIP,
-                chipTag = TestTags::itemFormCategoryChip
-            )
-            ChipRow(
-                label = stringResource(Res.string.item_form_destination_label),
-                chips = uiState.destinationChips,
-                selectedId = uiState.selectedDestinationId,
-                newLabel = stringResource(Res.string.item_form_new_destination),
-                onSelect = viewModel::selectDestination,
-                onCreate = { viewModel.showNewNameDialog(NewNameTarget.DESTINATION) },
-                newChipTag = TestTags.ITEM_FORM_NEW_DESTINATION_CHIP,
-                chipTag = TestTags::itemFormDestinationChip
-            )
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
+            TextButton(
+                onClick = viewModel::registerAndContinue,
+                modifier = Modifier.weight(1f).testTag(TestTags.REGISTER_SUBMIT_AND_CONTINUE)
             ) {
-                TextButton(
-                    onClick = viewModel::registerAndContinue,
-                    modifier = Modifier.weight(1f).testTag(TestTags.REGISTER_SUBMIT_AND_CONTINUE)
-                ) {
-                    Text(stringResource(Res.string.register_submit_and_continue))
-                }
-                Button(
-                    onClick = viewModel::register,
-                    modifier = Modifier.weight(1f).testTag(TestTags.REGISTER_SUBMIT)
-                ) {
-                    Text(stringResource(Res.string.register_submit))
-                }
+                Text(stringResource(Res.string.register_submit_and_continue))
+            }
+            Button(
+                onClick = viewModel::register,
+                modifier = Modifier.weight(1f).testTag(TestTags.REGISTER_SUBMIT)
+            ) {
+                Text(stringResource(Res.string.register_submit))
             }
         }
     }

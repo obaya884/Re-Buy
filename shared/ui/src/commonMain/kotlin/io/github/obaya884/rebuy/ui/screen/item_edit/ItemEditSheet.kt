@@ -1,17 +1,10 @@
 package io.github.obaya884.rebuy.ui.screen.item_edit
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -33,6 +26,7 @@ import io.github.obaya884.rebuy.ui.screen.NameTextField
 import io.github.obaya884.rebuy.ui.screen.NewNameDialog
 import io.github.obaya884.rebuy.ui.screen.NoneChip
 import io.github.obaya884.rebuy.ui.screen.NewNameTarget
+import io.github.obaya884.rebuy.ui.screen.ReBuyBottomSheet
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -43,7 +37,6 @@ import org.koin.compose.viewmodel.koinViewModel
  * **02 と同じ型**（名前入力欄＋カテゴリ・行き先のチップ列）に、最終購入日の表示と削除を足したもの。
  * 削除は確認ダイアログを挟み、**戻せないこと**を文言で伝える（画面 06）。
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ItemEditSheet(item: Item, onDismiss: () -> Unit) {
     val viewModel = koinViewModel<ItemEditViewModel>()
@@ -64,89 +57,71 @@ fun ItemEditSheet(item: Item, onDismiss: () -> Unit) {
 
     val editing = uiState.editing ?: return
 
-    // **半開きにしない。** 既定だと下のほう（保存・削除）が画面の外に出て触れない（実測）
-    ModalBottomSheet(
-        onDismissRequest = dismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    ) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp)
-                .padding(bottom = 32.dp)
+    // 見出しは**編集前の名前**。入力に追随させると、直している最中に見出しが揺れる
+    ReBuyBottomSheet(title = editing.originalName, onDismiss = dismiss) {
+        NameTextField(
+            value = editing.name,
+            onValueChange = viewModel::changeName,
+            error = uiState.nameError,
+            placeholder = stringResource(Res.string.item_form_name_placeholder),
+            modifier = Modifier.testTag(TestTags.ITEM_SHEET_NAME_FIELD)
+        )
+
+        ChipRow(
+            label = stringResource(Res.string.item_form_category_label),
+            chips = uiState.categoryChips,
+            selectedId = editing.categoryId,
+            newLabel = stringResource(Res.string.item_form_new_category),
+            onSelect = viewModel::selectCategory,
+            onCreate = { viewModel.showNewNameDialog(NewNameTarget.CATEGORY) },
+            newChipTag = TestTags.ITEM_FORM_NEW_CATEGORY_CHIP,
+            chipTag = TestTags::itemFormCategoryChip,
+            noneChip = NoneChip(
+                label = stringResource(Res.string.item_sheet_none),
+                tag = TestTags.ITEM_SHEET_CATEGORY_NONE_CHIP,
+                onSelect = viewModel::clearCategory
+            )
+        )
+        ChipRow(
+            label = stringResource(Res.string.item_form_destination_label),
+            chips = uiState.destinationChips,
+            selectedId = editing.destinationId,
+            newLabel = stringResource(Res.string.item_form_new_destination),
+            onSelect = viewModel::selectDestination,
+            onCreate = { viewModel.showNewNameDialog(NewNameTarget.DESTINATION) },
+            newChipTag = TestTags.ITEM_FORM_NEW_DESTINATION_CHIP,
+            chipTag = TestTags::itemFormDestinationChip,
+            noneChip = NoneChip(
+                label = stringResource(Res.string.item_sheet_none),
+                tag = TestTags.ITEM_SHEET_DESTINATION_NONE_CHIP,
+                onSelect = viewModel::clearDestination
+            )
+        )
+
+        Text(
+            text = editing.lastBoughtAt
+                ?.let {
+                    stringResource(Res.string.item_sheet_last_bought_at, formatFullDate(it))
+                }
+                ?: stringResource(Res.string.item_sheet_last_bought_at_never),
+            style = MaterialTheme.typography.labelMedium,
+            color = ReBuyTheme.colors.muted
+        )
+
+        Button(
+            onClick = viewModel::save,
+            modifier = Modifier.fillMaxWidth().testTag(TestTags.ITEM_SHEET_SAVE)
+        ) {
+            Text(stringResource(Res.string.item_sheet_save))
+        }
+        TextButton(
+            onClick = { isDeleteDialogOpen = true },
+            modifier = Modifier.fillMaxWidth().testTag(TestTags.ITEM_SHEET_DELETE)
         ) {
             Text(
-                text = editing.originalName,
-                style = MaterialTheme.typography.titleMedium,
-                color = ReBuyTheme.colors.ink
+                text = stringResource(Res.string.item_sheet_delete, editing.originalName),
+                color = ReBuyTheme.colors.danger
             )
-
-            NameTextField(
-                value = editing.name,
-                onValueChange = viewModel::changeName,
-                error = uiState.nameError,
-                placeholder = stringResource(Res.string.item_form_name_placeholder),
-                modifier = Modifier.testTag(TestTags.ITEM_SHEET_NAME_FIELD)
-            )
-
-            ChipRow(
-                label = stringResource(Res.string.item_form_category_label),
-                chips = uiState.categoryChips,
-                selectedId = editing.categoryId,
-                newLabel = stringResource(Res.string.item_form_new_category),
-                onSelect = viewModel::selectCategory,
-                onCreate = { viewModel.showNewNameDialog(NewNameTarget.CATEGORY) },
-                newChipTag = TestTags.ITEM_FORM_NEW_CATEGORY_CHIP,
-                chipTag = TestTags::itemFormCategoryChip,
-                noneChip = NoneChip(
-                    label = stringResource(Res.string.item_sheet_none),
-                    tag = TestTags.ITEM_SHEET_CATEGORY_NONE_CHIP,
-                    onSelect = viewModel::clearCategory
-                )
-            )
-            ChipRow(
-                label = stringResource(Res.string.item_form_destination_label),
-                chips = uiState.destinationChips,
-                selectedId = editing.destinationId,
-                newLabel = stringResource(Res.string.item_form_new_destination),
-                onSelect = viewModel::selectDestination,
-                onCreate = { viewModel.showNewNameDialog(NewNameTarget.DESTINATION) },
-                newChipTag = TestTags.ITEM_FORM_NEW_DESTINATION_CHIP,
-                chipTag = TestTags::itemFormDestinationChip,
-                noneChip = NoneChip(
-                    label = stringResource(Res.string.item_sheet_none),
-                    tag = TestTags.ITEM_SHEET_DESTINATION_NONE_CHIP,
-                    onSelect = viewModel::clearDestination
-                )
-            )
-
-            Text(
-                text = editing.lastBoughtAt
-                    ?.let {
-                        stringResource(Res.string.item_sheet_last_bought_at, formatFullDate(it))
-                    }
-                    ?: stringResource(Res.string.item_sheet_last_bought_at_never),
-                style = MaterialTheme.typography.labelMedium,
-                color = ReBuyTheme.colors.muted
-            )
-
-            Button(
-                onClick = viewModel::save,
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.ITEM_SHEET_SAVE)
-            ) {
-                Text(stringResource(Res.string.item_sheet_save))
-            }
-            TextButton(
-                onClick = { isDeleteDialogOpen = true },
-                modifier = Modifier.fillMaxWidth().testTag(TestTags.ITEM_SHEET_DELETE)
-            ) {
-                Text(
-                    text = stringResource(Res.string.item_sheet_delete, editing.originalName),
-                    color = ReBuyTheme.colors.danger
-                )
-            }
         }
     }
 

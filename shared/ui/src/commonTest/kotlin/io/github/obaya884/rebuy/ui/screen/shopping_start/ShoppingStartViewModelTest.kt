@@ -109,11 +109,12 @@ class ShoppingStartViewModelTest : ViewModelTestBase() {
 
         advanceUntilIdle()
 
-        val rows = viewModel.uiState.value.rows
+        val uiState = viewModel.uiState.value
         // どこでも買えるものは独立した行にしない
-        assertEquals(listOf(1, 2), rows.map { it.destinationId })
-        assertEquals(listOf(1, 1), rows.map { it.count })
-        assertEquals(listOf(2, 2), rows.map { it.anywhereCount })
+        assertEquals(listOf(1, 2), uiState.rows.map { it.destinationId })
+        assertEquals(listOf(1, 1), uiState.rows.map { it.count })
+        // 「＋m」はシート全体で 1 つの事実。行ごとには持たない
+        assertEquals(2, uiState.anywhereCount)
     }
 
     @Test
@@ -126,7 +127,7 @@ class ShoppingStartViewModelTest : ViewModelTestBase() {
 
         advanceUntilIdle()
 
-        assertEquals(0, viewModel.uiState.value.rows.single().anywhereCount)
+        assertEquals(0, viewModel.uiState.value.anywhereCount)
     }
 
     /** カゴに入っていない品目は数えない（状態 0）。 */
@@ -144,9 +145,8 @@ class ShoppingStartViewModelTest : ViewModelTestBase() {
 
         advanceUntilIdle()
 
-        val row = viewModel.uiState.value.rows.single()
-        assertEquals(1, row.count)
-        assertEquals(0, row.anywhereCount)
+        assertEquals(1, viewModel.uiState.value.rows.single().count)
+        assertEquals(0, viewModel.uiState.value.anywhereCount)
         assertEquals(1, viewModel.uiState.value.basketCount)
     }
 

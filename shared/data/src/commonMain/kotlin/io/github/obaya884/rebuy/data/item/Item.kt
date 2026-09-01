@@ -48,6 +48,12 @@ data class Item(
     val updatedAt: Instant = Clock.System.now()
 )
 
+/**
+ * カゴに入っているか（データモデル定義書 §3 の状態 1・2）。
+ * **状態を数える場所が増えても判定は 1 か所**に置く。
+ */
+val Item.isInBasket: Boolean get() = status != ItemStatus.NO_DEAL
+
 enum class ItemStatus(val value: Int) {
     NO_DEAL(0),
     IN_SHOPPING_LIST(1),

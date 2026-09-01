@@ -3,7 +3,7 @@ package io.github.obaya884.rebuy.ui.screen.pool
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.destination.Destination
 import io.github.obaya884.rebuy.data.item.Item
-import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.data.item.isInBasket
 
 /**
  * プール画面（画面 01）の状態。
@@ -34,7 +34,7 @@ data class PoolScreenUiState(
     val totalCount: Int = items.size
 
     /** カゴに入っている件数。CTA のバッジと有効・無効に使う。 */
-    val basketCount: Int = items.count { it.item.status != ItemStatus.NO_DEAL }
+    val basketCount: Int = items.count { it.item.isInBasket }
 
     val isEmpty: Boolean = isLoaded && items.isEmpty()
 
@@ -54,7 +54,7 @@ data class PoolItem(
     val category: Category?,
     val destination: Destination?
 ) {
-    val isInBasket: Boolean = item.status != ItemStatus.NO_DEAL
+    val isInBasket: Boolean get() = item.isInBasket
 }
 
 /**
