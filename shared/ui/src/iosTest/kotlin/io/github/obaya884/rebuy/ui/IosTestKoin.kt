@@ -4,6 +4,8 @@ import io.github.obaya884.rebuy.data.category.CategoryDao
 import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.item.ItemDao
 import io.github.obaya884.rebuy.data.settings.SettingsStore
+import io.github.obaya884.rebuy.domain.ThemePalette
+import io.github.obaya884.rebuy.domain.ThemeRepository
 import io.github.obaya884.rebuy.ui.di.initKoin
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -20,9 +22,10 @@ val fakeDatabase = FakeDatabase()
  * 設定値の置き場も差し替える。本番は `NSUserDefaults` なので、**差し替えないと選んだテーマが
  * シミュレータに残り**、テストの実行順で結果が変わる。
  *
- * **戻せるのは保存先までで、`ThemeRepository` が読み終えた値は戻らない**（`single` が
- * プロセスに 1 つで、生成時に 1 度だけ読む）。選択に依存するテストは**事前状態を自分で
- * assert すること**。
+ * `ThemeRepository` は `single` でプロセスに 1 つ、生成時に 1 度だけ保存先を読むので、
+ * **保存先を空にしても読み終えた値は戻らない**。[startTestKoin] が既定へ選び直すことで
+ * 揃えているが、選択に依存するテストは**事前状態を自分で assert すること**——
+ * 揃え方が外れたときに、テストの実行順で結果が変わる形に戻る。
  */
 val fakeSettingsStore = FakeSettingsStore()
 
@@ -65,5 +68,8 @@ fun startTestKoin(prepare: FakeDatabase.() -> Unit = {}) {
     }
     fakeDatabase.seed()
     fakeSettingsStore.clear()
+    // 選んだテーマもここで既定へ戻す。**保存先を空にするだけでは戻らない**ので、
+    // テーマを変えるテストの後ろに並んだテストが巻き添えになる（実測）
+    KoinPlatformTools.defaultContext().get().get<ThemeRepository>().select(ThemePalette.DEFAULT)
     fakeDatabase.prepare()
 }

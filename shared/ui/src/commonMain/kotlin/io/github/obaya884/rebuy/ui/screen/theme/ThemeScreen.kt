@@ -124,9 +124,3 @@ private fun Swatch(palette: ThemePalette) {
             .border(2.dp, colors.accentSoft, CircleShape)
     )
 }
-
-private fun ThemePalette.labelResource() = when (this) {
-    ThemePalette.WAKABA -> Res.string.theme_wakaba
-    ThemePalette.AI -> Res.string.theme_ai
-    ThemePalette.KAKI -> Res.string.theme_kaki
-}

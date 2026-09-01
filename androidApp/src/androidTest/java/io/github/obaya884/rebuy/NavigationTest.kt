@@ -48,7 +48,7 @@ class NavigationTest {
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val shoppingTitleAll = string(Res.string.shopping_title_all)
 
-    /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
+    /** ライセンス画面のタイトルは実装側がハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
 
     /** シートが開くまでの待ち。GMD では既定の 1 秒に収まらないことがある。 */

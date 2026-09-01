@@ -49,7 +49,7 @@ class NavigationIosTest {
     private val emptyTitle = string(Res.string.pool_empty_title)
     private val emptyMessage = string(Res.string.pool_empty_message)
 
-    /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
+    /** ライセンス画面のタイトルは実装側がハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val themeLabel = string(Res.string.theme_title)
