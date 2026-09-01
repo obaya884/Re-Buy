@@ -50,6 +50,10 @@ fun SettingScreen(
             SettingScreenItem("利用規約") { }
             // プライバシーポリシー
             SettingScreenItem("プライバシーポリシー") { }
+            // 暫定: 品目の編集・削除は 06（F-007）まで旧アイテム一覧にしか無い
+            SettingScreenItem(stringResource(Res.string.setting_row_item_edit)) {
+                navigator.navigate(Screen.ItemEdit)
+            }
             // 暫定: カテゴリの管理（09）は F-012。プールのアプリバーから外したのでここに置く
             SettingScreenItem(stringResource(Res.string.setting_row_category_edit)) {
                 navigator.navigate(Screen.CategoryEdit)

@@ -9,6 +9,7 @@ import io.github.obaya884.rebuy.domain.SaveResult
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * 名前の検証のうち、DB を引く必要があるぶん（データモデル定義書 §5）——同種内の重複と、
@@ -22,6 +23,11 @@ import kotlin.test.assertEquals
  * 実 SQL の網は `AppDatabaseIosTest`。
  */
 class NameValidationRepositoryTest {
+
+    /** 保存できたことだけを見る。id は経路ごとに違うので、ここでは問わない。 */
+    private fun assertIsSaved(result: SaveResult) {
+        assertTrue(result is SaveResult.Saved, "保存できていない: $result")
+    }
 
     private val db = FakeDatabase()
     private val itemRepository = ItemRepository(db.itemDao)
@@ -101,15 +107,15 @@ class NameValidationRepositoryTest {
     fun 大文字小文字とかなカナは別の名前() = runTest {
         db.seed(items = listOf(item(id = 1, name = "abc"), item(id = 2, name = "あいて")))
 
-        assertEquals(SaveResult.Saved, itemRepository.insert(Item(name = "ABC")))
-        assertEquals(SaveResult.Saved, itemRepository.insert(Item(name = "アイテ")))
+        assertIsSaved(itemRepository.insert(Item(name = "ABC")))
+        assertIsSaved(itemRepository.insert(Item(name = "アイテ")))
     }
 
     @Test
     fun 品目は自分自身と同じ名前に改名できる() = runTest {
         db.seed(items = listOf(item(id = 1, name = "アイテムA"), item(id = 2, name = "アイテムB")))
 
-        assertEquals(SaveResult.Saved, itemRepository.updateName(1, "アイテムA"))
+        assertIsSaved(itemRepository.updateName(1, "アイテムA"))
         assertEquals(
             SaveResult.Rejected(NameError.DUPLICATE),
             itemRepository.updateName(1, "アイテムB")
@@ -120,7 +126,7 @@ class NameValidationRepositoryTest {
     fun カテゴリーは自分自身と同じ名前に改名できる() = runTest {
         db.seed(categories = listOf(category(id = 1, name = "カテゴリーA"), category(id = 2)))
 
-        assertEquals(SaveResult.Saved, categoryRepository.updateName(1, "カテゴリーA"))
+        assertIsSaved(categoryRepository.updateName(1, "カテゴリーA"))
         assertEquals(
             SaveResult.Rejected(NameError.DUPLICATE),
             categoryRepository.updateName(1, "カテゴリー2")
@@ -131,7 +137,7 @@ class NameValidationRepositoryTest {
     fun 行き先は自分自身と同じ名前に改名できる() = runTest {
         db.seed(destinations = listOf(destination(id = 1, name = "行き先A"), destination(id = 2)))
 
-        assertEquals(SaveResult.Saved, destinationRepository.updateName(1, "行き先A"))
+        assertIsSaved(destinationRepository.updateName(1, "行き先A"))
         assertEquals(
             SaveResult.Rejected(NameError.DUPLICATE),
             destinationRepository.updateName(1, "行き先2")
@@ -143,6 +149,6 @@ class NameValidationRepositoryTest {
     fun 別の種類の同じ名前とはぶつからない() = runTest {
         categoryRepository.insert("共通の名前")
 
-        assertEquals(SaveResult.Saved, destinationRepository.insert("共通の名前"))
+        assertIsSaved(destinationRepository.insert("共通の名前"))
     }
 }

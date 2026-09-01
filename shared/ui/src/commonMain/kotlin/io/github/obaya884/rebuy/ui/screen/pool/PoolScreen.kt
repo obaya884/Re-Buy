@@ -28,6 +28,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -41,6 +44,7 @@ import io.github.obaya884.rebuy.ui.formatMonthDay
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.register.RegisterSheet
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import io.github.obaya884.rebuy.ui.theme.tabularNumbers
 import org.jetbrains.compose.resources.stringResource
@@ -52,8 +56,8 @@ import org.koin.compose.viewmodel.koinViewModel
  * 行タップはカゴの出し入れで、**カゴに入れても行は動かない**（一覧の上に寄せない）。
  * 押した場所がそのまま結果になるほうが、連続して触るときに迷わないため。
  *
- * **行の長押し（→ 06 品目編集シート）はまだ無い**（F-007）。ほかに行き先の画面が
- * 揃っていない導線は旧画面へ暫定で繋いである——`// 暫定:` で grep できる。
+ * **行の長押し（→ 06 品目編集シート）はまだ無い**（F-007）。「買い物を始める」は
+ * 03 が入る F-008 まで旧画面へ暫定で繋いである——`// 暫定:` で grep できる。
  */
 @Composable
 fun PoolScreen(
@@ -62,6 +66,7 @@ fun PoolScreen(
 ) {
     val viewModel = koinViewModel<PoolViewModel>()
     val uiState by viewModel.uiState.collectAsState()
+    var isRegisterSheetOpen by remember { mutableStateOf(false) }
 
     ReBuyAppScaffold(
         topBarTitle = stringResource(Res.string.pool_title),
@@ -73,8 +78,7 @@ fun PoolScreen(
             )
             IconButton(
                 modifier = Modifier.testTag(TestTags.POOL_ADD_BUTTON),
-                // 暫定: 02 登録シートは F-006
-                onClick = { navigator.navigate(Screen.ItemEdit) }
+                onClick = { isRegisterSheetOpen = true }
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
             }
@@ -130,6 +134,10 @@ fun PoolScreen(
                 onClick = { navigator.navigate(Screen.Shopping) }
             )
         }
+    }
+
+    if (isRegisterSheetOpen) {
+        RegisterSheet(onDismiss = { isRegisterSheetOpen = false })
     }
 }
 

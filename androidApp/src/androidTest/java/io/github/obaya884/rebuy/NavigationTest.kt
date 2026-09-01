@@ -41,6 +41,7 @@ class NavigationTest {
     private val itemEditTitle = string(Res.string.item_edit_title)
     private val categoryEditTitle = string(Res.string.category_edit_title)
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
+    private val itemEditLabel = string(Res.string.setting_row_item_edit)
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
@@ -57,6 +58,12 @@ class NavigationTest {
 
     private fun tapBackArrow() {
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+    }
+
+    /** 暫定: 品目の編集・削除は F-007 まで旧アイテム一覧にしか無い。 */
+    private fun openItemEdit() {
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithText(itemEditLabel).performClick()
     }
 
     /** 設定の下にあるカテゴリーの管理を開く。 */
@@ -112,21 +119,21 @@ class NavigationTest {
     }
 
     @Test
-    fun プールからアイテム一覧へ遷移して端末の戻るでプールに帰る() {
-        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 設定からアイテム一覧へ遷移して端末の戻るで設定に帰る() {
+        openItemEdit()
         assertCurrentScreenIs(itemEditTitle)
 
         pressBack()
-        assertCurrentScreenIs(poolTitle)
+        assertCurrentScreenIs(settingTitle)
     }
 
     @Test
-    fun アイテム一覧の戻る矢印でプールに帰る() {
-        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun アイテム一覧の戻る矢印で設定に帰る() {
+        openItemEdit()
         assertCurrentScreenIs(itemEditTitle)
 
         tapBackArrow()
-        assertCurrentScreenIs(poolTitle)
+        assertCurrentScreenIs(settingTitle)
     }
 
     @Test

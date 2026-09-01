@@ -16,6 +16,20 @@
     <string name="pool_empty_title">まだ何も登録されていません</string>
     <string name="pool_empty_message">右上の ＋ から登録できます</string>
     <string name="pool_filtered_empty">この条件のものはありません</string>
+    <!-- 02 登録シート・02b 新しいカテゴリ／行き先ダイアログ（画面定義書 画面 02・02b） -->
+    <string name="register_title">新しく登録</string>
+    <string name="register_name_placeholder">名前</string>
+    <string name="register_category_label">カテゴリ（任意）</string>
+    <string name="register_destination_label">行き先（任意）</string>
+    <string name="register_new_category">＋ 新しいカテゴリ</string>
+    <string name="register_new_destination">＋ 新しい行き先</string>
+    <string name="register_submit">登録</string>
+    <string name="register_submit_and_continue">続けて登録</string>
+    <string name="register_dialog_category_title">新しいカテゴリ</string>
+    <string name="register_dialog_destination_title">新しい行き先</string>
+    <string name="register_dialog_create">作成</string>
+    <string name="register_dialog_cancel">キャンセル</string>
+
     <!-- 暫定: 買い物画面のボトムナビに出すラベル。タブは F-009 で無くなる -->
     <string name="pool_nav_label">一覧</string>
 

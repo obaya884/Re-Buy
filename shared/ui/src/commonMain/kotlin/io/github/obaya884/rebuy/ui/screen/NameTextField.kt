@@ -23,23 +23,27 @@ import org.jetbrains.compose.resources.stringResource
  * **UI 側の網は 2 つ。** 上限を超える入力を打ち切ることと、確定時に弾かれた理由を
  * 入力欄の下に出すこと。データ層の網は `NameRule` と Repository が持つ。
  *
- * [modifier] は入力欄ではなく**外枠**（入力欄とエラー文言を縦に積む `Column`）に付く。
+ * **[modifier] は入力欄そのものに付く。** 呼び出し側が渡したいのはフォーカス要求と
+ * テストタグで、どちらも外枠に付いても届かない（自動フォーカスが効かず、テストからも
+ * 入力できない。実測）。エラー文言は入力欄の下に積む。
  */
 @Composable
 fun NameTextField(
     value: String,
     onValueChange: (String) -> Unit,
     error: NameError?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    placeholder: String? = null
 ) {
-    Column(modifier = modifier) {
+    Column {
         TextField(
             value = value,
             // 31 文字目以降は入力できない。**打ち切りであって、エラーにはしない**
             onValueChange = { onValueChange(NameRule.truncate(it)) },
             singleLine = true,
             isError = error != null,
-            modifier = Modifier.fillMaxWidth()
+            placeholder = placeholder?.let { { Text(it) } },
+            modifier = modifier.fillMaxWidth()
         )
         nameErrorMessage(error)?.let {
             Text(

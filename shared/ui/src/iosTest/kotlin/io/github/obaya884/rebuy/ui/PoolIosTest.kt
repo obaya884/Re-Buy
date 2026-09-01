@@ -7,6 +7,7 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import kotlin.test.Test
 import kotlin.time.Instant
@@ -76,6 +77,62 @@ class PoolIosTest {
         row.assertTextContains("前回 —")
         // タグを出していないことは `PoolViewModelTest` が状態側で見る
         // （🏬 は「どこでも」チップにも出るので、画面全体からは引けない）
+    }
+
+    // ---- 登録シート（画面 02・02b） ----
+
+    /**
+     * ＋ からシートを開いて登録すると、**一覧の末尾に現れてシートが閉じる**（画面 02）。
+     *
+     * `RegisterViewModelTest` は状態までしか見ないので、**＋ がシートを開かない・
+     * 「登録」が結線されていない**といった抜けはここでしか捕まらない。
+     */
+    @Test
+    fun 登録シートから登録すると一覧の末尾に現れる() = pool(twoItems()) {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムC")
+        onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+
+        // シートは閉じ、登録順の末尾（id = 3）に現れる
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertDoesNotExist()
+        onNodeWithTag(TestTags.poolRow(itemId = 3)).assertTextContains("アイテムC")
+        onNodeWithTag(TestTags.poolRow(itemId = 3)).assertTextContains("前回 —")
+    }
+
+    /** 「続けて登録」はシートを開いたままにする（画面 02）。 */
+    @Test
+    fun 続けて登録ではシートが開いたまま() = pool {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
+        onNodeWithTag(TestTags.REGISTER_SUBMIT_AND_CONTINUE).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsDisplayed()
+    }
+
+    /** 弾かれたらシートは開いたまま、入力欄の下に理由が出る（画面定義書 §2）。 */
+    @Test
+    fun 同じ名前で登録すると理由が出てシートは開いたまま() = pool(twoItems()) {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテム1")
+        onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+
+        onNodeWithText("同じ名前がすでにあります").assertIsDisplayed()
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsDisplayed()
+    }
+
+    /** 02b で作ったカテゴリは、呼び出し元のチップ列に**選択済み**で現れる。 */
+    @Test
+    fun 新しいカテゴリを作るとその品目に付く() = pool {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        onNodeWithTag(TestTags.REGISTER_NEW_CATEGORY_CHIP).performClick()
+        onNodeWithTag(TestTags.REGISTER_DIALOG_NAME_FIELD).performTextInput("カテゴリA")
+        onNodeWithTag(TestTags.REGISTER_DIALOG_CREATE).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
+        onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+
+        // 作ったカテゴリが選ばれたまま登録されるので、行にタグが出る
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("カテゴリA")
     }
 
     // ---- 絞り込みチップ（画面 01） ----

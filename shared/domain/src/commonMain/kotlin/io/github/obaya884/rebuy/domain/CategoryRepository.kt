@@ -15,12 +15,13 @@ class CategoryRepository(private val categoryDao: CategoryDao) {
         saveWithValidatedName(name, exceptId = NEW_RECORD_ID, categoryDao::existsName) { normalized ->
             categoryDao.insert(
                 Category(name = normalized, sortOrder = categoryDao.maxSortOrder() + 1)
-            )
+            ).toInt()
         }
 
     suspend fun updateName(id: Int, newName: String): SaveResult =
         saveWithValidatedName(newName, exceptId = id, categoryDao::existsName) { normalized ->
             categoryDao.updateCategoryName(id, normalized)
+            id
         }
 
     suspend fun updateSortOrder(id: Int, newSortOrder: Int) {
