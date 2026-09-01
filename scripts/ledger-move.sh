@@ -65,10 +65,16 @@ if not matched:
 ledger = LEDGERS[matched.group(1)]
 
 new_status = None
-if len(args) >= 3 and args[1] == "--status":
+if len(args) == 3 and args[1] == "--status":
     new_status = args[2]
 elif len(args) >= 2:
-    print(f"認識できない引数: {args[1:]}", file=sys.stderr)
+    # `--status 完了 2026-09-01`（クォート忘れ）もここで落とす。素通しすると
+    # 日付の無い「完了」が書かれ、成功を報告してしまう
+    print(
+        f"認識できない引数: {args[1:]}"
+        "（--status の値に空白を含むときは '完了 2026-09-01' のように括ること）",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 LIVE = ledger["live"]
@@ -177,7 +183,8 @@ for i in range(target + 1, index_end):
 if insert_at is None:
     fail(f"移動先 {CLOSED} §一覧にテーブルが見つかりません")
 
-# 詳細節は移動先 §詳細 の末尾へ積む（並び順は一覧と同じ、が運用ルール）
+# 詳細節は移動先 §詳細 の末尾へ積む。**分類を持つ台帳では §一覧 の並びとは一致しない**
+# （一覧は分類ごとに分かれるため）。完了記録が謳うのは「対応日の古い順」で、それは満たす
 _, detail_section_end = section_range(closed, "詳細")
 
 closed[detail_section_end:detail_section_end] = detail + [""]

@@ -10,11 +10,14 @@
 # エラー（終了コード 1。CI が落ちる）:
 #   - 区切り行の列数がヘッダと違う（GFM はその塊を表として描画せず生のパイプ文字列になる）
 #   - 行のセル数がヘッダより多い（あふれた分は丸ごと消える）
-#     台帳2冊（22・23）と closed_* ではセル数の不足も落とす（全列が必須のため）
+#     台帳3冊（21・22・23）と closed_* ではセル数の不足も落とす（全列が必須のため）
 #   - テーブルの内側に空行がある
 #   - 台帳の1行に複数のエントリが混入している
-#   - 台帳23 で §一覧の行と §詳細の節が1対1になっていない（片方だけ残る／重複する）
-#   - 台帳23 で詳細列のリンク先アンカーが行の ID と食い違う
+#   - 台帳21・23 で §一覧の行と §詳細の節が1対1になっていない（片方だけ残る／重複する）
+#   - 台帳21・23 で詳細列のリンク先アンカーが行の ID と食い違う
+#   - 台帳21 で起票日・状態の日付が YYYY-MM-DD でない・状態や分類見出しが語彙外
+#     （完了記録側は `未対応` も語彙外。`--status` を付け忘れた移送はここで落ちる）
+#   - 台帳21 でライブと完了記録に同じ ID がある（手採番の取り違え）
 #   - 台帳22 で熟度タグが語彙外・トリガ欄が空（トリガの無い行は next-task が永久に拾わない）
 #     ＋「仕様済」なのに参照先が `（未実装 / F-XXX）` のスタブ（過大申告は静かに起きる）
 #   - 台帳23 で種別・優先度が語彙外
@@ -22,7 +25,7 @@
 #   - 相対リンクの参照先ファイルが無い
 #   - リンクのアンカーが参照先の見出しに無い（`ledger:move` は移す側しか直さないので、
 #     closed_* への移送のたびに被参照リンクが構造的に切れる。それを捕まえるのが本検査の要）
-#   - 台帳2冊とその完了記録のいずれかが見つからない（検査対象そのものの欠落）
+#   - 台帳3冊とその完了記録のいずれかが見つからない（検査対象そのものの欠落）
 #
 # 警告（終了コードは 0 のまま。誤検知がありうるので落とさない）:
 #   - ライブ文書に Phase 表記が残っている（履歴を残す log_/closed_ は対象外）
@@ -288,6 +291,7 @@ def check_requirement_backlog(path):
 
 # 台帳23 の種別は「何に触るか」で分ける語彙。本書の全件に当てはまる語（負債返済・改善など）を
 # 使うと種別として情報量がなくなるため、宣言した語だけを許す
+FB_SECTIONS = ("仕様判断待ち", "着手待ち")
 KINDS = {"内部設計", "型安全", "テスト", "ツール整備", "依存追随", "調査"}
 PRIORITIES = {"高", "中", "低", "様子見"}
 
@@ -310,12 +314,29 @@ def check_tech_backlog(path):
     return out
 
 
-def check_fb_ledger(path):
-    """21 の状態列は語彙を宣言している（未対応／完了 YYYY-MM-DD／対処不要 YYYY-MM-DD）。
-    手書きが増える台帳なので、23 の種別・優先度と同じく語彙そのものを見る"""
+def is_iso_date(text):
+    """`[0-9]` で書くのは、Python の `\d` が全角数字（２０２６）も拾うため。
+    IME で全角のまま確定するのは、この台帳でいちばん起きやすい打ち間違い"""
+    if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", text):
+        return False
+    try:
+        datetime.date.fromisoformat(text)
+    except ValueError:
+        return False  # 2026-13-45 のような「形は合うが日付でない」もの
+    return True
+
+
+def check_fb_ledger(path, side):
+    """21 の起票日と状態は書式・語彙を宣言している。手書きが増える台帳なので、
+    23 の種別・優先度と同じく語彙そのものを見る。
+
+    **ライブと完了記録で許す語彙が違う。** 完了記録に `未対応` が入るのは
+    `ledger-move.sh` を `--status` 無しで回した事故で、状態列を書き換えないまま移るため。
+    そこを許すと、この 2 語彙はどこでも検査されないことになる"""
     out = []
     lines, _ = read(path)
-    for line_no, line in enumerate(lines, start=1):
+    allowed = r"未対応|(?:完了|対処不要) .+" if side == "live" else r"(?:完了|対処不要) .+"
+    for line_no, line in section_lines(lines, "一覧") or []:
         if not re.match(r"^\|\s*FB-\d+\s*\|", line):
             continue
         cells = cells_of(line)
@@ -323,11 +344,45 @@ def check_fb_ledger(path):
         if len(cells) != 7:
             continue  # 列数の異常は表構造の検査が報告済み
         entry_id, raised, status = cells[1], cells[2], cells[5]
-        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", raised):
+        if not is_iso_date(raised):
             out.append((path, line_no, f"{entry_id} の起票日「{raised}」が YYYY-MM-DD でない"))
-        if not re.fullmatch(r"未対応|(?:完了|対処不要) \d{4}-\d{2}-\d{2}", status):
+        if not re.fullmatch(allowed, status):
             out.append((path, line_no, f"{entry_id} の状態「{status}」が語彙外"))
+        elif status != "未対応" and not is_iso_date(status.split(" ", 1)[1]):
+            out.append((path, line_no, f"{entry_id} の状態「{status}」の日付が YYYY-MM-DD でない"))
     return out
+
+
+def check_fb_sections(path):
+    """21 の分類見出しは語彙を宣言している（仕様判断待ち／着手待ち）。語彙外の見出しは
+    `ledger-move.sh` の移送先探しで止まるが、**似た名前は別分類へ紛れ込む**（補足の差だけは
+    許す救済があるため）ので、書いた時点で落とす"""
+    lines, _ = read(path)
+    return [
+        (path, line_no, f"分類「{line[4:].strip()}」が語彙外")
+        for line_no, line in section_lines(lines, "一覧") or []
+        if line.startswith("### ") and line[4:].strip() not in FB_SECTIONS
+    ]
+
+
+def check_ledger_ids_unique(live_path, closed_path):
+    """ライブと完了記録で ID が重複していないか。FB は手で採番するので、移した番号を
+    取り違えると起きる。**アンカー検査では捕まらない**——`#fb-01` の向き先が
+    2 ファイルに存在するので、どちらも見つかって緑になる"""
+    def ids(path):
+        lines, _ = read(path)
+        return {
+            m.group(1): line_no
+            for line_no, line in section_lines(lines, "一覧") or []
+            if (m := re.match(r"^\|\s*((?:FB|T)-\d+)\s*\|", line))
+        }
+
+    live_ids, closed_ids = ids(live_path), ids(closed_path)
+    return [
+        (live_path, line_no, f"{entry_id} が完了記録にもある（番号の取り違え）")
+        for entry_id, line_no in sorted(live_ids.items())
+        if entry_id in closed_ids
+    ]
 
 
 # ---- ライブ台帳の状態列 ------------------------------------------------------
@@ -498,24 +553,35 @@ for path in TARGETS:
 # ライブ側だけが持つ固有の検査（列の記入・語彙）。LEDGERS に併記できないのは、
 # 辞書を組み立てる時点でこれらの関数がまだ定義されていないため
 LEDGER_CHECKS = {
-    "21": (check_fb_ledger,),
     "22": (check_requirement_backlog,),
     "23": (check_tech_backlog,),
 }
+# ライブと完了記録の**両側**に掛ける検査。許す語彙が側で違うので side を受け取る
+LEDGER_BOTH_CHECKS = {"21": (check_fb_ledger,)}
+# 側ごとではなく台帳の対に対して掛ける検査
+LEDGER_PAIR_CHECKS = {"21": (check_ledger_ids_unique,)}
 
 for key, entry in LEDGERS.items():
+    missing = False
     for side in ("live", "closed"):
         path = entry[side]
         if not os.path.exists(path):
             failures.append((path, 1, "台帳が見つからない"))
+            missing = True
             continue
         if entry["paired"]:
             failures += check_index_and_detail(path)
+            failures += check_fb_sections(path) if key == "21" else []
+        for check in LEDGER_BOTH_CHECKS.get(key, ()):
+            failures += check(path, side)
         if side != "live":
             continue
         failures += check_live_status(path, entry["closed_status"])
         for check in LEDGER_CHECKS.get(key, ()):
             failures += check(path)
+    if not missing:
+        for check in LEDGER_PAIR_CHECKS.get(key, ()):
+            failures += check(entry["live"], entry["closed"])
 
 warnings += check_updated_dates()
 
