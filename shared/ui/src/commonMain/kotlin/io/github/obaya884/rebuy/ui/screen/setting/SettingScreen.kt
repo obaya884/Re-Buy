@@ -74,8 +74,11 @@ fun SettingScreen(
                 testTag = TestTags.SETTING_ROW_CATEGORY_EDIT,
                 onTap = { navigator.navigate(Screen.Manage(NameTarget.CATEGORY)) }
             )
-            // 暫定: ここに「行き先の管理」が入る（F-013。画面は動くが、行をまだ繋いでいない）
-
+            SettingRow(
+                label = stringResource(Res.string.setting_row_destination_manage),
+                testTag = TestTags.SETTING_ROW_DESTINATION_MANAGE,
+                onTap = { navigator.navigate(Screen.Manage(NameTarget.DESTINATION)) }
+            )
             SettingRow(
                 label = stringResource(Res.string.theme_title),
                 testTag = TestTags.SETTING_ROW_THEME,

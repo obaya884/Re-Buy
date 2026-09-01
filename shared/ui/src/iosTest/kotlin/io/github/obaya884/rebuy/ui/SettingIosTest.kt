@@ -33,10 +33,11 @@ class SettingIosTest {
         block()
     }
 
-    /** **「行き先の管理」の行は F-013 でここに足す**（管理画面がまだ無い）。 */
+    /** 条項の 4 行が並ぶ（画面 07）。 */
     @Test
     fun 管理とテーマとライセンスの行が並ぶ() = setting {
         onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT).assertIsDisplayed()
+        onNodeWithTag(TestTags.SETTING_ROW_DESTINATION_MANAGE).assertIsDisplayed()
         onNodeWithTag(TestTags.SETTING_ROW_THEME).assertIsDisplayed()
         onNodeWithTag(TestTags.SETTING_ROW_LICENSE).assertIsDisplayed()
     }
