@@ -32,7 +32,8 @@ class ColorSchemeTest {
         assertEquals(colors.accentSoft, scheme.secondaryContainer)
         assertEquals(colors.page, scheme.background)
         assertEquals(colors.ink, scheme.onBackground)
-        assertEquals(colors.screen, scheme.surface)
+        // 地は 1 段。**アプリバーが拾う surface も地**（画面定義書 §5）
+        assertEquals(colors.page, scheme.surface)
         assertEquals(colors.ink, scheme.onSurface)
         assertEquals(colors.accentSoft, scheme.surfaceVariant)
         assertEquals(colors.muted, scheme.onSurfaceVariant)

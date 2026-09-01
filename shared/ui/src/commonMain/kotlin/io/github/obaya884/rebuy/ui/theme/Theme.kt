@@ -53,9 +53,11 @@ private val LocalReBuyColors = staticCompositionLocalOf {
 /**
  * Material のコンポーネント（`TextField`・`Button`・`TopAppBar` など）へ橋渡しする。
  *
- * **ロールの対応はここ 1 か所で決める。** 面が 3 段あるので、`surface` にコンテンツ面、
- * `surfaceContainer` 系に行・カードを当てる。`primaryContainer` と `secondaryContainer` は
- * どちらも選択面として使われるので [ReBuyColors.accentSoft] を入れる。
+ * **ロールの対応はここ 1 か所で決める。** 面は 2 段で、`background` と `surface` の
+ * どちらにも地（[ReBuyColors.page]）を当てる——**アプリバーが拾うのは `surface`** なので、
+ * ここを分けると本文との間に境目が出る（画面定義書 §5）。`surfaceContainer` 系は行・カード。
+ * `primaryContainer` と `secondaryContainer` はどちらも選択面として使われるので
+ * [ReBuyColors.accentSoft] を入れる。
  *
  * **画面定義書 §5 に無いロールは、いちばん近いトークンで埋める。** `onError` は
  * 危険色の上に載る文字（表に無いので [ReBuyColors.onAccent] を流用）、`onSurfaceVariant` は
@@ -74,7 +76,7 @@ internal fun ReBuyColors.toColorScheme(): ColorScheme {
         onSecondaryContainer = ink,
         background = page,
         onBackground = ink,
-        surface = screen,
+        surface = page,
         onSurface = ink,
         surfaceVariant = accentSoft,
         onSurfaceVariant = muted,
