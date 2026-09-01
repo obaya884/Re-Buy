@@ -272,6 +272,55 @@ class AppDatabaseIosTest {
     }
 
     /**
+     * 名前・カテゴリー・行き先をまとめて書けること（画面 06 の「保存」）。
+     *
+     * **`FakeDatabase` は既定実装をそのまま継ぐので、Room が生成する `@Transaction` の
+     * override はここでしか通らない。**
+     */
+    @Test
+    fun まとめて書くと3つとも変わる() = runBlocking {
+        val itemDao = database.itemDao()
+        val categoryId = database.categoryDao().insert(category(name = "カテゴリー1")).toInt()
+        val destinationId = database.destinationDao().insert(destination(name = "行き先1")).toInt()
+        val id = itemDao.insertItem(item(name = "アイテム1")).toInt()
+
+        itemDao.updateItemNameAndRelations(id, "アイテムA", categoryId, destinationId)
+
+        val stored = itemDao.getAllItems().first().single()
+        assertEquals("アイテムA", stored.name)
+        assertEquals(categoryId, stored.categoryId)
+        assertEquals(destinationId, stored.destinationId)
+    }
+
+    /**
+     * **途中で失敗したら名前も巻き戻る。** `@Transaction` を外すと、名前だけ変わって
+     * カテゴリーが変わらない中途半端な状態が残る（外して実測）。
+     */
+    @Test
+    fun まとめ書きの途中で失敗すると名前も巻き戻る() = runBlocking {
+        val itemDao = database.itemDao()
+        val id = itemDao.insertItem(item(name = "アイテム1")).toInt()
+
+        assertFailsWith<SQLiteException> {
+            // 存在しないカテゴリー。外部キーで弾かれる
+            itemDao.updateItemNameAndRelations(id, "アイテムA", newCategoryId = 999, null)
+        }
+
+        assertEquals("アイテム1", itemDao.getAllItems().first().single().name)
+    }
+
+    @Test
+    fun 品目をidで消せる() = runBlocking {
+        val dao = database.itemDao()
+        val id = dao.insertItem(item(name = "アイテム1")).toInt()
+        dao.insertItem(item(name = "アイテム2"))
+
+        dao.deleteItemById(id)
+
+        assertEquals(listOf("アイテム2"), dao.getAllItems().first().map { it.name })
+    }
+
+    /**
      * 行き先を消すと、それを指していた品目が「どこでも買えるもの」に戻ること
      * （外部キーの `SET_NULL`。データモデル定義書 §7）。
      *

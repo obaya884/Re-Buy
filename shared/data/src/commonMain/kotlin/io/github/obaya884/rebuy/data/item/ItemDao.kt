@@ -63,6 +63,27 @@ interface ItemDao {
         updatedAt: Instant = Clock.System.now()
     )
 
+    @Query("DELETE FROM items WHERE id = :itemId")
+    suspend fun deleteItemById(itemId: Int)
+
+    /**
+     * 名前・カテゴリー・行き先をまとめて書く（画面 06 の「保存」）。
+     *
+     * **1 つずつ書くと、途中の状態（新しい名前 × 古いカテゴリー）が一瞬 Flow に流れる。**
+     * `@Transaction` で 1 回の変更としてまとめる。
+     */
+    @Transaction
+    suspend fun updateItemNameAndRelations(
+        itemId: Int,
+        newName: String,
+        newCategoryId: Int?,
+        newDestinationId: Int?
+    ) {
+        updateItemName(itemId, newName)
+        updateItemCategoryId(itemId, newCategoryId)
+        updateItemDestinationId(itemId, newDestinationId)
+    }
+
     @Transaction
     @Query("SELECT * FROM items ORDER BY id")
     fun getAllItemsWithCategory(): Flow<List<ItemWithCategory>>

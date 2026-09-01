@@ -9,7 +9,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -38,7 +41,7 @@ class PoolIosTest {
                     id = 1,
                     categoryId = 1,
                     destinationId = 1,
-                    lastBoughtAt = Instant.parse("2026-08-29T00:00:00Z")
+                    lastBoughtAt = Instant.parse("2026-08-29T12:00:00Z")
                 ),
                 item(id = 2)
             ),
@@ -173,9 +176,9 @@ class PoolIosTest {
     @Test
     fun 新しいカテゴリを作るとその品目に付く() = pool {
         onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-        onNodeWithTag(TestTags.REGISTER_NEW_CATEGORY_CHIP).performClick()
-        onNodeWithTag(TestTags.REGISTER_DIALOG_NAME_FIELD).performTextInput("カテゴリA")
-        onNodeWithTag(TestTags.REGISTER_DIALOG_CREATE).performClick()
+        onNodeWithTag(TestTags.ITEM_FORM_NEW_CATEGORY_CHIP).performClick()
+        onNodeWithTag(TestTags.ITEM_FORM_DIALOG_NAME_FIELD).performTextInput("カテゴリA")
+        onNodeWithTag(TestTags.ITEM_FORM_DIALOG_CREATE).performClick()
 
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
         onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
@@ -188,9 +191,9 @@ class PoolIosTest {
     @Test
     fun 新しい行き先を作るとその品目に付く() = pool {
         onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-        onNodeWithTag(TestTags.REGISTER_NEW_DESTINATION_CHIP).performClick()
-        onNodeWithTag(TestTags.REGISTER_DIALOG_NAME_FIELD).performTextInput("行き先A")
-        onNodeWithTag(TestTags.REGISTER_DIALOG_CREATE).performClick()
+        onNodeWithTag(TestTags.ITEM_FORM_NEW_DESTINATION_CHIP).performClick()
+        onNodeWithTag(TestTags.ITEM_FORM_DIALOG_NAME_FIELD).performTextInput("行き先A")
+        onNodeWithTag(TestTags.ITEM_FORM_DIALOG_CREATE).performClick()
 
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
         onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
@@ -202,8 +205,8 @@ class PoolIosTest {
     @Test
     fun 既存のチップを選ぶとその品目に付く() = pool(twoItems()) {
         onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-        onNodeWithTag(TestTags.registerCategoryChip(categoryId = 1)).performClick()
-        onNodeWithTag(TestTags.registerDestinationChip(destinationId = 1)).performClick()
+        onNodeWithTag(TestTags.itemFormCategoryChip(categoryId = 1)).performClick()
+        onNodeWithTag(TestTags.itemFormDestinationChip(destinationId = 1)).performClick()
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムC")
         onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
 

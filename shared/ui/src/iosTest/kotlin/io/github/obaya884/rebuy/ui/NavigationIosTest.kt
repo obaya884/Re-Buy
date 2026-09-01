@@ -12,9 +12,7 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.resources.category_edit_title
-import io.github.obaya884.rebuy.ui.resources.item_edit_title
 import io.github.obaya884.rebuy.ui.resources.setting_row_category_edit
-import io.github.obaya884.rebuy.ui.resources.setting_row_item_edit
 import io.github.obaya884.rebuy.ui.resources.setting_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_message
 import io.github.obaya884.rebuy.ui.resources.pool_title
@@ -48,7 +46,6 @@ class NavigationIosTest {
     private val poolTitle = string(Res.string.pool_title)
     private val shoppingTitle = string(Res.string.shopping_title)
     private val settingTitle = string(Res.string.setting_title)
-    private val itemEditTitle = string(Res.string.item_edit_title)
     private val categoryEditTitle = string(Res.string.category_edit_title)
     private val emptyTitle = string(Res.string.pool_empty_title)
     private val emptyMessage = string(Res.string.pool_empty_message)
@@ -56,7 +53,6 @@ class NavigationIosTest {
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
-    private val itemEditLabel = string(Res.string.setting_row_item_edit)
     private val themeLabel = string(Res.string.theme_title)
 
     /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
@@ -139,16 +135,6 @@ class NavigationIosTest {
 
         tapBackArrow()
         assertCurrentScreenIs(poolTitle)
-    }
-
-    @Test
-    fun アイテム一覧の戻る矢印で設定に帰る() = app {
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
-        onNodeWithText(itemEditLabel).performClick()
-        assertCurrentScreenIs(itemEditTitle)
-
-        tapBackArrow()
-        assertCurrentScreenIs(settingTitle)
     }
 
     @Test

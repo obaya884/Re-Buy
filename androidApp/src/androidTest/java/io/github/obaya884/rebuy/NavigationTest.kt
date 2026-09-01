@@ -5,7 +5,10 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import androidx.test.espresso.Espresso
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
@@ -39,10 +42,8 @@ class NavigationTest {
 
     private val poolTitle = string(Res.string.pool_title)
     private val settingTitle = string(Res.string.setting_title)
-    private val itemEditTitle = string(Res.string.item_edit_title)
     private val categoryEditTitle = string(Res.string.category_edit_title)
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
-    private val itemEditLabel = string(Res.string.setting_row_item_edit)
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
@@ -59,12 +60,6 @@ class NavigationTest {
 
     private fun tapBackArrow() {
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-    }
-
-    /** 暫定: 品目の編集・削除は F-007 まで旧アイテム一覧にしか無い。 */
-    private fun openItemEdit() {
-        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
-        composeRule.onNodeWithText(itemEditLabel).performClick()
     }
 
     /** 設定の下にあるカテゴリーの管理を開く。 */
@@ -138,22 +133,31 @@ class NavigationTest {
         assertCurrentScreenIs(poolTitle)
     }
 
+    /**
+     * 行の長押しで編集シートが開き、端末の戻るで閉じる（画面 01・06）。
+     *
+     * **`ModalBottomSheet` も長押しのジェスチャも Android と skiko で実装が分かれる**ので、
+     * iOS の `ItemEditSheetIosTest` だけでは Android 固有の壊れ方を止められない（§2.4）。
+     * 品目が要るので、登録シートから 1 件入れてから踏む。
+     */
     @Test
-    fun 設定からアイテム一覧へ遷移して端末の戻るで設定に帰る() {
-        openItemEdit()
-        assertCurrentScreenIs(itemEditTitle)
+    fun 行の長押しで編集シートが開いて端末の戻るで閉じる() {
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD)
+            .performTextInput("長押しの確認用")
+        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+        composeRule.waitForIdle()
 
-        pressBack()
-        assertCurrentScreenIs(settingTitle)
-    }
+        composeRule.onNodeWithText("長押しの確認用").performTouchInput { longClick() }
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertIsDisplayed()
 
-    @Test
-    fun アイテム一覧の戻る矢印で設定に帰る() {
-        openItemEdit()
-        assertCurrentScreenIs(itemEditTitle)
+        // 後始末: 実機の DB に残さない
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
+        composeRule.waitForIdle()
 
-        tapBackArrow()
-        assertCurrentScreenIs(settingTitle)
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test

@@ -16,7 +16,6 @@ import io.github.obaya884.rebuy.ui.navigation.toEntries
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditScreen
 import io.github.obaya884.rebuy.ui.screen.pool.PoolScreen
-import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditScreen
 import io.github.obaya884.rebuy.ui.screen.license.LicenseScreen
 import io.github.obaya884.rebuy.ui.screen.setting.SettingScreen
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingScreen
@@ -48,7 +47,6 @@ fun ReBuyApp() {
             entry<Screen.Shopping> { ShoppingScreen(navigator, snackbarHostState) }
             entry<Screen.Setting> { SettingScreen(navigator, snackbarHostState) }
             entry<Screen.CategoryEdit> { CategoryEditScreen(navigator, snackbarHostState) }
-            entry<Screen.ItemEdit> { ItemEditScreen(navigator, snackbarHostState) }
             entry<Screen.License> { LicenseScreen(navigator, snackbarHostState) }
             entry<Screen.Theme> { ThemeScreen(navigator, snackbarHostState) }
         }
@@ -80,7 +78,6 @@ sealed interface Screen : NavKey {
     @Serializable data object Shopping : Screen
     @Serializable data object Setting : Screen
     @Serializable data object CategoryEdit : Screen
-    @Serializable data object ItemEdit : Screen
     @Serializable data object License : Screen
     @Serializable data object Theme : Screen
 }
@@ -99,7 +96,6 @@ internal val screenSavedStateConfiguration = SavedStateConfiguration {
             subclass(Screen.Shopping::class)
             subclass(Screen.Setting::class)
             subclass(Screen.CategoryEdit::class)
-            subclass(Screen.ItemEdit::class)
             subclass(Screen.License::class)
             subclass(Screen.Theme::class)
         }

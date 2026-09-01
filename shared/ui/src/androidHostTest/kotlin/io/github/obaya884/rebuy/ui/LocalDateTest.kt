@@ -8,15 +8,15 @@ import kotlin.test.assertEquals
 import kotlin.time.Instant
 
 /**
- * 一覧に出す「前回 M/D」の書式（画面定義書 §2）。
+ * 一覧の「前回 M/D」と編集シートの「最終購入日: YYYY-MM-DD」の書式（画面定義書 §2）。
  *
  * `formatShortDate` と違って**ロケールに従わない**ので、ロケールは差し替えずに
  * タイムゾーンだけを固定する。**期待値はリテラルで書く**（テスト戦略定義書 §2.1）。
  *
  * タイムゾーンを差し替える API が common に無いので JVM 側に置いている。
- * iOS の actual は文字列を見ずに済む不変条件を `MonthDayIosTest` が押さえる。
+ * iOS の actual は文字列を見ずに済む不変条件を `LocalDateIosTest` が押さえる。
  */
-class MonthDayTest {
+class LocalDateTest {
 
     private lateinit var originalTimeZone: TimeZone
 
@@ -41,6 +41,25 @@ class MonthDayTest {
     fun ゼロ埋めしない() {
         assertEquals("9/5", formatMonthDay(Instant.parse("2026-09-05T00:00:00Z")))
         assertEquals("12/31", formatMonthDay(Instant.parse("2026-12-31T00:00:00Z")))
+    }
+
+    // ---- 編集シートの「最終購入日: YYYY-MM-DD」 ----
+
+    /** **こちらはゼロ埋めする**（年月日を並べる形は桁が揃っているほうが読みやすい）。 */
+    @Test
+    fun 年月日はゼロ埋めして繋ぐ() {
+        assertEquals("2026-01-02", formatFullDate(Instant.parse("2026-01-02T03:04:05Z")))
+        assertEquals("2026-12-31", formatFullDate(Instant.parse("2026-12-31T00:00:00Z")))
+    }
+
+    @Test
+    fun 年月日も端末のタイムゾーンで決める() {
+        val instant = Instant.parse("2026-01-01T16:00:00Z")
+
+        assertEquals("2026-01-02", formatFullDate(instant))
+
+        TimeZone.setDefault(TimeZone.getTimeZone("America/Los_Angeles"))
+        assertEquals("2026-01-01", formatFullDate(instant))
     }
 
     /**

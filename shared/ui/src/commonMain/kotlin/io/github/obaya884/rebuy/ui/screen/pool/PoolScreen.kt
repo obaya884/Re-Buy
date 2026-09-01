@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -33,17 +35,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.destination.Destination
+import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.formatMonthDay
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditSheet
 import io.github.obaya884.rebuy.ui.screen.register.RegisterSheet
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import io.github.obaya884.rebuy.ui.theme.tabularNumbers
@@ -56,9 +62,10 @@ import org.koin.compose.viewmodel.koinViewModel
  * 行タップはカゴの出し入れで、**カゴに入れても行は動かない**（一覧の上に寄せない）。
  * 押した場所がそのまま結果になるほうが、連続して触るときに迷わないため。
  *
- * **行の長押し（→ 06 品目編集シート）はまだ無い**（F-007）。「買い物を始める」は
- * 03 が入る F-008 まで旧画面へ暫定で繋いである——`// 暫定:` で grep できる。
+ * 行の長押しで編集シート（06）を開く。「買い物を始める」は 03 が入る F-008 まで
+ * 旧画面へ暫定で繋いである——`// 暫定:` で grep できる。
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PoolScreen(
     navigator: Navigator,
@@ -67,6 +74,7 @@ fun PoolScreen(
     val viewModel = koinViewModel<PoolViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     var isRegisterSheetOpen by remember { mutableStateOf(false) }
+    var editingItem by remember { mutableStateOf<Item?>(null) }
 
     ReBuyAppScaffold(
         topBarTitle = stringResource(Res.string.pool_title),
@@ -122,7 +130,11 @@ fun PoolScreen(
                     modifier = Modifier.weight(1f)
                 ) {
                     items(uiState.visibleItems, key = { it.item.id }) { poolItem ->
-                        PoolRow(poolItem = poolItem, onTap = { viewModel.toggleBasket(poolItem.item) })
+                        PoolRow(
+                            poolItem = poolItem,
+                            onTap = { viewModel.toggleBasket(poolItem.item) },
+                            onLongPress = { editingItem = poolItem.item }
+                        )
                     }
                 }
             }
@@ -138,6 +150,9 @@ fun PoolScreen(
 
     if (isRegisterSheetOpen) {
         RegisterSheet(onDismiss = { isRegisterSheetOpen = false })
+    }
+    editingItem?.let { item ->
+        ItemEditSheet(item = item, onDismiss = { editingItem = null })
     }
 }
 
@@ -194,9 +209,8 @@ private fun FilterChips(
  * 一覧の 1 行。カゴ入りは**面の色**で示す（トグルの ✓ と合わせて 2 通りで分かるように）。
  */
 @Composable
-private fun PoolRow(poolItem: PoolItem, onTap: () -> Unit) {
+private fun PoolRow(poolItem: PoolItem, onTap: () -> Unit, onLongPress: () -> Unit) {
     Card(
-        onClick = onTap,
         colors = CardDefaults.cardColors(
             containerColor = if (poolItem.isInBasket) {
                 ReBuyTheme.colors.accentSoft
@@ -204,7 +218,13 @@ private fun PoolRow(poolItem: PoolItem, onTap: () -> Unit) {
                 ReBuyTheme.colors.card
             }
         ),
-        modifier = Modifier.fillMaxWidth().testTag(TestTags.poolRow(poolItem.item.id))
+        modifier = Modifier
+            .fillMaxWidth()
+            // **clip を先に置く**。後ろに置くとリップルがカードの角丸からはみ出る
+            .clip(CardDefaults.shape)
+            // 行タップ＝カゴの出し入れ、長押し＝編集シート（画面定義書 §2）
+            .combinedClickable(role = Role.Button, onClick = onTap, onLongClick = onLongPress)
+            .testTag(TestTags.poolRow(poolItem.item.id))
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

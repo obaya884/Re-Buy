@@ -24,6 +24,25 @@ class ItemRepository(private val itemDao: ItemDao) {
         itemDao.deleteItem(item)
     }
 
+    /** id で消す。**開いている品目を消す**ときは、打ちかけの名前を持ち回らずに済む。 */
+    suspend fun delete(id: Int) {
+        itemDao.deleteItemById(id)
+    }
+
+    /**
+     * 名前・カテゴリー・行き先をまとめて書く（画面 06 の「保存」）。
+     * **名前が弾かれたら何も書かない**——中途半端な反映を残さない。
+     */
+    suspend fun update(
+        id: Int,
+        name: String,
+        categoryId: Int?,
+        destinationId: Int?
+    ): SaveResult = saveWithValidatedName(name, exceptId = id, itemDao::existsName) { normalized ->
+        itemDao.updateItemNameAndRelations(id, normalized, categoryId, destinationId)
+        id
+    }
+
     suspend fun updateName(id: Int, newName: String): SaveResult =
         saveWithValidatedName(newName, exceptId = id, itemDao::existsName) { normalized ->
             itemDao.updateItemName(itemId = id, newName = normalized)

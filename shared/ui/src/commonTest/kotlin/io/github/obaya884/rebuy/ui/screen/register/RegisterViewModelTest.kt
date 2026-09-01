@@ -10,6 +10,7 @@ import io.github.obaya884.rebuy.ui.ViewModelTestBase
 import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.destination
 import io.github.obaya884.rebuy.ui.item
+import io.github.obaya884.rebuy.ui.screen.NewNameTarget
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test

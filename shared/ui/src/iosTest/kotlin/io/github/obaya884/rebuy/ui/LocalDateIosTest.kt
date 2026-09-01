@@ -18,7 +18,7 @@ import platform.Foundation.timeZoneWithName
  * 端末のタイムゾーンで日付に落とすこと。**手書きなのは秒への割り算と `NSCalendar` の
  * 使い方**で、どちらもここでしか通らない。
  */
-class MonthDayIosTest {
+class LocalDateIosTest {
 
     private lateinit var originalTimeZone: NSTimeZone
 
@@ -40,6 +40,12 @@ class MonthDayIosTest {
         assertEquals("12/31", formatMonthDay(Instant.parse("2026-12-31T00:00:00Z")))
     }
 
+    @Test
+    fun 年月日はゼロ埋めして繋ぐ() {
+        assertEquals("2026-01-02", formatFullDate(Instant.parse("2026-01-02T03:04:05Z")))
+        assertEquals("2026-12-31", formatFullDate(Instant.parse("2026-12-31T00:00:00Z")))
+    }
+
     /**
      * **タイムゾーンを差し替えて 2 通り見る。** 1 通りだけだと固定タイムゾーンの
      * 決め打ちでも通ってしまう。
@@ -52,5 +58,6 @@ class MonthDayIosTest {
 
         NSTimeZone.setDefaultTimeZone(NSTimeZone.timeZoneWithName("America/Los_Angeles")!!)
         assertEquals("1/1", formatMonthDay(instant))
+        assertEquals("2026-01-01", formatFullDate(instant))
     }
 }

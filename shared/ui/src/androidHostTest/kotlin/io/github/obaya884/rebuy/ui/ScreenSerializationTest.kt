@@ -44,7 +44,7 @@ class ScreenSerializationTest {
         // 上の検査は「登録されているか」しか見ない。ルートごと消えても素通りするので、
         // ここだけは名前を並べて固定する（消えたルート名が失敗メッセージに出る）
         assertEquals(
-            setOf("Pool", "Shopping", "Setting", "CategoryEdit", "ItemEdit", "License", "Theme"),
+            setOf("Pool", "Shopping", "Setting", "CategoryEdit", "License", "Theme"),
             Screen::class.sealedSubclasses.map { it.simpleName }.toSet()
         )
     }

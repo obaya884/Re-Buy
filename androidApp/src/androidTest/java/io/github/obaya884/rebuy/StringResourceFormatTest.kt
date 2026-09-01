@@ -52,8 +52,16 @@ class StringResourceFormatTest {
             string(Res.string.pool_destination_prefix, "スーパー")
         )
         assertEquals(
-            "アイテムAを削除しますか？",
-            string(Res.string.item_edit_delete_dialog_message, "アイテムA")
+            "「アイテムA」を削除しますか？",
+            string(Res.string.item_sheet_delete_dialog_title, "アイテムA")
+        )
+        assertEquals(
+            "「アイテムA」を削除…",
+            string(Res.string.item_sheet_delete, "アイテムA")
+        )
+        assertEquals(
+            "最終購入日: 2026-08-29",
+            string(Res.string.item_sheet_last_bought_at, "2026-08-29")
         )
     }
 }
