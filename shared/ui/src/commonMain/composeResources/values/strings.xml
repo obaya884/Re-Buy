@@ -37,6 +37,16 @@
     <string name="shopping_start_count_with_anywhere">%1$s＋%2$s 件</string>
     <string name="shopping_start_all">%1$s 件で開始</string>
 
+    <!-- 05 気づいたものを足すシート（画面定義書 画面 05）。1 つ目は 04 の一覧末尾にある入口 -->
+    <string name="shopping_add_noticed">＋ 気づいたものを足す</string>
+    <string name="add_noticed_title">気づいたものを足す</string>
+    <string name="add_noticed_search_placeholder">名前で探す…</string>
+    <string name="add_noticed_section_unadded">未追加のものから選ぶ</string>
+    <string name="add_noticed_section_elsewhere">他の行き先から</string>
+    <string name="add_noticed_already_added">追加済み</string>
+    <string name="add_noticed_register">＋ この名前で登録する</string>
+    <string name="add_noticed_added_elsewhere">%1$sに追加しました</string>
+
     <!-- 06 品目編集シート（画面定義書 画面 06） -->
     <string name="item_sheet_none">なし</string>
     <string name="item_sheet_last_bought_at">最終購入日: %1$s</string>

@@ -7,6 +7,6 @@ import androidx.compose.runtime.Composable
  * `NavDisplay` が持つ戻るより内側で登録されるので、**こちらが先に受ける**。
  */
 @Composable
-actual fun SystemBackHandler(onBack: () -> Unit) {
-    BackHandler(onBack = onBack)
+actual fun SystemBackHandler(enabled: Boolean, onBack: () -> Unit) {
+    BackHandler(enabled = enabled, onBack = onBack)
 }

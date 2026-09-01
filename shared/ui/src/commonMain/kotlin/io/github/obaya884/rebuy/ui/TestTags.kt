@@ -58,6 +58,20 @@ object TestTags {
     const val SHOPPING_LEAVE_CONFIRM = "shopping_leave_confirm"
     const val SHOPPING_LEAVE_CANCEL = "shopping_leave_cancel"
 
+    /**
+     * 気づいたものを足すシート（画面 05）と、04 にあるその入口。
+     *
+     * **区切りは 04 と別のタグにする。** シートは 04 の上に重なるので、同じタグだと
+     * 下の一覧の区切りと 2 つ見つかって `onNodeWithTag` が落ちる。
+     */
+    const val SHOPPING_ADD_NOTICED_ROW = "shopping_add_noticed_row"
+    const val ADD_NOTICED_SEARCH_FIELD = "add_noticed_search_field"
+    const val ADD_NOTICED_SECTION_UNADDED = "add_noticed_section_unadded"
+    const val ADD_NOTICED_SECTION_ANYWHERE = "add_noticed_section_anywhere"
+    const val ADD_NOTICED_SECTION_ELSEWHERE = "add_noticed_section_elsewhere"
+    const val ADD_NOTICED_REGISTER = "add_noticed_register"
+    fun addNoticedRow(itemId: Int): String = "add_noticed_row_$itemId"
+
     /** 品目編集シート（画面 06）。 */
     const val ITEM_SHEET_NAME_FIELD = "item_sheet_name_field"
     const val ITEM_SHEET_SAVE = "item_sheet_save"
