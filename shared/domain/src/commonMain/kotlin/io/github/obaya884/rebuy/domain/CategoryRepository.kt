@@ -24,11 +24,28 @@ class CategoryRepository(private val categoryDao: CategoryDao) {
             id
         }
 
-    suspend fun updateSortOrder(id: Int, newSortOrder: Int) {
-        categoryDao.updateCategorySortOrder(id, newSortOrder)
+    /**
+     * 並び替えの保存（画面 09）。**渡された順に 1..n を振り直す**。
+     *
+     * 1 件だけ動かす API にしないのは、詰まった連番では 1 件の移動が周りを押し出すため
+     * （5 番目を 2 番目へ動かすと 2〜4 番も動く）。全件を渡すほうが単純で、重複や歯抜けも
+     * ここで揃う。
+     */
+    suspend fun updateOrder(orderedIds: List<Int>) {
+        categoryDao.updateSortOrders(orderedIds)
     }
 
-    /** 紐づく品目は消えず、外部キーの `SET_NULL` で「なし」に戻る。 */
+    /**
+     * id で消す（画面 09b）。**紐づく品目は消えず**、外部キーの `SET_NULL` で「なし」に戻る。
+     *
+     * 実体ではなく id で受けるのは、**開いている行を消す**ときに打ちかけの名前を
+     * 持ち回らずに済むため（`ItemRepository.delete(id)` と同じ）。
+     */
+    suspend fun delete(id: Int) {
+        categoryDao.deleteById(id)
+    }
+
+    /** 実体で消す。紐づく品目の扱いは [delete] と同じ。 */
     suspend fun delete(category: Category) {
         categoryDao.delete(category)
     }

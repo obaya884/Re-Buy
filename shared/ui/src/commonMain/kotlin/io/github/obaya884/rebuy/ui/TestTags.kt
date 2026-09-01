@@ -12,9 +12,6 @@ object TestTags {
     /** TopAppBar の戻る矢印。同時に 1 つしか出ないので画面ごとに分けない。 */
     const val BACK_BUTTON = "back_button"
 
-    /** カテゴリー追加の FAB。画面を離れて戻ったときに ViewModel が作り直されるかを見るために使う。 */
-    const val CATEGORY_EDIT_ADD_BUTTON = "category_edit_add_button"
-
     /** プール（画面 01）のアプリバーと CTA。 */
     const val POOL_ADD_BUTTON = "pool_add_button"
     const val POOL_SETTINGS_BUTTON = "pool_settings_button"
@@ -49,6 +46,18 @@ object TestTags {
     /** 買い物開始シート（画面 03）。 */
     fun shoppingStartRow(destinationId: Int): String = "shopping_start_row_$destinationId"
     const val SHOPPING_START_ALL_ROW = "shopping_start_row_all"
+
+    /** カテゴリの管理／行き先の管理（画面 09）と編集シート（09b）。 */
+    fun manageRow(id: Int): String = "manage_row_$id"
+
+    /** 行の名前のラベル。**画面に出ている順**を数えるのに使う（並びの検証は座標ではなくこれ）。 */
+    const val MANAGE_ROW_NAME = "manage_row_name"
+    fun manageHandle(id: Int): String = "manage_handle_$id"
+    const val MANAGE_ADD_ROW = "manage_add_row"
+    const val MANAGE_SHEET_NAME_FIELD = "manage_sheet_name_field"
+    const val MANAGE_SHEET_SAVE = "manage_sheet_save"
+    const val MANAGE_SHEET_DELETE = "manage_sheet_delete"
+    const val MANAGE_SHEET_DELETE_CONFIRM = "manage_sheet_delete_confirm"
 
     /**
      * 設定（画面 07）。行の文言は他の画面のタイトルとも重なるので、タグで掴む。

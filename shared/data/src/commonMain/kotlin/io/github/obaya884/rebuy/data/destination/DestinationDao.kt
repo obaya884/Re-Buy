@@ -1,6 +1,8 @@
 package io.github.obaya884.rebuy.data.destination
 
 import androidx.room.*
+import io.github.obaya884.rebuy.data.SortOrderRow
+import io.github.obaya884.rebuy.data.applySortOrders
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -22,6 +24,10 @@ interface DestinationDao {
     @Delete
     suspend fun delete(destination: Destination)
 
+    /** id で消す（理由は Repository 側）。 */
+    @Query("DELETE FROM destinations WHERE id = :id")
+    suspend fun deleteById(id: Int)
+
     @Query("UPDATE destinations SET name = :newName, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateDestinationName(
         id: Int,
@@ -35,6 +41,20 @@ interface DestinationDao {
         newSortOrder: Int,
         updatedAt: Instant = Clock.System.now()
     )
+
+    /**
+     * 並び替えの保存（画面 09）。中身は `applySortOrders`。
+     *
+     * **`FakeDatabase` はこの既定実装をそのまま継ぐ**ので、`@Transaction` が効くことは
+     * 本物の DB でしか見られない。
+     */
+    @Transaction
+    suspend fun updateSortOrders(orderedIds: List<Int>) =
+        applySortOrders(orderedIds, currentSortOrders(), ::updateDestinationSortOrder)
+
+    /** いまの並び順。**書かなくてよい行を見分ける**ために読む。 */
+    @Query("SELECT id, sortOrder FROM destinations")
+    suspend fun currentSortOrders(): List<SortOrderRow>
 
     /** 末尾に足すための現在の最大値。1 件も無ければ 0。 */
     @Query("SELECT COALESCE(MAX(sortOrder), 0) FROM destinations")

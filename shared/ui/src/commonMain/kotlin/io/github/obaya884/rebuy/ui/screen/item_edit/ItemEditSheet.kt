@@ -25,7 +25,7 @@ import io.github.obaya884.rebuy.ui.screen.ChipRow
 import io.github.obaya884.rebuy.ui.screen.NameTextField
 import io.github.obaya884.rebuy.ui.screen.NewNameDialog
 import io.github.obaya884.rebuy.ui.screen.NoneChip
-import io.github.obaya884.rebuy.ui.screen.NewNameTarget
+import io.github.obaya884.rebuy.ui.screen.NameTarget
 import io.github.obaya884.rebuy.ui.screen.ReBuyBottomSheet
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import org.jetbrains.compose.resources.stringResource
@@ -73,7 +73,7 @@ fun ItemEditSheet(item: Item, onDismiss: () -> Unit) {
             selectedId = editing.categoryId,
             newLabel = stringResource(Res.string.item_form_new_category),
             onSelect = viewModel::selectCategory,
-            onCreate = { viewModel.showNewNameDialog(NewNameTarget.CATEGORY) },
+            onCreate = { viewModel.showNewNameDialog(NameTarget.CATEGORY) },
             newChipTag = TestTags.ITEM_FORM_NEW_CATEGORY_CHIP,
             chipTag = TestTags::itemFormCategoryChip,
             noneChip = NoneChip(
@@ -88,7 +88,7 @@ fun ItemEditSheet(item: Item, onDismiss: () -> Unit) {
             selectedId = editing.destinationId,
             newLabel = stringResource(Res.string.item_form_new_destination),
             onSelect = viewModel::selectDestination,
-            onCreate = { viewModel.showNewNameDialog(NewNameTarget.DESTINATION) },
+            onCreate = { viewModel.showNewNameDialog(NameTarget.DESTINATION) },
             newChipTag = TestTags.ITEM_FORM_NEW_DESTINATION_CHIP,
             chipTag = TestTags::itemFormDestinationChip,
             noneChip = NoneChip(

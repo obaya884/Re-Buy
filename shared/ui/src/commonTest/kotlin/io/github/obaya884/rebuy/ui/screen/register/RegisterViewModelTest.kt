@@ -10,7 +10,7 @@ import io.github.obaya884.rebuy.ui.ViewModelTestBase
 import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.destination
 import io.github.obaya884.rebuy.ui.item
-import io.github.obaya884.rebuy.ui.screen.NewNameTarget
+import io.github.obaya884.rebuy.ui.screen.NameTarget
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -195,7 +195,7 @@ class RegisterViewModelTest : ViewModelTestBase() {
         viewModel.selectDestination(1)
         viewModel.register()
         advanceUntilIdle()
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         advanceUntilIdle()
 
         viewModel.reset()
@@ -232,7 +232,7 @@ class RegisterViewModelTest : ViewModelTestBase() {
     @Test
     fun 作ったカテゴリが選択済みになる() = runTest {
         val viewModel = viewModel()
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         viewModel.changeNewName("カテゴリA")
 
         viewModel.createNewName()
@@ -248,7 +248,7 @@ class RegisterViewModelTest : ViewModelTestBase() {
     @Test
     fun 作った行き先が選択済みになる() = runTest {
         val viewModel = viewModel()
-        viewModel.showNewNameDialog(NewNameTarget.DESTINATION)
+        viewModel.showNewNameDialog(NameTarget.DESTINATION)
         viewModel.changeNewName("行き先A")
 
         viewModel.createNewName()
@@ -264,7 +264,7 @@ class RegisterViewModelTest : ViewModelTestBase() {
         db.seed(categories = listOf(category(1, sortOrder = 5)))
         val viewModel = viewModel()
         advanceUntilIdle()
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         viewModel.changeNewName("カテゴリA")
 
         viewModel.createNewName()
@@ -282,7 +282,7 @@ class RegisterViewModelTest : ViewModelTestBase() {
         db.seed(destinations = listOf(destination(1, sortOrder = 5)))
         val viewModel = viewModel()
         advanceUntilIdle()
-        viewModel.showNewNameDialog(NewNameTarget.DESTINATION)
+        viewModel.showNewNameDialog(NameTarget.DESTINATION)
         viewModel.changeNewName("行き先A")
 
         viewModel.createNewName()
@@ -299,7 +299,7 @@ class RegisterViewModelTest : ViewModelTestBase() {
         db.seed(categories = listOf(category(1, name = "カテゴリA")))
         val viewModel = viewModel()
         advanceUntilIdle()
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         viewModel.changeNewName("カテゴリA")
 
         viewModel.createNewName()
@@ -314,14 +314,14 @@ class RegisterViewModelTest : ViewModelTestBase() {
     @Test
     fun ダイアログを閉じると入力は捨てられる() = runTest {
         val viewModel = viewModel()
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         viewModel.changeNewName("カテゴリA")
 
         viewModel.dismissNewNameDialog()
         advanceUntilIdle()
         assertNull(viewModel.uiState.value.newNameDialog)
 
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         advanceUntilIdle()
 
         assertEquals("", assertNotNull(viewModel.uiState.value.newNameDialog).name)

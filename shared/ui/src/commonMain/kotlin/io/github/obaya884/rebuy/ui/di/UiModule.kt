@@ -1,13 +1,13 @@
 package io.github.obaya884.rebuy.ui.di
 
 import io.github.obaya884.rebuy.domain.di.domainModule
-import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditViewModel
 import io.github.obaya884.rebuy.ui.screen.pool.PoolViewModel
 import io.github.obaya884.rebuy.ui.screen.register.RegisterViewModel
 import io.github.obaya884.rebuy.ui.screen.shopping_start.ShoppingStartViewModel
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditViewModel
 import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.screen.add_noticed.AddNoticedViewModel
+import io.github.obaya884.rebuy.ui.screen.manage.ManageViewModel
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingViewModel
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
 import org.koin.core.context.startKoin
@@ -30,6 +30,14 @@ val uiModule = module {
     viewModelOf(::RegisterViewModel)
     viewModelOf(::ShoppingStartViewModel)
     // 買い物中の 2 つは、行き先をルートのキーごと受け取る（`ShoppingScreen` の KDoc）
+    viewModel { (route: Screen.Manage) ->
+        ManageViewModel(
+            categoryRepository = get(),
+            destinationRepository = get(),
+            itemRepository = get(),
+            target = route.target
+        )
+    }
     viewModel { (route: Screen.Shopping) ->
         AddNoticedViewModel(
             itemRepository = get(),
@@ -44,7 +52,6 @@ val uiModule = module {
             destinationId = route.destinationId
         )
     }
-    viewModelOf(::CategoryEditViewModel)
     viewModelOf(::ItemEditViewModel)
     viewModelOf(::ThemeViewModel)
 }

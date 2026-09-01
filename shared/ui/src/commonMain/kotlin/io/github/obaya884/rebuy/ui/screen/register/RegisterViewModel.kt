@@ -13,7 +13,7 @@ import io.github.obaya884.rebuy.ui.applySaveResult
 import io.github.obaya884.rebuy.ui.screen.ChipItem
 import io.github.obaya884.rebuy.ui.screen.NewNameDialogState
 import io.github.obaya884.rebuy.ui.screen.NewNameEditor
-import io.github.obaya884.rebuy.ui.screen.NewNameTarget
+import io.github.obaya884.rebuy.ui.screen.NameTarget
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -117,7 +117,7 @@ class RegisterViewModel(
 
     // ---- 02b 新しいカテゴリ／行き先ダイアログ ----
 
-    fun showNewNameDialog(target: NewNameTarget) = newNameEditor.show(target)
+    fun showNewNameDialog(target: NameTarget) = newNameEditor.show(target)
 
     fun changeNewName(newName: String) = newNameEditor.changeName(newName)
 
@@ -128,8 +128,8 @@ class RegisterViewModel(
         viewModelScope.launch {
             newNameEditor.create { target, id ->
                 input.value = when (target) {
-                    NewNameTarget.CATEGORY -> input.value.copy(categoryId = id)
-                    NewNameTarget.DESTINATION -> input.value.copy(destinationId = id)
+                    NameTarget.CATEGORY -> input.value.copy(categoryId = id)
+                    NameTarget.DESTINATION -> input.value.copy(destinationId = id)
                 }
             }
         }

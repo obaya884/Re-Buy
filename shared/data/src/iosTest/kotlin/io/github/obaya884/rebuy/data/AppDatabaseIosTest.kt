@@ -16,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
@@ -220,6 +221,30 @@ class AppDatabaseIosTest {
      * 効くこと。`onConflict` は生成される DAO のコードにしか出ず、**スキーマ JSON にも
      * `RoomMigrationTest` にも現れない**ので、3 テーブルとも実物で見る。
      */
+    /**
+     * 並び替えの保存（画面 09）。**振り直しと no-op を本物の SQL で見る。**
+     *
+     * `updateSortOrders` の既定実装は `FakeDatabase` がそのまま継ぐので、あちらで
+     * 通っても本物の `UPDATE` が正しいとは限らない。**`@Transaction` が 1 回の変更に
+     * まとめていること自体はここでも見ていない**（テスト戦略定義書 §6）。
+     */
+    @Test
+    fun 並び替えは渡した順に振り直し動かない行は書かない() = runBlocking {
+        val dao = database.destinationDao()
+        val first = dao.insert(destination(name = "行き先1", sortOrder = 1)).toInt()
+        val second = dao.insert(destination(name = "行き先2", sortOrder = 2)).toInt()
+        val third = dao.insert(destination(name = "行き先3", sortOrder = 3)).toInt()
+
+        // 2 と 3 を入れ替える。1 は動かない
+        dao.updateSortOrders(listOf(first, third, second))
+
+        val stored = dao.getAllDestinations().first()
+        assertEquals(listOf(first, third, second), stored.map { it.id })
+        assertEquals(listOf(1, 2, 3), stored.map { it.sortOrder })
+        assertEquals(createdAt, stored.single { it.id == first }.updatedAt)
+        assertNotEquals(createdAt, stored.single { it.id == third }.updatedAt)
+    }
+
     @Test
     fun 同じ名前の行き先は入らない() = runBlocking {
         val dao = database.destinationDao()
@@ -350,6 +375,8 @@ class AppDatabaseIosTest {
      *
      * **native の driver で外部キー制約が効いているかを見る唯一のテスト**でもある（T-49）。
      * 効いていなければ消えた行き先の id が品目に残り、どの買い物モードにも出てこなくなる。
+     *
+     * **消すのは id 版**——09b の削除が通るのはこちらで、実体版はもう本番から呼ばれない。
      */
     @Test
     fun 行き先を消しても品目は残る() = runBlocking {
@@ -358,10 +385,25 @@ class AppDatabaseIosTest {
         val destinationId = destinationDao.insert(destination(name = "行き先1")).toInt()
         itemDao.insertItem(item(name = "アイテム1", destinationId = destinationId))
 
-        destinationDao.delete(destinationDao.getAllDestinations().first().single())
+        destinationDao.deleteById(destinationId)
 
         val stored = itemDao.getAllItems().first().single()
         assertEquals("アイテム1", stored.name)
         assertNull(stored.destinationId)
+    }
+
+    /** カテゴリ側も同じ（消えた行を指したままにならない）。09b の削除が通る経路。 */
+    @Test
+    fun カテゴリをidで消しても品目は残りカテゴリなしになる() = runBlocking {
+        val categoryDao = database.categoryDao()
+        val itemDao = database.itemDao()
+        val categoryId = categoryDao.insert(category(name = "カテゴリー1")).toInt()
+        itemDao.insertItem(item(name = "アイテム1", categoryId = categoryId))
+
+        categoryDao.deleteById(categoryId)
+
+        val stored = itemDao.getAllItems().first().single()
+        assertEquals("アイテム1", stored.name)
+        assertNull(stored.categoryId)
     }
 }

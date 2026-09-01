@@ -13,7 +13,8 @@ import io.github.obaya884.rebuy.domain.ThemeRepository
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.navigation.rememberNavigationState
 import io.github.obaya884.rebuy.ui.navigation.toEntries
-import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditScreen
+import io.github.obaya884.rebuy.ui.screen.NameTarget
+import io.github.obaya884.rebuy.ui.screen.manage.ManageScreen
 import io.github.obaya884.rebuy.ui.screen.pool.PoolScreen
 import io.github.obaya884.rebuy.ui.screen.license.LicenseScreen
 import io.github.obaya884.rebuy.ui.screen.setting.SettingScreen
@@ -44,7 +45,7 @@ fun ReBuyApp() {
             entry<Screen.Pool> { PoolScreen(navigator, snackbarHostState) }
             entry<Screen.Shopping> { route -> ShoppingScreen(route, navigator, snackbarHostState) }
             entry<Screen.Setting> { SettingScreen(navigator, snackbarHostState) }
-            entry<Screen.CategoryEdit> { CategoryEditScreen(navigator, snackbarHostState) }
+            entry<Screen.Manage> { route -> ManageScreen(route, navigator, snackbarHostState) }
             entry<Screen.License> { LicenseScreen(navigator, snackbarHostState) }
             entry<Screen.Theme> { ThemeScreen(navigator, snackbarHostState) }
         }
@@ -76,7 +77,8 @@ sealed interface Screen : NavKey {
     /** @param destinationId 買い物の行き先。null は全件モード（画面 04） */
     @Serializable data class Shopping(val destinationId: Int?) : Screen
     @Serializable data object Setting : Screen
-    @Serializable data object CategoryEdit : Screen
+    /** @param target カテゴリの管理か行き先の管理か（画面 09 は同型の 2 画面） */
+    @Serializable data class Manage(val target: NameTarget) : Screen
     @Serializable data object License : Screen
     @Serializable data object Theme : Screen
 }
@@ -94,7 +96,7 @@ internal val screenSavedStateConfiguration = SavedStateConfiguration {
             subclass(Screen.Pool::class)
             subclass(Screen.Shopping::class)
             subclass(Screen.Setting::class)
-            subclass(Screen.CategoryEdit::class)
+            subclass(Screen.Manage::class)
             subclass(Screen.License::class)
             subclass(Screen.Theme::class)
         }

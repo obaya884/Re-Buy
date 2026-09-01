@@ -9,7 +9,7 @@ import io.github.obaya884.rebuy.ui.ViewModelTestBase
 import io.github.obaya884.rebuy.ui.category
 import io.github.obaya884.rebuy.ui.destination
 import io.github.obaya884.rebuy.ui.item
-import io.github.obaya884.rebuy.ui.screen.NewNameTarget
+import io.github.obaya884.rebuy.ui.screen.NameTarget
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -75,7 +75,7 @@ class ItemEditViewModelTest : ViewModelTestBase() {
         viewModel.changeName("アイテムB")
         viewModel.save()
         advanceUntilIdle()
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         advanceUntilIdle()
 
         viewModel.start(db.storedItem(2))
@@ -273,7 +273,7 @@ class ItemEditViewModelTest : ViewModelTestBase() {
         val viewModel = viewModel()
         advanceUntilIdle()
         viewModel.start(db.storedItem(1))
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         viewModel.changeNewName("カテゴリA")
 
         viewModel.createNewName()
@@ -294,7 +294,7 @@ class ItemEditViewModelTest : ViewModelTestBase() {
         viewModel.changeName("アイテム2")
         viewModel.save()
         advanceUntilIdle()
-        viewModel.showNewNameDialog(NewNameTarget.CATEGORY)
+        viewModel.showNewNameDialog(NameTarget.CATEGORY)
         advanceUntilIdle()
 
         viewModel.reset()

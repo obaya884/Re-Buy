@@ -19,8 +19,11 @@ import org.junit.Test
  * ただしそのぶん、値が壊れたときに画面とテストが同じ壊れた値を見るので退行が捕まらない。
  * **ここだけはリテラルで持つ**——リソースから引いた瞬間に自己参照に戻り、網でなくなる。
  *
- * 49 件すべては固定しない。素通しの 43 件は AAPT でも CMP でも読み方が 1 通りしかなく、
+ * すべては固定しない。引数を持たない文言は AAPT でも CMP でも読み方が 1 通りしかなく、
  * 文言を変えるたびにこのテストを直す負債が残るだけ。
+ *
+ * **`\n` を見る網は無い。** F-012 で唯一 `\n` を持っていた文言（旧カテゴリー画面の削除確認）が
+ * 消え、いまはどの文言も改行を含まない（テスト戦略定義書 §6）。
  */
 class StringResourceFormatTest {
 
@@ -28,14 +31,6 @@ class StringResourceFormatTest {
 
     private fun string(resource: StringResource, arg: String): String =
         runBlocking { getString(resource, arg) }
-
-    @Test
-    fun 改行のエスケープが実際の改行になる() {
-        assertEquals(
-            "カテゴリAを削除しますか？\nこのカテゴリに設定されたアイテムのカテゴリは未設定になります。",
-            string(Res.string.category_edit_delete_dialog_message, "カテゴリA")
-        )
-    }
 
     @Test
     fun 位置指定の引数が差し込まれる() {

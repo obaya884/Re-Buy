@@ -11,7 +11,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.resources.Res
-import io.github.obaya884.rebuy.ui.resources.category_edit_title
+import io.github.obaya884.rebuy.ui.resources.manage_category_title
 import io.github.obaya884.rebuy.ui.resources.setting_row_category_edit
 import io.github.obaya884.rebuy.ui.resources.setting_row_license
 import io.github.obaya884.rebuy.ui.resources.setting_title
@@ -46,7 +46,7 @@ class NavigationIosTest {
     private val poolTitle = string(Res.string.pool_title)
     private val shoppingTitle = string(Res.string.shopping_title_all)
     private val settingTitle = string(Res.string.setting_title)
-    private val categoryEditTitle = string(Res.string.category_edit_title)
+    private val categoryManageTitle = string(Res.string.manage_category_title)
     private val emptyTitle = string(Res.string.pool_empty_title)
     private val emptyMessage = string(Res.string.pool_empty_message)
 
@@ -135,10 +135,10 @@ class NavigationIosTest {
     }
 
     @Test
-    fun カテゴリー一覧の戻る矢印で設定に帰る() = app {
+    fun カテゴリの管理の戻る矢印で設定に帰る() = app {
         onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         onNodeWithText(categoryEditLabel).performClick()
-        assertCurrentScreenIs(categoryEditTitle)
+        assertCurrentScreenIs(categoryManageTitle)
 
         tapBackArrow()
         assertCurrentScreenIs(settingTitle)
