@@ -1,6 +1,7 @@
 package io.github.obaya884.rebuy.ui
 
 import androidx.navigation3.runtime.NavKey
+import kotlinx.serialization.descriptors.elementNames
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -39,6 +40,24 @@ class ScreenSerializationTest {
         }
 
         assertEquals(emptyList(), unregistered.map { it::class.simpleName })
+    }
+
+    /**
+     * **引数を持つルートは、引数まで保存の対象に入っていること。**
+     *
+     * 登録の検査は「その型を書けるか」しか見ないので、`destinationId` が
+     * コンストラクタから外れても（`@Transient` が付いても）素通りする。
+     * 復元したら全件モードに化ける、という壊れ方になる。
+     */
+    @Test
+    fun 引数を持つルートは引数も保存される() {
+        val serializer = screenSavedStateConfiguration.serializersModule
+            .getPolymorphic(NavKey::class, Screen.Shopping(destinationId = 1))
+
+        assertEquals(
+            listOf("destinationId"),
+            serializer?.descriptor?.elementNames?.toList()
+        )
     }
 
     @Test

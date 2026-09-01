@@ -64,6 +64,17 @@ class NavigationTest {
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
     }
 
+    /**
+     * 品目を消す。**実機の DB に残すと、次の実行が重複名で弾かれて別の理由で落ち続ける**ので、
+     * 品目を作るテストは finally からここを通す。
+     */
+    private fun deleteItem(name: String) {
+        composeRule.onNodeWithText(name).performTouchInput { longClick() }
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
+        composeRule.waitForIdle()
+    }
+
     /** 設定の下にあるカテゴリーの管理を開く。 */
     private fun openCategoryEdit() {
         composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
@@ -150,13 +161,12 @@ class NavigationTest {
         composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("長押しの確認用").performTouchInput { longClick() }
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertIsDisplayed()
-
-        // 後始末: 実機の DB に残さない
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
-        composeRule.waitForIdle()
+        try {
+            composeRule.onNodeWithText("長押しの確認用").performTouchInput { longClick() }
+            composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertIsDisplayed()
+        } finally {
+            deleteItem("長押しの確認用")
+        }
 
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
         assertCurrentScreenIs(poolTitle)
@@ -176,25 +186,28 @@ class NavigationTest {
         composeRule.waitForIdle()
 
         // 行タップでカゴへ入れてから CTA → 03 の全件モードの行 → 04
-        composeRule.onNodeWithText("離脱確認の確認用").performClick()
-        composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
-        assertCurrentScreenIs(shoppingTitleAll)
+        try {
+            composeRule.onNodeWithText("離脱確認の確認用").performClick()
+            composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
+            composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
+            assertCurrentScreenIs(shoppingTitleAll)
 
-        // 「続ける」なら 04 に留まる
-        pressBack()
-        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CANCEL).performClick()
-        assertCurrentScreenIs(shoppingTitleAll)
+            // ダイアログを開いたままの戻るは、確認なく抜けずダイアログを閉じるだけ（§2）
+            pressBack()
+            pressBack()
+            assertCurrentScreenIs(shoppingTitleAll)
 
-        pressBack()
-        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
-        assertCurrentScreenIs(poolTitle)
+            // 「続ける」なら 04 に留まる
+            pressBack()
+            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CANCEL).performClick()
+            assertCurrentScreenIs(shoppingTitleAll)
 
-        // 後始末: 実機の DB に残さない
-        composeRule.onNodeWithText("離脱確認の確認用").performTouchInput { longClick() }
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
-        composeRule.waitForIdle()
+            pressBack()
+            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
+            assertCurrentScreenIs(poolTitle)
+        } finally {
+            deleteItem("離脱確認の確認用")
+        }
     }
 
     @Test

@@ -124,14 +124,15 @@ class ShoppingViewModelTest : ViewModelTestBase() {
         assertEquals(emptyList(), viewModel.uiState.value.anywhereItems)
     }
 
+    /** **選んだ行き先の名前**であること。先頭を返す実装では 1 件目の名前が出てしまう。 */
     @Test
     fun 行き先名はアプリバーのために引かれる() = runTest {
-        db.seed(destinations = listOf(destination(1, name = "行き先A"), destination(2)))
-        val viewModel = viewModel(destinationId = 1)
+        db.seed(destinations = listOf(destination(1), destination(2, name = "行き先B")))
+        val viewModel = viewModel(destinationId = 2)
 
         advanceUntilIdle()
 
-        assertEquals("行き先A", viewModel.uiState.value.destinationName)
+        assertEquals("行き先B", viewModel.uiState.value.destinationName)
     }
 
     @Test
@@ -164,6 +165,26 @@ class ShoppingViewModelTest : ViewModelTestBase() {
         assertEquals(3, viewModel.uiState.value.totalCount)
     }
 
+    /**
+     * 一覧は**買い物中も DB に追随する**。05（F-010）で品目を足すとここに現れる。
+     * 最初の 1 回だけ読む実装だと、足したものが出ないまま買い物が終わる。
+     */
+    @Test
+    fun 買い物中に増えた品目も一覧に現れる() = runTest {
+        db.seed(
+            items = listOf(item(1, status = inBasket, destinationId = 1)),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
+        advanceUntilIdle()
+
+        db.add(item(2, status = inBasket, destinationId = 1))
+        advanceUntilIdle()
+
+        assertEquals(listOf(1, 2), viewModel.uiState.value.destinationItems.map { it.id })
+        assertEquals(2, viewModel.uiState.value.totalCount)
+    }
+
     // ---- チェックの付け外し ----
 
     @Test
@@ -176,6 +197,8 @@ class ShoppingViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         assertEquals(checked, db.storedItem(1).status)
+        // 進捗も追随する
+        assertEquals(1, viewModel.uiState.value.checkedCount)
     }
 
     @Test
@@ -279,6 +302,7 @@ class ShoppingViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         assertEquals(emptyList<Item>(), db.storedItems.filter { it.status != ItemStatus.NO_DEAL })
+        assertEquals(emptyList<Item>(), db.storedItems.filter { it.lastBoughtAt == null })
     }
 
     /** 画面を離れる前に書き終えていること。**先に離れると viewModelScope ごと畳まれる**。 */

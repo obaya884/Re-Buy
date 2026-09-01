@@ -127,6 +127,30 @@ class AppDatabaseIosTest {
     }
 
     /**
+     * 買い物の終了で走る 1 本（画面 04）。**`lastBoughtAt` と `updatedAt` に同じ値を書く**
+     * SQL がここにしか無いので、`FakeDatabase` の手写しではなく本物で見る。
+     */
+    @Test
+    fun 買い物の終了で最終購入日が更新日時と同じ値で入る() = runBlocking {
+        val dao = database.itemDao()
+        val rowId = dao.insertItem(
+            item(name = "アイテム3", status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
+        ).toInt()
+        val boughtAt = Instant.parse("2026-02-03T04:05:06Z")
+
+        dao.updateItemStatusWithLastBoughtAt(
+            itemId = rowId,
+            newStatus = ItemStatus.NO_DEAL,
+            updatedAt = boughtAt
+        )
+
+        val stored = dao.getAllItems().first().single()
+        assertEquals(ItemStatus.NO_DEAL, stored.status)
+        assertEquals(boughtAt, stored.lastBoughtAt)
+        assertEquals(boughtAt, stored.updatedAt)
+    }
+
+    /**
      * **アプリが実際に読むのはこちら。** 3 つの ViewModel はどれも
      * `getAllItemsWithCategory()` を通り、`getAllItems()` を呼ぶ経路はどこからも使われていない。
      *

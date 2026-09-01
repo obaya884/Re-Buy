@@ -5,11 +5,15 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import kotlin.test.Test
+import kotlin.test.assertTrue
 
 /**
  * 買い物モード（画面 04）の**画面段**。
@@ -41,6 +45,10 @@ class ShoppingIosTest {
         block()
     }
 
+    /** 画面上の縦位置。並びの assert に使う。 */
+    private fun ComposeUiTest.topOf(tag: String): Float =
+        onNodeWithTag(tag).fetchSemanticsNode().positionInRoot.y
+
     /** 行き先 1 に 2 件、どこでも買えるものが 1 件。 */
     private val withAnywhere: FakeDatabase.() -> Unit = {
         seed(
@@ -60,10 +68,64 @@ class ShoppingIosTest {
         onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("0 / 3")
     }
 
+    /**
+     * 並びは「行き先の品目 → 区切り → どこでも買えるもの」（データモデル定義書 §4）。
+     * **存在だけ見ると 2 群を入れ替えても緑になる**ので、画面上の y で見る。
+     */
     @Test
     fun どこでも買えるものは区切りの下に並ぶ() = shopping(withAnywhere) {
-        onNodeWithTag(TestTags.SHOPPING_ANYWHERE_SECTION).assertExists()
-        onNodeWithTag(TestTags.shoppingRow(itemId = 3)).assertExists()
+        val ofDestination = topOf(TestTags.shoppingRow(itemId = 2))
+        val section = topOf(TestTags.SHOPPING_ANYWHERE_SECTION)
+        val anywhere = topOf(TestTags.shoppingRow(itemId = 3))
+
+        assertTrue(ofDestination < section, "行き先の品目は区切りより上")
+        assertTrue(section < anywhere, "区切りはどこでも買えるものより上")
+    }
+
+    /** 行き先モードでも、どこでも買えるものが無ければ区切りは出ない。 */
+    @Test
+    fun どこでも買えるものが無ければ区切りも出ない() = shopping({
+        seed(
+            items = listOf(item(1, status = inBasket, destinationId = 1)),
+            destinations = listOf(destination(1))
+        )
+    }) {
+        onNodeWithTag(TestTags.SHOPPING_ANYWHERE_SECTION).assertDoesNotExist()
+    }
+
+    /**
+     * **タップした行き先が 04 へ渡っていること**（03 → `Screen.Shopping(destinationId)` →
+     * Koin → ViewModel）。行き先が 1 件しか無いと、どの行を押しても同じ結果になって
+     * この配線が無防備になる。
+     */
+    @Test
+    fun 選んだ行き先の一覧が出る() = shopping(
+        prepare = {
+            seed(
+                items = listOf(
+                    item(1, status = inBasket, destinationId = 1),
+                    item(2, status = inBasket, destinationId = 2),
+                    item(3, status = inBasket, name = "どこでも品")
+                ),
+                destinations = listOf(destination(1), destination(2))
+            )
+        },
+        destinationId = 2
+    ) {
+        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先2で買い物中")
+        onNodeWithTag(TestTags.shoppingRow(itemId = 2)).assertExists()
+        onNodeWithTag(TestTags.shoppingRow(itemId = 1)).assertDoesNotExist()
+        // 行き先 2 の 1 件 ＋ どこでも 1 件
+        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("0 / 2")
+    }
+
+    /** 行の長押しは無効（画面 04）。01 と違って編集シートは開かない。 */
+    @Test
+    fun 行の長押しでは何も開かない() = shopping(withAnywhere) {
+        onNodeWithTag(TestTags.shoppingRow(itemId = 1)).performTouchInput { longClick() }
+
+        onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
+        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先1で買い物中")
     }
 
     /** 全件モードには「どこでも買えるもの」の区切りが無い（群が 1 つしかない）。 */
@@ -103,6 +165,18 @@ class ShoppingIosTest {
         onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("Re-Buy")
         // 未チェックの 1 件がカゴに残るので、CTA のバッジは 1
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertTextContains("1")
+    }
+
+    /** チェックが 1 件も無くても終了できる（画面 04。何も買わずに帰る道）。 */
+    @Test
+    fun チェックが無くても終了できる() = shopping(withAnywhere) {
+        onNodeWithTag(TestTags.SHOPPING_FINISH_BUTTON).assertIsEnabled()
+
+        onNodeWithTag(TestTags.SHOPPING_FINISH_BUTTON).performClick()
+
+        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("Re-Buy")
+        // 何も戻していないので、カゴの 3 件はそのまま
+        onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertTextContains("3")
     }
 
     /** ← の離脱確認で「続ける」を選ぶと 04 に留まる（画面 04）。 */

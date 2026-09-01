@@ -79,14 +79,15 @@ class NavigationStateRestorationTest {
     }
 
     /**
-     * **引数を持つルートは引数まで復元されること**（`Screen.Shopping(destinationId)`）。
+     * **`data object` ではないルートも保存・復元できること**（`Screen.Shopping(destinationId)`）。
      *
-     * 上の 3 件はすべて `data object` のルートしか踏まないので、**引数が落ちても全件緑**になる。
-     * 全件モード（null）で入って「買い物中」のままかを見る——`destinationId` が消えても
-     * 全件モードのままなので、ここは**行き先付きで入れない代わりにルート型の往復**を押さえる。
+     * 上の 3 件はすべて `data object` のルートしか踏まないので、引数付きのルートで
+     * 保存が落ちても全件緑になる。**引数の値まで見ているのは
+     * `ScreenSerializationTest`（androidHostTest）**——行き先を作るには F-013 が要るので、
+     * ここで行き先付きの 04 へは入れない。
      */
     @Test
-    fun 引数を持つルートも復元される() {
+    fun 引数を持つルートも保存復元できる() {
         restorationTester.setContent { ReBuyApp() }
 
         composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
@@ -97,19 +98,21 @@ class NavigationStateRestorationTest {
         composeRule.onNodeWithText("復元の確認用").performClick()
         composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
         composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
-        assertCurrentScreenIs(shoppingTitleAll)
+        try {
+            assertCurrentScreenIs(shoppingTitleAll)
 
-        restorationTester.emulateSavedInstanceStateRestore()
+            restorationTester.emulateSavedInstanceStateRestore()
 
-        assertCurrentScreenIs(shoppingTitleAll)
-
-        // 後始末: 実機の DB に残さない
-        composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
-        composeRule.onNodeWithText("復元の確認用").performTouchInput { longClick() }
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
-        composeRule.waitForIdle()
+            assertCurrentScreenIs(shoppingTitleAll)
+        } finally {
+            // 実機の DB に残すと、次の実行が重複名で弾かれて別の理由で落ち続ける
+            composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
+            composeRule.onNodeWithText("復元の確認用").performTouchInput { longClick() }
+            composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
+            composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
+            composeRule.waitForIdle()
+        }
     }
 
     @Test
