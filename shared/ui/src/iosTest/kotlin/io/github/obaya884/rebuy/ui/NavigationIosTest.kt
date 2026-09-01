@@ -17,9 +17,9 @@ import io.github.obaya884.rebuy.ui.resources.setting_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_message
 import io.github.obaya884.rebuy.ui.resources.pool_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_title
-import io.github.obaya884.rebuy.ui.resources.shopping_title
+import io.github.obaya884.rebuy.ui.resources.shopping_leave_dialog_confirm
+import io.github.obaya884.rebuy.ui.resources.shopping_title_all
 import io.github.obaya884.rebuy.ui.resources.theme_title
-import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -44,7 +44,7 @@ class NavigationIosTest {
     private fun string(resource: StringResource): String = runBlocking { getString(resource) }
 
     private val poolTitle = string(Res.string.pool_title)
-    private val shoppingTitle = string(Res.string.shopping_title)
+    private val shoppingTitle = string(Res.string.shopping_title_all)
     private val settingTitle = string(Res.string.setting_title)
     private val categoryEditTitle = string(Res.string.category_edit_title)
     private val emptyTitle = string(Res.string.pool_empty_title)
@@ -54,6 +54,7 @@ class NavigationIosTest {
     private val licenseLabel = "ライセンス"
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val themeLabel = string(Res.string.theme_title)
+    private val leaveLabel = string(Res.string.shopping_leave_dialog_confirm)
 
     /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
     private fun oneItem(status: ItemStatus): FakeDatabase.() -> Unit =
@@ -81,10 +82,6 @@ class NavigationIosTest {
 
     private fun ComposeUiTest.tapBackArrow() {
         onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-    }
-
-    private fun ComposeUiTest.tapTab(item: BottomNavigationItem) {
-        onNodeWithTag(TestTags.bottomNavItem(item)).performClick()
     }
 
     @Test
@@ -148,19 +145,20 @@ class NavigationIosTest {
     }
 
     /**
-     * プールの CTA から開始シート（03）を経て買い物へ入り、ボトムナビでプールへ戻る。
+     * プールの CTA から開始シート（03）を経て買い物へ入り、← の離脱確認でプールへ戻る。
      *
      * **CTA はカゴが空だと押せない**ので、カゴに 1 件置いてから踏む（画面 01）。
-     * 買い物側のボトムナビは F-009 で 03 経由に組み替えるまでの暫定。
      */
     @Test
-    fun CTAから買い物へ入りボトムナビでプールに帰る() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
+    fun CTAから買い物へ入り離脱確認でプールに帰る() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
         // 行き先付きが無いので全件モードの 1 行
         onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
         assertCurrentScreenIs(shoppingTitle)
 
-        tapTab(BottomNavigationItem.Pool)
+        tapBackArrow()
+        onNodeWithText(leaveLabel).performClick()
+
         assertCurrentScreenIs(poolTitle)
     }
 

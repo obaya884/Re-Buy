@@ -6,9 +6,11 @@ import io.github.obaya884.rebuy.ui.screen.pool.PoolViewModel
 import io.github.obaya884.rebuy.ui.screen.register.RegisterViewModel
 import io.github.obaya884.rebuy.ui.screen.shopping_start.ShoppingStartViewModel
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditViewModel
+import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingViewModel
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
 import org.koin.core.context.startKoin
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.KoinAppDeclaration
 import org.koin.dsl.module
@@ -26,7 +28,8 @@ val uiModule = module {
     viewModelOf(::PoolViewModel)
     viewModelOf(::RegisterViewModel)
     viewModelOf(::ShoppingStartViewModel)
-    viewModelOf(::ShoppingViewModel)
+    // 行き先はルートが持つ。渡ってくるのはキーそのもの（`ShoppingScreen` の KDoc）
+    viewModel { (route: Screen.Shopping) -> ShoppingViewModel(get(), get(), route.destinationId) }
     viewModelOf(::CategoryEditViewModel)
     viewModelOf(::ItemEditViewModel)
     viewModelOf(::ThemeViewModel)

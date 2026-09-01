@@ -5,7 +5,10 @@ import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
 import io.github.obaya884.rebuy.ui.ReBuyApp
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
@@ -41,6 +44,8 @@ class NavigationStateRestorationTest {
 
     /** ライセンス画面のタイトルは実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
+    private val shoppingTitleAll = string(Res.string.shopping_title_all)
+    private val leaveConfirmLabel = string(Res.string.shopping_leave_dialog_confirm)
 
     private fun assertCurrentScreenIs(title: String) {
         composeRule.onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals(title)
@@ -60,10 +65,7 @@ class NavigationStateRestorationTest {
     }
 
     /**
-     * 開いていた画面が復元されること。
-     *
-     * **プールにボトムナビは無い**ので、タブの往復ではなく設定を開いた状態で見る。
-     * 買い物モードを 03 経由に組み替える F-009 で、この経路を見直す。
+     * 開いていた画面が復元されること。**プールにタブは無い**ので、設定を開いた状態で見る。
      */
     @Test
     fun 復元後も開いていた画面にいる() {
@@ -75,6 +77,40 @@ class NavigationStateRestorationTest {
         restorationTester.emulateSavedInstanceStateRestore()
 
         assertCurrentScreenIs(settingTitle)
+    }
+
+    /**
+     * **引数を持つルートは引数まで復元されること**（`Screen.Shopping(destinationId)`）。
+     *
+     * 上の 3 件はすべて `data object` のルートしか踏まないので、**引数が落ちても全件緑**になる。
+     * 全件モード（null）で入って「買い物中」のままかを見る——`destinationId` が消えても
+     * 全件モードのままなので、ここは**行き先付きで入れない代わりにルート型の往復**を押さえる。
+     */
+    @Test
+    fun 引数を持つルートも復元される() {
+        restorationTester.setContent { ReBuyApp() }
+
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("復元の確認用")
+        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithText("復元の確認用").performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
+        assertCurrentScreenIs(shoppingTitleAll)
+
+        restorationTester.emulateSavedInstanceStateRestore()
+
+        assertCurrentScreenIs(shoppingTitleAll)
+
+        // 後始末: 実機の DB に残さない
+        composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+        composeRule.onNodeWithText(leaveConfirmLabel).performClick()
+        composeRule.onNodeWithText("復元の確認用").performTouchInput { longClick() }
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
+        composeRule.waitForIdle()
     }
 
     @Test

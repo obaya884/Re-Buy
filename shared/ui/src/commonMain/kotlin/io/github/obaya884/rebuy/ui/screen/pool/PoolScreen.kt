@@ -64,7 +64,6 @@ import org.koin.compose.viewmodel.koinViewModel
  * 押した場所がそのまま結果になるほうが、連続して触るときに迷わないため。
  *
  * 行の長押しで編集シート（06）を、「買い物を始める」で開始シート（03）を開く。
- * 04 買い物モードは F-009 なので、そこだけ旧画面へ暫定で繋いである（`// 暫定:` で grep）。
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -157,10 +156,9 @@ fun PoolScreen(
     }
     if (isShoppingStartSheetOpen) {
         ShoppingStartSheet(
-            // 暫定: 04 買い物モードは F-009。いまは行き先を持たない旧画面へ入る
-            onEnterShopping = {
+            onEnterShopping = { destinationId ->
                 isShoppingStartSheetOpen = false
-                navigator.navigate(Screen.Shopping)
+                navigator.navigate(Screen.Shopping(destinationId))
             },
             onDismiss = { isShoppingStartSheetOpen = false }
         )

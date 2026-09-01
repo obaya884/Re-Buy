@@ -3,96 +3,58 @@ package io.github.obaya884.rebuy.ui.screen.shopping
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.obaya884.rebuy.data.item.Item
-import io.github.obaya884.rebuy.data.item.ItemWithCategory
+import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.domain.DestinationRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+/**
+ * 買い物モード（画面 04）。店内でチェックを付け、終わりにチェック済みをプールへ戻す。
+ *
+ * **行き先は入場時に決まって以後変わらない**ので、状態ではなくコンストラクタで受ける
+ * （03 の行タップごとに別の入場になる）。null は全件モード。
+ */
 class ShoppingViewModel(
-    private val itemRepository: ItemRepository
+    private val itemRepository: ItemRepository,
+    destinationRepository: DestinationRepository,
+    private val destinationId: Int?
 ) : ViewModel() {
-    private val _items = MutableStateFlow<List<ItemWithCategory>>(listOf())
-    private val _isLoading = MutableStateFlow(false)
-    private val _isShowFinishShoppingAlertDialog = MutableStateFlow(false)
 
-    val uiState: StateFlow<ShoppingScreenUiState> =
-        combine(
-            _isLoading,
-            _items,
-            _isShowFinishShoppingAlertDialog
-        ) { isLoading, items, isShowFinishShoppingAlertDialog ->
-            ShoppingScreenUiState(
-                items = items,
-                isLoading = isLoading,
-                isShowFinishShoppingAlertDialog = isShowFinishShoppingAlertDialog
-            )
-        }.stateIn(
-            viewModelScope,
-            SharingStarted.Eagerly,
-            ShoppingScreenUiState(
-                items = listOf(),
-                isLoading = false,
-                isShowFinishShoppingAlertDialog = false
-            )
-        )
+    val uiState: StateFlow<ShoppingScreenUiState> = combine(
+        itemRepository.getAll(),
+        destinationRepository.getAll()
+    ) { items, destinations ->
+        ShoppingScreenUiState(destinationId, items, destinations)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, ShoppingScreenUiState(destinationId))
 
-    init {
+    /** 行タップ＝チェックの付け外し（状態 1 ↔ 2）。**行の位置は動かさない**ので並べ替えはしない。 */
+    fun toggleCheck(item: Item) {
         viewModelScope.launch {
-            itemRepository.getAllWithCategory()
-                .collect { items ->
-                    _items.update { items }
-                }
-        }
-    }
-
-    fun markScheduledBought(item: Item) {
-        viewModelScope.launch {
-            itemRepository.updateStatusAsCheckedInBasket(item)
-        }
-    }
-
-    fun unMarkScheduledBought(item: Item) {
-        viewModelScope.launch {
-            itemRepository.updateStatusAsInBasket(item)
-        }
-    }
-
-    fun changeBoughtConfirm(onFinished: () -> Unit) {
-        viewModelScope.launch {
-            _isLoading.emit(true)
-            val jobs = uiState.value.checkedInShoppingListItems.map { item ->
-                launch {
-                    itemRepository.updateStatusAsBought(item.id)
-                }
+            if (item.status == ItemStatus.CHECKED_IN_SHOPPING_LIST) {
+                itemRepository.updateStatusAsInBasket(item)
+            } else {
+                itemRepository.updateStatusAsCheckedInBasket(item)
             }
-            delay(FINISH_SHOPPING_DELAY_MS)
-            jobs.joinAll()
-            _isLoading.emit(false)
+        }
+    }
+
+    /**
+     * 買い物を終える。**一覧のチェック済みだけ**をプールへ戻し、最終購入日を記録する
+     * （データモデル定義書 §3）。未チェックはカゴに残る。
+     *
+     * 書き終えてから [onFinished] を呼ぶ。**先に画面を離れると ViewModel ごと
+     * viewModelScope が畳まれ、書き込みが落ちる。**
+     */
+    fun finishShopping(onFinished: () -> Unit) {
+        viewModelScope.launch {
+            uiState.value.visibleItems
+                .filter { it.status == ItemStatus.CHECKED_IN_SHOPPING_LIST }
+                .forEach { itemRepository.updateStatusAsBought(it.id) }
             onFinished()
-        }
-    }
-
-    companion object {
-        /**
-         * 買い物を終えるときの待ち時間。
-         *
-         * 更新が速すぎるとスピナーが一瞬だけ光って消える。**本来は UI 層の関心**で、
-         * ここに置いているのは暫定（技術改善バックログ T-27）。
-         */
-        internal const val FINISH_SHOPPING_DELAY_MS = 500L
-    }
-
-    fun showFinishShoppingAlertDialog() {
-        viewModelScope.launch {
-            _isShowFinishShoppingAlertDialog.emit(true)
-        }
-    }
-
-    fun hideFinishShoppingAlertDialog() {
-        viewModelScope.launch {
-            _isShowFinishShoppingAlertDialog.emit(false)
         }
     }
 }

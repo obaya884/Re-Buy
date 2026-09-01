@@ -2,10 +2,10 @@
     "libraries": [
         {
             "uniqueId": "androidx.activity:activity",
-            "artifactVersion": "1.12.0",
+            "artifactVersion": "1.13.0",
             "name": "Activity",
             "description": "Provides the base Activity subclass and the relevant hooks to build a composable structure on top.",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.12.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.13.0",
             "developers": [
                 {
                     "name": "The Android Open Source Project"
@@ -30,10 +30,10 @@
         },
         {
             "uniqueId": "androidx.activity:activity-compose",
-            "artifactVersion": "1.12.0",
+            "artifactVersion": "1.13.0",
             "name": "Activity Compose",
             "description": "Compose integration with Activity",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.12.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.13.0",
             "developers": [
                 {
                     "name": "The Android Open Source Project"
@@ -58,10 +58,10 @@
         },
         {
             "uniqueId": "androidx.activity:activity-ktx",
-            "artifactVersion": "1.12.0",
+            "artifactVersion": "1.13.0",
             "name": "Activity Kotlin Extensions",
             "description": "Kotlin extensions for 'activity' artifact",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.12.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.13.0",
             "developers": [
                 {
                     "name": "The Android Open Source Project"

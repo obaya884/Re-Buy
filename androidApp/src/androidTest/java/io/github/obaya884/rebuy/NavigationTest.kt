@@ -26,7 +26,8 @@ import org.junit.Test
  * 遷移規則そのもの（スタックの積み方・タブごとの履歴保持）は JVM 段の `NavigatorTest` が持つ。
  * ここが見るのは「UI の操作がその規則に正しく結線されているか」。
  *
- * DB の中身に依存する遷移（買い物終了でプールへ戻る）は、データを用意する必要があるため扱わない。
+ * 買い物モード（04）だけは DB に品目が要るが、**端末の戻るを離脱確認で受け止めるのは
+ * Android 固有**（iOS にハードウェアの戻るが無い）なので、登録シートから 1 件用意して踏む。
  *
  * **iOS 側の対は `shared/ui/src/iosTest` の `NavigationIosTest`。** 共通化する手立てが無い
  * （モジュールも source set も別）ので、**遷移を足したら両方に足すこと**。
@@ -44,6 +45,9 @@ class NavigationTest {
     private val settingTitle = string(Res.string.setting_title)
     private val categoryEditTitle = string(Res.string.category_edit_title)
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
+    private val shoppingTitleAll = string(Res.string.shopping_title_all)
+    private val leaveConfirmLabel = string(Res.string.shopping_leave_dialog_confirm)
+    private val leaveCancelLabel = string(Res.string.shopping_leave_dialog_cancel)
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
@@ -158,6 +162,41 @@ class NavigationTest {
 
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
         assertCurrentScreenIs(poolTitle)
+    }
+
+    /**
+     * 買い物モード（04）は端末の戻るを離脱確認で受け止める（画面 04）。
+     *
+     * `ShoppingIosTest` は ← の矢印しか踏めないので、**`BackHandler` が
+     * `NavDisplay` の戻るより先に受けている**ことはここでしか見られない。
+     */
+    @Test
+    fun 買い物モードの端末の戻るは離脱確認を挟む() {
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("離脱確認の確認用")
+        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+        composeRule.waitForIdle()
+
+        // 行タップでカゴへ入れてから CTA → 03 の全件モードの行 → 04
+        composeRule.onNodeWithText("離脱確認の確認用").performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
+        assertCurrentScreenIs(shoppingTitleAll)
+
+        // 「続ける」なら 04 に留まる
+        pressBack()
+        composeRule.onNodeWithText(leaveCancelLabel).performClick()
+        assertCurrentScreenIs(shoppingTitleAll)
+
+        pressBack()
+        composeRule.onNodeWithText(leaveConfirmLabel).performClick()
+        assertCurrentScreenIs(poolTitle)
+
+        // 後始末: 実機の DB に残さない
+        composeRule.onNodeWithText("離脱確認の確認用").performTouchInput { longClick() }
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
+        composeRule.waitForIdle()
     }
 
     @Test

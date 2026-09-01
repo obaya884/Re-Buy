@@ -1,6 +1,5 @@
 package io.github.obaya884.rebuy.ui
 
-import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 
 /**
  * インストルメンテーションテストから画面要素を引くためのタグ。
@@ -52,6 +51,13 @@ object TestTags {
     fun shoppingStartRow(destinationId: Int): String = "shopping_start_row_$destinationId"
     const val SHOPPING_START_ALL_ROW = "shopping_start_row_all"
 
+    /** 買い物モード（画面 04）。 */
+    fun shoppingRow(itemId: Int): String = "shopping_row_$itemId"
+    const val SHOPPING_PROGRESS = "shopping_progress"
+    const val SHOPPING_ANYWHERE_SECTION = "shopping_anywhere_section"
+    const val SHOPPING_FINISH_BUTTON = "shopping_finish_button"
+    const val SHOPPING_LEAVE_CONFIRM = "shopping_leave_confirm"
+
     /** 品目編集シート（画面 06）。 */
     const val ITEM_SHEET_NAME_FIELD = "item_sheet_name_field"
     const val ITEM_SHEET_SAVE = "item_sheet_save"
@@ -59,7 +65,4 @@ object TestTags {
     const val ITEM_SHEET_DELETE_CONFIRM = "item_sheet_delete_confirm"
     const val ITEM_SHEET_CATEGORY_NONE_CHIP = "item_sheet_chip_category_none"
     const val ITEM_SHEET_DESTINATION_NONE_CHIP = "item_sheet_chip_destination_none"
-
-    /** ボトムナビの項目。ラベル文字列は画面タイトルと衝突しうるので、テストからはこちらで掴む。 */
-    fun bottomNavItem(item: BottomNavigationItem): String = "bottom_nav_${item.name}"
 }

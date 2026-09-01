@@ -13,7 +13,6 @@ import io.github.obaya884.rebuy.domain.ThemeRepository
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.navigation.rememberNavigationState
 import io.github.obaya884.rebuy.ui.navigation.toEntries
-import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditScreen
 import io.github.obaya884.rebuy.ui.screen.pool.PoolScreen
 import io.github.obaya884.rebuy.ui.screen.license.LicenseScreen
@@ -36,7 +35,6 @@ fun ReBuyApp() {
 
     val navigationState = rememberNavigationState(
         startRoute = Screen.Pool,
-        topLevelRoutes = BottomNavigationItem.topLevelRoutes,
         configuration = screenSavedStateConfiguration
     )
     val navigator = remember(navigationState) { Navigator(navigationState) }
@@ -44,7 +42,7 @@ fun ReBuyApp() {
     val entryProvider = remember(navigator, snackbarHostState) {
         entryProvider<NavKey> {
             entry<Screen.Pool> { PoolScreen(navigator, snackbarHostState) }
-            entry<Screen.Shopping> { ShoppingScreen(navigator, snackbarHostState) }
+            entry<Screen.Shopping> { route -> ShoppingScreen(route, navigator, snackbarHostState) }
             entry<Screen.Setting> { SettingScreen(navigator, snackbarHostState) }
             entry<Screen.CategoryEdit> { CategoryEditScreen(navigator, snackbarHostState) }
             entry<Screen.License> { LicenseScreen(navigator, snackbarHostState) }
@@ -63,7 +61,7 @@ fun ReBuyApp() {
 /**
  * 画面のルート。宣言順は [entryProvider] の登録順（トップレベルが先）に揃える。
  *
- * **画面を足すときは 3 か所そろえる**——ここの `data object`、[entryProvider] の `entry<...>`、
+ * **画面を足すときは 3 か所そろえる**——ここの宣言、[entryProvider] の `entry<...>`、
  * そして [screenSavedStateConfiguration] の `subclass(...)`。
  *
  * 3 つ目を忘れると、**その画面にいる状態でプロセス保存が走った瞬間に `SerializationException`**
@@ -75,7 +73,8 @@ fun ReBuyApp() {
 @Serializable
 sealed interface Screen : NavKey {
     @Serializable data object Pool : Screen
-    @Serializable data object Shopping : Screen
+    /** @param destinationId 買い物の行き先。null は全件モード（画面 04） */
+    @Serializable data class Shopping(val destinationId: Int?) : Screen
     @Serializable data object Setting : Screen
     @Serializable data object CategoryEdit : Screen
     @Serializable data object License : Screen

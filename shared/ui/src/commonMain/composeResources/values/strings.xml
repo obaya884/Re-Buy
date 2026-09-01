@@ -48,19 +48,16 @@
     <string name="item_sheet_delete_dialog_confirm">削除する</string>
     <string name="item_sheet_delete_dialog_cancel">キャンセル</string>
 
-    <!-- 暫定: 買い物画面のボトムナビに出すラベル。タブは F-009 で無くなる -->
-    <string name="pool_nav_label">一覧</string>
-
-    <string name="shopping_title">買い物</string>
-    <string name="shopping_bottom_button">買い物を終わる</string>
-    <string name="shopping_navigate_back_alert_dialog_title">買い物を中断しますか？</string>
-    <string name="shopping_navigate_back_alert_dialog_message">アイテムの状態が更新されません</string>
-    <string name="shopping_navigate_back_alert_dialog_positive_button">買い物を続ける</string>
-    <string name="shopping_navigate_back_alert_dialog_negative_button">ホームに戻る</string>
-    <string name="shopping_finish_alert_dialog_title">買い物を終了しますか？</string>
-    <string name="shopping_finish_alert_dialog_message">チェック済みのアイテムは買い物リストから除かれます</string>
-    <string name="shopping_finish_alert_dialog_positive_button">買い物を終わる</string>
-    <string name="shopping_finish_alert_dialog_negative_button">戻る</string>
+    <!-- 04 買い物モード（画面定義書 画面 04） -->
+    <string name="shopping_title">%1$sで買い物中</string>
+    <string name="shopping_title_all">買い物中</string>
+    <string name="shopping_progress">%1$s / %2$s</string>
+    <string name="shopping_anywhere_section">どこでも買えるもの</string>
+    <string name="shopping_finish">買い物を終了する</string>
+    <string name="shopping_leave_dialog_title">買い物を途中でやめますか？</string>
+    <string name="shopping_leave_dialog_message">チェックした内容は残ります。あとから再開できます。</string>
+    <string name="shopping_leave_dialog_confirm">やめる</string>
+    <string name="shopping_leave_dialog_cancel">続ける</string>
 
     <string name="category_edit_title">カテゴリー</string>
     <string name="category_edit_add_dialog_title">カテゴリー追加</string>
