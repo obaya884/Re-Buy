@@ -43,7 +43,7 @@ fun <T1, T2, T3, T4, T5, T6, R> combine(
  */
 fun MutableStateFlow<NameError?>.applySaveResult(result: SaveResult, onSaved: () -> Unit) {
     when (result) {
-        SaveResult.Saved -> {
+        is SaveResult.Saved -> {
             value = null
             onSaved()
         }

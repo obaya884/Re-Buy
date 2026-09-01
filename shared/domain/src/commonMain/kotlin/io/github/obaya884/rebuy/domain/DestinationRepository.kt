@@ -15,12 +15,13 @@ class DestinationRepository(private val destinationDao: DestinationDao) {
         saveWithValidatedName(name, exceptId = NEW_RECORD_ID, destinationDao::existsName) { normalized ->
             destinationDao.insert(
                 Destination(name = normalized, sortOrder = destinationDao.maxSortOrder() + 1)
-            )
+            ).toInt()
         }
 
     suspend fun updateName(id: Int, newName: String): SaveResult =
         saveWithValidatedName(newName, exceptId = id, destinationDao::existsName) { normalized ->
             destinationDao.updateDestinationName(id, normalized)
+            id
         }
 
     suspend fun updateSortOrder(id: Int, newSortOrder: Int) {

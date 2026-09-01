@@ -34,6 +34,19 @@ object TestTags {
     fun poolCategoryChip(categoryId: Int): String = "pool_chip_category_$categoryId"
     fun poolDestinationChip(destinationId: Int): String = "pool_chip_destination_$destinationId"
 
+    /** 登録シート（画面 02）と新規作成ダイアログ（02b）。 */
+    const val REGISTER_NAME_FIELD = "register_name_field"
+    const val REGISTER_SUBMIT = "register_submit"
+    const val REGISTER_SUBMIT_AND_CONTINUE = "register_submit_and_continue"
+    const val REGISTER_NEW_CATEGORY_CHIP = "register_new_category_chip"
+    const val REGISTER_NEW_DESTINATION_CHIP = "register_new_destination_chip"
+    const val REGISTER_DIALOG_NAME_FIELD = "register_dialog_name_field"
+    const val REGISTER_DIALOG_CREATE = "register_dialog_create"
+
+    /** シートのチップ。名前は行にも出るので、文言では掴めない（プールと同じ理由）。 */
+    fun registerCategoryChip(categoryId: Int): String = "register_chip_category_$categoryId"
+    fun registerDestinationChip(destinationId: Int): String = "register_chip_destination_$destinationId"
+
     /** ボトムナビの項目。ラベル文字列は画面タイトルと衝突しうるので、テストからはこちらで掴む。 */
     fun bottomNavItem(item: BottomNavigationItem): String = "bottom_nav_${item.name}"
 }

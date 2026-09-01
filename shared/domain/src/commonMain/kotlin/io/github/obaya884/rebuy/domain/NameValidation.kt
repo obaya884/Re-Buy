@@ -57,7 +57,11 @@ enum class NameError {
  * 名前を伴う保存はすべてこの型を返し、UI は [Rejected] を入力欄の下に出す。
  */
 sealed interface SaveResult {
-    data object Saved : SaveResult
+    /**
+     * 保存できた。[id] は書いた行の id で、**作ったものをその場で選ぶ**ときに使う
+     * （02b で作ったカテゴリが呼び出し元のチップ列に選択済みで現れる）。更新なら対象の id。
+     */
+    data class Saved(val id: Int) : SaveResult
     data class Rejected(val error: NameError) : SaveResult
 }
 
@@ -69,16 +73,16 @@ internal const val NEW_RECORD_ID = 0
  * ここ 1 か所だけに置く（トリム → 空・上限 → 同種内の重複 → 書き込み）。
  *
  * @param exceptId 更新では自分自身を重複から除く。新規は [NEW_RECORD_ID]
+ * @param write 書き込んで、その行の id を返す
  */
 internal suspend fun saveWithValidatedName(
     rawName: String,
     exceptId: Int,
     existsName: suspend (name: String, exceptId: Int) -> Boolean,
-    write: suspend (normalizedName: String) -> Unit
+    write: suspend (normalizedName: String) -> Int
 ): SaveResult {
     val normalized = NameRule.normalize(rawName)
     NameRule.validate(normalized)?.let { return SaveResult.Rejected(it) }
     if (existsName(normalized, exceptId)) return SaveResult.Rejected(NameError.DUPLICATE)
-    write(normalized)
-    return SaveResult.Saved
+    return SaveResult.Saved(write(normalized))
 }

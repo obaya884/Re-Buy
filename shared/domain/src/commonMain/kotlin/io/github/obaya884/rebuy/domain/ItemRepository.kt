@@ -17,7 +17,7 @@ class ItemRepository(private val itemDao: ItemDao) {
      */
     suspend fun insert(item: Item): SaveResult =
         saveWithValidatedName(item.name, exceptId = NEW_RECORD_ID, itemDao::existsName) { normalized ->
-            itemDao.insertItem(item.copy(name = normalized))
+            itemDao.insertItem(item.copy(name = normalized)).toInt()
         }
 
     suspend fun delete(item: Item) {
@@ -27,6 +27,7 @@ class ItemRepository(private val itemDao: ItemDao) {
     suspend fun updateName(id: Int, newName: String): SaveResult =
         saveWithValidatedName(newName, exceptId = id, itemDao::existsName) { normalized ->
             itemDao.updateItemName(itemId = id, newName = normalized)
+            id
         }
 
     suspend fun updateCategory(id: Int, newCategoryId: Int?) {
