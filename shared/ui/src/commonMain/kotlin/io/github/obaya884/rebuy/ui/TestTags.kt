@@ -25,6 +25,15 @@ object TestTags {
     /** プールの行。**タップでカゴを出し入れする**ので、行ごとに掴めるようにする。 */
     fun poolRow(itemId: Int): String = "pool_row_$itemId"
 
+    /**
+     * 絞り込みチップ。**カテゴリー名や行き先名は行にも出る**ので、文言で掴むと
+     * チップと行のどちらを指すか決まらない。
+     */
+    const val POOL_CHIP_ALL = "pool_chip_all"
+    const val POOL_CHIP_ANYWHERE = "pool_chip_anywhere"
+    fun poolCategoryChip(categoryId: Int): String = "pool_chip_category_$categoryId"
+    fun poolDestinationChip(destinationId: Int): String = "pool_chip_destination_$destinationId"
+
     /** ボトムナビの項目。ラベル文字列は画面タイトルと衝突しうるので、テストからはこちらで掴む。 */
     fun bottomNavItem(item: BottomNavigationItem): String = "bottom_nav_${item.name}"
 }

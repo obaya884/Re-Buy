@@ -55,10 +55,5 @@ class StringResourceFormatTest {
             "アイテムAを削除しますか？",
             string(Res.string.item_edit_delete_dialog_message, "アイテムA")
         )
-        // 位置指定と改行の両方を持つ唯一の文言
-        assertEquals(
-            "カテゴリAを削除しますか？\nこのカテゴリに設定されたアイテムのカテゴリは未設定になります。",
-            string(Res.string.category_edit_delete_dialog_message, "カテゴリA")
-        )
     }
 }

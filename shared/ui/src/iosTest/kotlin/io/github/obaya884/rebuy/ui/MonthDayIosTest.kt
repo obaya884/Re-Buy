@@ -40,9 +40,17 @@ class MonthDayIosTest {
         assertEquals("12/31", formatMonthDay(Instant.parse("2026-12-31T00:00:00Z")))
     }
 
+    /**
+     * **タイムゾーンを差し替えて 2 通り見る。** 1 通りだけだと固定タイムゾーンの
+     * 決め打ちでも通ってしまう。
+     */
     @Test
     fun 端末のタイムゾーンで日付を決める() {
-        // UTC では 1/1 だが、日本では 1/2
-        assertEquals("1/2", formatMonthDay(Instant.parse("2026-01-01T16:00:00Z")))
+        val instant = Instant.parse("2026-01-01T16:00:00Z")
+
+        assertEquals("1/2", formatMonthDay(instant))
+
+        NSTimeZone.setDefaultTimeZone(NSTimeZone.timeZoneWithName("America/Los_Angeles")!!)
+        assertEquals("1/1", formatMonthDay(instant))
     }
 }

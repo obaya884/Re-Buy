@@ -153,13 +153,15 @@ private fun FilterChips(
         FilterChip(
             selected = isNoFilter,
             onClick = onSelectAll,
-            label = { Text(stringResource(Res.string.pool_filter_all)) }
+            label = { Text(stringResource(Res.string.pool_filter_all)) },
+            modifier = Modifier.testTag(TestTags.POOL_CHIP_ALL)
         )
         categories.forEach { category ->
             FilterChip(
                 selected = selectedCategoryId == category.id,
                 onClick = { onSelectCategory(category.id) },
-                label = { Text(category.name) }
+                label = { Text(category.name) },
+                modifier = Modifier.testTag(TestTags.poolCategoryChip(category.id))
             )
         }
         destinations.forEach { destination ->
@@ -167,13 +169,15 @@ private fun FilterChips(
                 selected = destinationFilter == DestinationFilter.Only(destination.id),
                 onClick = { onSelectDestination(DestinationFilter.Only(destination.id)) },
                 // 🏬 は表示のときに前置する。名前の一部ではない（画面 01）
-                label = { Text(stringResource(Res.string.pool_destination_prefix, destination.name)) }
+                label = { Text(stringResource(Res.string.pool_destination_prefix, destination.name)) },
+                modifier = Modifier.testTag(TestTags.poolDestinationChip(destination.id))
             )
         }
         FilterChip(
             selected = destinationFilter == DestinationFilter.Anywhere,
             onClick = { onSelectDestination(DestinationFilter.Anywhere) },
-            label = { Text(stringResource(Res.string.pool_filter_anywhere)) }
+            label = { Text(stringResource(Res.string.pool_filter_anywhere)) },
+            modifier = Modifier.testTag(TestTags.POOL_CHIP_ANYWHERE)
         )
     }
 }
