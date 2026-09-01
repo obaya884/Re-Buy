@@ -4,6 +4,7 @@ import io.github.obaya884.rebuy.domain.di.domainModule
 import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditViewModel
 import io.github.obaya884.rebuy.ui.screen.pool.PoolViewModel
 import io.github.obaya884.rebuy.ui.screen.register.RegisterViewModel
+import io.github.obaya884.rebuy.ui.screen.shopping_start.ShoppingStartViewModel
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditViewModel
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingViewModel
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
@@ -24,6 +25,7 @@ val uiModule = module {
 
     viewModelOf(::PoolViewModel)
     viewModelOf(::RegisterViewModel)
+    viewModelOf(::ShoppingStartViewModel)
     viewModelOf(::ShoppingViewModel)
     viewModelOf(::CategoryEditViewModel)
     viewModelOf(::ItemEditViewModel)

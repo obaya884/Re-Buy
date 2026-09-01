@@ -148,7 +148,7 @@ class NavigationIosTest {
     }
 
     /**
-     * プールの CTA から買い物へ入り、ボトムナビでプールへ戻る。
+     * プールの CTA から開始シート（03）を経て買い物へ入り、ボトムナビでプールへ戻る。
      *
      * **CTA はカゴが空だと押せない**ので、カゴに 1 件置いてから踏む（画面 01）。
      * 買い物側のボトムナビは F-009 で 03 経由に組み替えるまでの暫定。
@@ -156,6 +156,8 @@ class NavigationIosTest {
     @Test
     fun CTAから買い物へ入りボトムナビでプールに帰る() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
+        // 行き先付きが無いので全件モードの 1 行
+        onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
         assertCurrentScreenIs(shoppingTitle)
 
         tapTab(BottomNavigationItem.Pool)

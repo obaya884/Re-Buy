@@ -30,6 +30,13 @@
     <string name="item_form_dialog_create">作成</string>
     <string name="item_form_dialog_cancel">キャンセル</string>
 
+    <!-- 03 買い物開始シート（画面定義書 画面 03） -->
+    <string name="shopping_start_title">今日はどこへ？</string>
+    <string name="shopping_start_message">行き先を選ぶと、買い物が始まります</string>
+    <string name="shopping_start_count">%1$s 件</string>
+    <string name="shopping_start_count_with_anywhere">%1$s＋%2$s 件</string>
+    <string name="shopping_start_all">%1$s 件で開始</string>
+
     <!-- 06 品目編集シート（画面定義書 画面 06） -->
     <string name="item_sheet_none">なし</string>
     <string name="item_sheet_last_bought_at">最終購入日: %1$s</string>
