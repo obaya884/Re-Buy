@@ -11,10 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.ui.TestTags
@@ -42,7 +39,6 @@ fun RegisterSheet(onDismiss: () -> Unit) {
     val viewModel = koinViewModel<RegisterViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val closeRequests by viewModel.closeRequests.collectAsState()
-    val focusRequester = remember { FocusRequester() }
 
     /**
      * **閉じる道はすべてここを通す。** ViewModel はシートより長生きするので、
@@ -57,10 +53,6 @@ fun RegisterSheet(onDismiss: () -> Unit) {
     LaunchedEffect(closeRequests) {
         if (closeRequests > 0) dismiss()
     }
-    // 開いたら打ち始められる（画面 02 の「自動フォーカス」）
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
 
     ReBuyBottomSheet(title = stringResource(Res.string.register_title), onDismiss = dismiss) {
         NameTextField(
@@ -68,7 +60,7 @@ fun RegisterSheet(onDismiss: () -> Unit) {
             onValueChange = viewModel::changeName,
             error = uiState.nameError,
             placeholder = stringResource(Res.string.item_form_name_placeholder),
-            modifier = Modifier.focusRequester(focusRequester).testTag(TestTags.REGISTER_NAME_FIELD)
+            modifier = Modifier.testTag(TestTags.REGISTER_NAME_FIELD)
         )
 
         ChipRow(

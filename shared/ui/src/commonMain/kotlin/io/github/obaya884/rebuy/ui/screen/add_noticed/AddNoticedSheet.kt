@@ -10,10 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -49,7 +46,6 @@ fun AddNoticedSheet(
     val viewModel = koinViewModel<AddNoticedViewModel> { parametersOf(route) }
     val uiState by viewModel.uiState.collectAsState()
     val closeRequest by viewModel.closeRequest.collectAsState()
-    val focusRequester = remember { FocusRequester() }
 
     /** 閉じる道はすべてここを通す（`AddNoticedViewModel` の KDoc）。 */
     val dismiss = {
@@ -63,8 +59,6 @@ fun AddNoticedSheet(
             dismiss()
         }
     }
-    // 開いたら打ち始められる（画面 05 の「自動フォーカス」）
-    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 
     ReBuyBottomSheet(
         title = stringResource(Res.string.add_noticed_title),
@@ -76,9 +70,7 @@ fun AddNoticedSheet(
             onValueChange = viewModel::changeQuery,
             error = uiState.nameError,
             placeholder = stringResource(Res.string.add_noticed_search_placeholder),
-            modifier = Modifier
-                .focusRequester(focusRequester)
-                .testTag(TestTags.ADD_NOTICED_SEARCH_FIELD)
+            modifier = Modifier.testTag(TestTags.ADD_NOTICED_SEARCH_FIELD)
         )
 
         if (uiState.isUnaddedSectionVisible) {
