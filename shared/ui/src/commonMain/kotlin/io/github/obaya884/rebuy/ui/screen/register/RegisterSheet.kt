@@ -13,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -27,7 +28,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
+import io.github.obaya884.rebuy.ui.screen.ChipRow
 import io.github.obaya884.rebuy.ui.screen.NameTextField
+import io.github.obaya884.rebuy.ui.screen.NewNameDialog
+import io.github.obaya884.rebuy.ui.screen.NewNameTarget
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -70,7 +74,11 @@ fun RegisterSheet(onDismiss: () -> Unit) {
     }
 
 
-    ModalBottomSheet(onDismissRequest = dismiss) {
+    // 半開きにしない（品目編集シートと同じ理由。下のボタンが画面の外に出る）
+    ModalBottomSheet(
+        onDismissRequest = dismiss,
+        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 32.dp)
@@ -140,94 +148,3 @@ fun RegisterSheet(onDismiss: () -> Unit) {
     }
 }
 
-/** ラベル＋チップ列。末尾は必ず「＋ 新しい…」で、そこから 02b を開く。 */
-@Composable
-private fun ChipRow(
-    label: String,
-    chips: List<ChipItem>,
-    selectedId: Int?,
-    newLabel: String,
-    onSelect: (Int) -> Unit,
-    onCreate: () -> Unit,
-    newChipTag: String,
-    chipTag: (Int) -> String
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = ReBuyTheme.colors.muted
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            modifier = Modifier.horizontalScroll(rememberScrollState())
-        ) {
-            chips.forEach { chip ->
-                FilterChip(
-                    selected = chip.id == selectedId,
-                    onClick = { onSelect(chip.id) },
-                    label = { Text(chip.label) },
-                    modifier = Modifier.testTag(chipTag(chip.id))
-                )
-            }
-            FilterChip(
-                selected = false,
-                onClick = onCreate,
-                label = { Text(newLabel) },
-                modifier = Modifier.testTag(newChipTag)
-            )
-        }
-    }
-}
-
-/**
- * 新しいカテゴリ／行き先（画面 02b）。名前入力欄だけの小さなダイアログ。
- *
- * **システムバックはダイアログだけを閉じる**（画面定義書 §2）——`Dialog` の既定の挙動。
- *
- * 旧 `TextFieldAddDialog` と形は似ているが寄せていない。あちらは入力を自分で持つ作りで、
- * ここは**入力も検証の結果も ViewModel が持つ**（弾かれたら開いたまま理由を出す）。
- * あちらは F-012 で 09b に置き換わって消えるので、そこまでの相乗りを避けた。
- */
-@Composable
-private fun NewNameDialog(
-    state: NewNameDialogState,
-    onNameChange: (String) -> Unit,
-    onCreate: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                when (state.target) {
-                    NewNameTarget.CATEGORY -> stringResource(Res.string.register_dialog_category_title)
-                    NewNameTarget.DESTINATION ->
-                        stringResource(Res.string.register_dialog_destination_title)
-                }
-            )
-        },
-        text = {
-            NameTextField(
-                value = state.name,
-                onValueChange = onNameChange,
-                error = state.error,
-                placeholder = stringResource(Res.string.register_name_placeholder),
-                modifier = Modifier.testTag(TestTags.REGISTER_DIALOG_NAME_FIELD)
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onCreate,
-                modifier = Modifier.testTag(TestTags.REGISTER_DIALOG_CREATE)
-            ) {
-                Text(stringResource(Res.string.register_dialog_create))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(Res.string.register_dialog_cancel))
-            }
-        }
-    )
-}

@@ -40,8 +40,14 @@ fun <T1, T2, T3, T4, T5, T6, R> combine(
  * 保存できたらエラーを消して [onSaved]（ふつうはシートやダイアログを閉じる）、
  * 弾かれたら開いたまま理由を出す（画面定義書 §2）。**この分岐を画面ごとに書き写さない**
  * ために置いている。
+ *
+ * [onSaved] が `suspend` なのは、**保存できた後に続けて書く**場面があるため
+ * （品目編集シートは名前を保存してからカテゴリと行き先を反映する）。
  */
-fun MutableStateFlow<NameError?>.applySaveResult(result: SaveResult, onSaved: () -> Unit) {
+suspend fun MutableStateFlow<NameError?>.applySaveResult(
+    result: SaveResult,
+    onSaved: suspend () -> Unit
+) {
     when (result) {
         is SaveResult.Saved -> {
             value = null

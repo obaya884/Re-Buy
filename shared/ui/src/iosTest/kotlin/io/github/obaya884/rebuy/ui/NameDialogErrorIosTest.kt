@@ -7,7 +7,9 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.ui.screen.TextFieldAddDialog
 import io.github.obaya884.rebuy.ui.screen.TextFieldEditDialog
-import io.github.obaya884.rebuy.ui.screen.item_edit.ItemAddDialog
+import io.github.obaya884.rebuy.ui.screen.NewNameDialog
+import io.github.obaya884.rebuy.ui.screen.NewNameDialogState
+import io.github.obaya884.rebuy.ui.screen.NewNameTarget
 import kotlin.test.Test
 
 /**
@@ -53,14 +55,17 @@ class NameDialogErrorIosTest {
         onNodeWithText("名前を入力してください").assertIsDisplayed()
     }
 
+    /** 02b の新規作成ダイアログ。登録シートと品目編集シートが同じものを内包する。 */
     @Test
-    fun 品目の追加ダイアログが理由を出す() = runComposeUiTest {
+    fun 新規作成ダイアログが理由を出す() = runComposeUiTest {
         setContent {
-            ItemAddDialog(
-                title = "アイテムの追加",
-                categories = listOf(null),
-                error = NameError.TOO_LONG,
-                onConfirm = { _, _ -> },
+            NewNameDialog(
+                state = NewNameDialogState(
+                    target = NewNameTarget.CATEGORY,
+                    error = NameError.TOO_LONG
+                ),
+                onNameChange = {},
+                onCreate = {},
                 onDismiss = {}
             )
         }

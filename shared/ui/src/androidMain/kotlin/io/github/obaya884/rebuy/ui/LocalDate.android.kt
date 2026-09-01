@@ -4,9 +4,9 @@ import java.time.ZoneId
 import kotlin.time.Instant
 import java.time.Instant as JavaInstant
 
-internal actual fun formatMonthDay(instant: Instant): String {
+internal actual fun localDateFields(instant: Instant): LocalDateFields {
     val date = JavaInstant.ofEpochMilli(instant.toEpochMilliseconds())
         .atZone(ZoneId.systemDefault())
         .toLocalDate()
-    return "${date.monthValue}/${date.dayOfMonth}"
+    return LocalDateFields(date.year, date.monthValue, date.dayOfMonth)
 }

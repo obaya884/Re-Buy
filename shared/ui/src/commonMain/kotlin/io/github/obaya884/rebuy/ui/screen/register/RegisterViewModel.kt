@@ -9,8 +9,11 @@ import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.domain.DestinationRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
 import io.github.obaya884.rebuy.domain.NameError
-import io.github.obaya884.rebuy.domain.SaveResult
 import io.github.obaya884.rebuy.ui.applySaveResult
+import io.github.obaya884.rebuy.ui.screen.ChipItem
+import io.github.obaya884.rebuy.ui.screen.NewNameDialogState
+import io.github.obaya884.rebuy.ui.screen.NewNameEditor
+import io.github.obaya884.rebuy.ui.screen.NewNameTarget
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,7 +41,7 @@ class RegisterViewModel(
     /** 入力中のもの。**「続けて登録」で名前だけ消す**のように、まとめて扱う場面が多い。 */
     private val input = MutableStateFlow(RegisterInput())
     private val nameError = MutableStateFlow<NameError?>(null)
-    private val newNameDialog = MutableStateFlow<NewNameDialogState?>(null)
+    private val newNameEditor = NewNameEditor(categoryRepository, destinationRepository)
 
     private val _closeRequests = MutableStateFlow(0)
 
@@ -48,7 +51,7 @@ class RegisterViewModel(
     val uiState: StateFlow<RegisterSheetUiState> = combine(
         input,
         nameError,
-        newNameDialog,
+        newNameEditor.state,
         categoryRepository.getAll(),
         destinationRepository.getAll()
     ) { input, error, dialog, categories, destinations ->
@@ -71,7 +74,7 @@ class RegisterViewModel(
     fun reset() {
         input.value = RegisterInput()
         nameError.value = null
-        newNameDialog.value = null
+        newNameEditor.dismiss()
         _closeRequests.value = 0
     }
 
@@ -114,38 +117,19 @@ class RegisterViewModel(
 
     // ---- 02b 新しいカテゴリ／行き先ダイアログ ----
 
-    fun showNewNameDialog(target: NewNameTarget) {
-        newNameDialog.value = NewNameDialogState(target = target)
-    }
+    fun showNewNameDialog(target: NewNameTarget) = newNameEditor.show(target)
 
-    fun changeNewName(newName: String) {
-        newNameDialog.value = newNameDialog.value?.copy(name = newName)
-    }
+    fun changeNewName(newName: String) = newNameEditor.changeName(newName)
 
-    fun dismissNewNameDialog() {
-        newNameDialog.value = null
-    }
+    fun dismissNewNameDialog() = newNameEditor.dismiss()
 
     /** 「作成」。**作ったものは呼び出し元のチップ列に選択済みで現れる**（画面 02b）。 */
     fun createNewName() {
-        val dialog = newNameDialog.value ?: return
         viewModelScope.launch {
-            val result = when (dialog.target) {
-                NewNameTarget.CATEGORY -> categoryRepository.insert(dialog.name)
-                NewNameTarget.DESTINATION -> destinationRepository.insert(dialog.name)
-            }
-            when (result) {
-                is SaveResult.Saved -> {
-                    input.value = when (dialog.target) {
-                        NewNameTarget.CATEGORY -> input.value.copy(categoryId = result.id)
-                        NewNameTarget.DESTINATION -> input.value.copy(destinationId = result.id)
-                    }
-                    newNameDialog.value = null
-                }
-
-                // 打っている途中の文字を巻き戻さないよう、退避ではなく今の値に付ける
-                is SaveResult.Rejected -> {
-                    newNameDialog.value = newNameDialog.value?.copy(error = result.error)
+            newNameEditor.create { target, id ->
+                input.value = when (target) {
+                    NewNameTarget.CATEGORY -> input.value.copy(categoryId = id)
+                    NewNameTarget.DESTINATION -> input.value.copy(destinationId = id)
                 }
             }
         }
@@ -157,15 +141,6 @@ private data class RegisterInput(
     val name: String = "",
     val categoryId: Int? = null,
     val destinationId: Int? = null
-)
-
-/** 02b が作る対象。カテゴリと行き先で作りが同じなので、違いはこれだけ。 */
-enum class NewNameTarget { CATEGORY, DESTINATION }
-
-data class NewNameDialogState(
-    val target: NewNameTarget,
-    val name: String = "",
-    val error: NameError? = null
 )
 
 data class RegisterSheetUiState(
@@ -181,8 +156,3 @@ data class RegisterSheetUiState(
     val destinationChips: List<ChipItem> = destinations.map { ChipItem(it.id, it.name) }
 }
 
-/**
- * チップ 1 つぶん。カテゴリと行き先は形が同じなので、**チップ列は同じ型で扱う**
- * （どちらを描いているかは呼び出し側が知っている）。
- */
-data class ChipItem(val id: Int, val label: String)

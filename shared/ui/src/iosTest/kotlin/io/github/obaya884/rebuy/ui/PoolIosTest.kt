@@ -9,7 +9,10 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.longClick
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.v2.runComposeUiTest
@@ -210,6 +213,74 @@ class PoolIosTest {
         val row = onNodeWithTag(TestTags.poolRow(itemId = 3))
         row.assertTextContains("カテゴリー1")
         row.assertTextContains("🏬 行き先1")
+    }
+
+    // ---- 品目編集シート（画面 06） ----
+
+    /**
+     * 行の長押しで編集シートが開き、保存すると一覧に反映される（画面 01・06）。
+     *
+     * **長押しは行タップ（カゴの出し入れ）と同じ行に載っている**ので、
+     * 取り違えるとカゴに入るだけでシートが開かない。
+     */
+    @Test
+    fun 行の長押しで編集シートが開いて保存できる() = pool(twoItems()) {
+        onNodeWithTag(TestTags.poolRow(itemId = 2)).performTouchInput { longClick() }
+        onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).performTextClearance()
+        onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).performTextInput("アイテムZ")
+        onNodeWithTag(TestTags.ITEM_SHEET_SAVE).performClick()
+
+        onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
+        onNodeWithTag(TestTags.poolRow(itemId = 2)).assertTextContains("アイテムZ")
+    }
+
+    /** 削除は確認ダイアログを挟む。**確認を押すまで消えない**（画面 06）。 */
+    @Test
+    fun 確認してから削除すると一覧から消える() = pool(twoItems()) {
+        onNodeWithTag(TestTags.poolRow(itemId = 2)).performTouchInput { longClick() }
+        onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
+
+        // 確認を押すまでは消えない
+        onNodeWithText("削除すると元に戻せません。").assertIsDisplayed()
+        onNodeWithTag(TestTags.poolRow(itemId = 2)).assertExists()
+
+        onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
+
+        onNodeWithTag(TestTags.poolRow(itemId = 2)).assertDoesNotExist()
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertIsDisplayed()
+    }
+
+    /** 最終購入日は編集シートでは YYYY-MM-DD（画面定義書 §2）。 */
+    @Test
+    fun 編集シートは最終購入日をYYYYMMDDで出す() = pool(twoItems()) {
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).performTouchInput { longClick() }
+
+        onNodeWithText("最終購入日: 2026-08-29").assertIsDisplayed()
+    }
+
+    @Test
+    fun 未購入の品目は最終購入日をダッシュで出す() = pool(twoItems()) {
+        onNodeWithTag(TestTags.poolRow(itemId = 2)).performTouchInput { longClick() }
+
+        onNodeWithText("最終購入日: —").assertIsDisplayed()
+    }
+
+    /**
+     * 「なし」チップで行き先を外せる（画面 06）。
+     *
+     * **外れたことは「🏬 どこでも」で絞って確かめる**——行き先の名前は絞り込みチップにも
+     * 出るので、画面から消えたかどうかでは見られない。
+     */
+    @Test
+    fun なしチップで行き先を外せる() = pool(twoItems()) {
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).performTouchInput { longClick() }
+        onNodeWithTag(TestTags.ITEM_SHEET_DESTINATION_NONE_CHIP).performClick()
+        onNodeWithTag(TestTags.ITEM_SHEET_SAVE).performClick()
+
+        onNodeWithTag(TestTags.POOL_CHIP_ANYWHERE).performClick()
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertIsDisplayed()
+        // カテゴリは触っていないので残る
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("カテゴリー1")
     }
 
     // ---- 絞り込みチップ（画面 01） ----

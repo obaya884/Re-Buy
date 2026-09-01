@@ -30,6 +30,17 @@
     <string name="register_dialog_create">作成</string>
     <string name="register_dialog_cancel">キャンセル</string>
 
+    <!-- 06 品目編集シート（画面定義書 画面 06） -->
+    <string name="item_sheet_none">なし</string>
+    <string name="item_sheet_last_bought_at">最終購入日: %1$s</string>
+    <string name="item_sheet_last_bought_at_never">最終購入日: —</string>
+    <string name="item_sheet_save">保存</string>
+    <string name="item_sheet_delete">「%1$s」を削除…</string>
+    <string name="item_sheet_delete_dialog_title">「%1$s」を削除しますか？</string>
+    <string name="item_sheet_delete_dialog_message">削除すると元に戻せません。</string>
+    <string name="item_sheet_delete_dialog_confirm">削除する</string>
+    <string name="item_sheet_delete_dialog_cancel">キャンセル</string>
+
     <!-- 暫定: 買い物画面のボトムナビに出すラベル。タブは F-009 で無くなる -->
     <string name="pool_nav_label">一覧</string>
 

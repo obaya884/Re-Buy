@@ -107,7 +107,7 @@ class NavigatorTest {
         val navigator = Navigator(state)
         state.poolStack().add(Screen.Setting)
         state.poolStack().add(Screen.License)
-        state.shoppingStack().add(Screen.ItemEdit)
+        state.shoppingStack().add(Screen.CategoryEdit)
 
         navigator.navigateAsRoot(Screen.Pool)
 

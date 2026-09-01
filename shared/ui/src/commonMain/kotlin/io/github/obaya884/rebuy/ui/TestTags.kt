@@ -47,6 +47,14 @@ object TestTags {
     fun registerCategoryChip(categoryId: Int): String = "register_chip_category_$categoryId"
     fun registerDestinationChip(destinationId: Int): String = "register_chip_destination_$destinationId"
 
+    /** 品目編集シート（画面 06）。 */
+    const val ITEM_SHEET_NAME_FIELD = "item_sheet_name_field"
+    const val ITEM_SHEET_SAVE = "item_sheet_save"
+    const val ITEM_SHEET_DELETE = "item_sheet_delete"
+    const val ITEM_SHEET_DELETE_CONFIRM = "item_sheet_delete_confirm"
+    const val ITEM_SHEET_CATEGORY_NONE_CHIP = "item_sheet_chip_category_none"
+    const val ITEM_SHEET_DESTINATION_NONE_CHIP = "item_sheet_chip_destination_none"
+
     /** ボトムナビの項目。ラベル文字列は画面タイトルと衝突しうるので、テストからはこちらで掴む。 */
     fun bottomNavItem(item: BottomNavigationItem): String = "bottom_nav_${item.name}"
 }
