@@ -10,6 +10,7 @@ import io.github.obaya884.rebuy.domain.DestinationRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
 import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.domain.SaveResult
+import io.github.obaya884.rebuy.ui.applySaveResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,8 +21,13 @@ import kotlinx.coroutines.launch
 /**
  * 登録シート（画面 02）と、その中の新規作成ダイアログ（02b）。
  *
- * **シートを閉じるかどうかは呼び出し側が決める。** ここは「閉じてよい」ことを
- * [closeRequests] で 1 回だけ知らせる——`nameError` と同じく、状態としては持たない。
+ * **この ViewModel はシートより長生きする。** シートはプール（01）の中で条件付きに
+ * 描かれるだけで、それ自体はナビゲーションの entry ではない——`koinViewModel` が引く
+ * store はプールのもので、シートを閉じても破棄されない。
+ *
+ * そのため**閉じるときに [reset] で状態を捨てる**。これをしないと、2 回目に開いた瞬間に
+ * [closeRequests] の残りで閉じてしまい、**二度と開けなくなる**（実測）。
+ * 「保存されていない入力は破棄」（画面定義書 §2）も同じ経路で満たす。
  */
 class RegisterViewModel(
     private val itemRepository: ItemRepository,
@@ -29,9 +35,8 @@ class RegisterViewModel(
     private val destinationRepository: DestinationRepository
 ) : ViewModel() {
 
-    private val name = MutableStateFlow("")
-    private val selectedCategoryId = MutableStateFlow<Int?>(null)
-    private val selectedDestinationId = MutableStateFlow<Int?>(null)
+    /** 入力中のもの。**「続けて登録」で名前だけ消す**のように、まとめて扱う場面が多い。 */
+    private val input = MutableStateFlow(RegisterInput())
     private val nameError = MutableStateFlow<NameError?>(null)
     private val newNameDialog = MutableStateFlow<NewNameDialogState?>(null)
 
@@ -41,36 +46,46 @@ class RegisterViewModel(
     val closeRequests: StateFlow<Int> = _closeRequests
 
     val uiState: StateFlow<RegisterSheetUiState> = combine(
-        combine(name, nameError, newNameDialog) { name, error, dialog -> Triple(name, error, dialog) },
+        input,
+        nameError,
+        newNameDialog,
         categoryRepository.getAll(),
-        destinationRepository.getAll(),
-        selectedCategoryId,
-        selectedDestinationId
-    ) { (name, error, dialog), categories, destinations, categoryId, destinationId ->
+        destinationRepository.getAll()
+    ) { input, error, dialog, categories, destinations ->
         RegisterSheetUiState(
-            name = name,
+            name = input.name,
             nameError = error,
             categories = categories,
             destinations = destinations,
-            selectedCategoryId = categoryId,
-            selectedDestinationId = destinationId,
+            selectedCategoryId = input.categoryId,
+            selectedDestinationId = input.destinationId,
             newNameDialog = dialog
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, RegisterSheetUiState())
 
     fun changeName(newName: String) {
-        name.value = newName
+        input.value = input.value.copy(name = newName)
+    }
+
+    /** シートを閉じるときに呼ぶ。**入力も閉じる合図も捨てる。** */
+    fun reset() {
+        input.value = RegisterInput()
+        nameError.value = null
+        newNameDialog.value = null
+        _closeRequests.value = 0
     }
 
     /** チップは各 0〜1 個。同じものをもう一度押すと外れる（画面 01 と同じ作法）。 */
     fun selectCategory(categoryId: Int) {
-        selectedCategoryId.value =
-            if (categoryId == selectedCategoryId.value) null else categoryId
+        input.value = input.value.copy(
+            categoryId = categoryId.takeIf { it != input.value.categoryId }
+        )
     }
 
     fun selectDestination(destinationId: Int) {
-        selectedDestinationId.value =
-            if (destinationId == selectedDestinationId.value) null else destinationId
+        input.value = input.value.copy(
+            destinationId = destinationId.takeIf { it != input.value.destinationId }
+        )
     }
 
     /** 「登録」。**登録直後の品目はカゴに入れない**（画面 02）。 */
@@ -80,26 +95,20 @@ class RegisterViewModel(
 
     /** 「続けて登録」。**名前だけ消して、チップの選択は残す**（画面 02）。 */
     fun registerAndContinue() {
-        save { name.value = "" }
+        save { input.value = input.value.copy(name = "") }
     }
 
     private fun save(onSaved: () -> Unit) {
         viewModelScope.launch {
+            val current = input.value
             val result = itemRepository.insert(
                 Item(
-                    name = name.value,
-                    categoryId = selectedCategoryId.value,
-                    destinationId = selectedDestinationId.value
+                    name = current.name,
+                    categoryId = current.categoryId,
+                    destinationId = current.destinationId
                 )
             )
-            when (result) {
-                is SaveResult.Saved -> {
-                    nameError.value = null
-                    onSaved()
-                }
-
-                is SaveResult.Rejected -> nameError.value = result.error
-            }
+            nameError.applySaveResult(result, onSaved)
         }
     }
 
@@ -127,20 +136,28 @@ class RegisterViewModel(
             }
             when (result) {
                 is SaveResult.Saved -> {
-                    when (dialog.target) {
-                        NewNameTarget.CATEGORY -> selectedCategoryId.value = result.id
-                        NewNameTarget.DESTINATION -> selectedDestinationId.value = result.id
+                    input.value = when (dialog.target) {
+                        NewNameTarget.CATEGORY -> input.value.copy(categoryId = result.id)
+                        NewNameTarget.DESTINATION -> input.value.copy(destinationId = result.id)
                     }
                     newNameDialog.value = null
                 }
 
+                // 打っている途中の文字を巻き戻さないよう、退避ではなく今の値に付ける
                 is SaveResult.Rejected -> {
-                    newNameDialog.value = dialog.copy(error = result.error)
+                    newNameDialog.value = newNameDialog.value?.copy(error = result.error)
                 }
             }
         }
     }
 }
+
+/** シートの入力。保存する 3 つをまとめて持つ。 */
+private data class RegisterInput(
+    val name: String = "",
+    val categoryId: Int? = null,
+    val destinationId: Int? = null
+)
 
 /** 02b が作る対象。カテゴリと行き先で作りが同じなので、違いはこれだけ。 */
 enum class NewNameTarget { CATEGORY, DESTINATION }
@@ -159,4 +176,13 @@ data class RegisterSheetUiState(
     val selectedCategoryId: Int? = null,
     val selectedDestinationId: Int? = null,
     val newNameDialog: NewNameDialogState? = null
-)
+) {
+    val categoryChips: List<ChipItem> = categories.map { ChipItem(it.id, it.name) }
+    val destinationChips: List<ChipItem> = destinations.map { ChipItem(it.id, it.name) }
+}
+
+/**
+ * チップ 1 つぶん。カテゴリと行き先は形が同じなので、**チップ列は同じ型で扱う**
+ * （どちらを描いているかは呼び出し側が知っている）。
+ */
+data class ChipItem(val id: Int, val label: String)

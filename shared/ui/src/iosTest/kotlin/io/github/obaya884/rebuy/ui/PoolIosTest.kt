@@ -99,6 +99,39 @@ class PoolIosTest {
         onNodeWithTag(TestTags.poolRow(itemId = 3)).assertTextContains("前回 —")
     }
 
+    /**
+     * **登録した後にもう一度開ける。**
+     *
+     * シートの ViewModel はプールの entry に属するので、シートを閉じても破棄されない。
+     * 閉じる合図や入力が残ると、2 回目に開いた瞬間に閉じる／前回の入力が残る。
+     */
+    @Test
+    fun 登録した後にもう一度シートを開ける() = pool {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
+        onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsDisplayed()
+    }
+
+    /** 閉じたら入力は捨てる（画面定義書 §2）。 */
+    @Test
+    fun 閉じると入力は残らない() = pool {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
+        onNodeWithTag(TestTags.REGISTER_SUBMIT_AND_CONTINUE).performClick()
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("書きかけ")
+
+        // スクリムの外をタップする代わりに、シートの閉じる要求を直接踏む経路が無いので
+        // 「続けて登録」で残った入力を、開き直しで確かめる
+        onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertTextContains("名前")
+    }
+
     /** 「続けて登録」はシートを開いたままにする（画面 02）。 */
     @Test
     fun 続けて登録ではシートが開いたまま() = pool {

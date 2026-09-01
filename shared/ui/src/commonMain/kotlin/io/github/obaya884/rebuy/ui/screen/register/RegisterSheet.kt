@@ -15,7 +15,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,7 +40,8 @@ import org.koin.compose.viewmodel.koinViewModel
  * 続けて入れるときに、選び直さなくて済むように。
  *
  * 閉じ方（スクリムタップ・下スワイプ・システムバック）は `ModalBottomSheet` に任せる。
- * **保存していない入力は破棄**（画面定義書 §2）——ViewModel は画面ごとに作り直される。
+ * **保存していない入力は破棄**（画面定義書 §2）——閉じる道をすべて `dismiss` に通し、
+ * そこで ViewModel の状態を捨てる（ViewModel はシートより長生きする。`RegisterViewModel` の KDoc）。
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,18 +49,26 @@ fun RegisterSheet(onDismiss: () -> Unit) {
     val viewModel = koinViewModel<RegisterViewModel>()
     val uiState by viewModel.uiState.collectAsState()
     val closeRequests by viewModel.closeRequests.collectAsState()
-    val sheetState = rememberModalBottomSheetState()
     val focusRequester = remember { FocusRequester() }
+
+    /**
+     * **閉じる道はすべてここを通す。** ViewModel はシートより長生きするので、
+     * 捨てないと次に開いたときに前回の入力と閉じる合図が残る。
+     */
+    val dismiss = {
+        viewModel.reset()
+        onDismiss()
+    }
 
     // 「登録」で保存できたら閉じる。「続けて登録」では増えない
     LaunchedEffect(closeRequests) {
-        if (closeRequests > 0) onDismiss()
+        if (closeRequests > 0) dismiss()
     }
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = sheetState) {
+    ModalBottomSheet(onDismissRequest = dismiss) {
         Column(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 32.dp)
@@ -81,21 +89,23 @@ fun RegisterSheet(onDismiss: () -> Unit) {
 
             ChipRow(
                 label = stringResource(Res.string.register_category_label),
-                names = uiState.categories.map { it.id to it.name },
+                chips = uiState.categoryChips,
                 selectedId = uiState.selectedCategoryId,
                 newLabel = stringResource(Res.string.register_new_category),
                 onSelect = viewModel::selectCategory,
                 onCreate = { viewModel.showNewNameDialog(NewNameTarget.CATEGORY) },
-                testTag = TestTags.REGISTER_NEW_CATEGORY_CHIP
+                newChipTag = TestTags.REGISTER_NEW_CATEGORY_CHIP,
+                chipTag = TestTags::registerCategoryChip
             )
             ChipRow(
                 label = stringResource(Res.string.register_destination_label),
-                names = uiState.destinations.map { it.id to it.name },
+                chips = uiState.destinationChips,
                 selectedId = uiState.selectedDestinationId,
                 newLabel = stringResource(Res.string.register_new_destination),
                 onSelect = viewModel::selectDestination,
                 onCreate = { viewModel.showNewNameDialog(NewNameTarget.DESTINATION) },
-                testTag = TestTags.REGISTER_NEW_DESTINATION_CHIP
+                newChipTag = TestTags.REGISTER_NEW_DESTINATION_CHIP,
+                chipTag = TestTags::registerDestinationChip
             )
 
             Row(
@@ -132,12 +142,13 @@ fun RegisterSheet(onDismiss: () -> Unit) {
 @Composable
 private fun ChipRow(
     label: String,
-    names: List<Pair<Int, String>>,
+    chips: List<ChipItem>,
     selectedId: Int?,
     newLabel: String,
     onSelect: (Int) -> Unit,
     onCreate: () -> Unit,
-    testTag: String
+    newChipTag: String,
+    chipTag: (Int) -> String
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(
@@ -149,19 +160,19 @@ private fun ChipRow(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             modifier = Modifier.horizontalScroll(rememberScrollState())
         ) {
-            names.forEach { (id, name) ->
+            chips.forEach { chip ->
                 FilterChip(
-                    selected = id == selectedId,
-                    onClick = { onSelect(id) },
-                    label = { Text(name) },
-                    modifier = Modifier.testTag(TestTags.registerChip(testTag, id))
+                    selected = chip.id == selectedId,
+                    onClick = { onSelect(chip.id) },
+                    label = { Text(chip.label) },
+                    modifier = Modifier.testTag(chipTag(chip.id))
                 )
             }
             FilterChip(
                 selected = false,
                 onClick = onCreate,
                 label = { Text(newLabel) },
-                modifier = Modifier.testTag(testTag)
+                modifier = Modifier.testTag(newChipTag)
             )
         }
     }
@@ -171,6 +182,10 @@ private fun ChipRow(
  * 新しいカテゴリ／行き先（画面 02b）。名前入力欄だけの小さなダイアログ。
  *
  * **システムバックはダイアログだけを閉じる**（画面定義書 §2）——`Dialog` の既定の挙動。
+ *
+ * 旧 `TextFieldAddDialog` と形は似ているが寄せていない。あちらは入力を自分で持つ作りで、
+ * ここは**入力も検証の結果も ViewModel が持つ**（弾かれたら開いたまま理由を出す）。
+ * あちらは F-012 で 09b に置き換わって消えるので、そこまでの相乗りを避けた。
  */
 @Composable
 private fun NewNameDialog(
