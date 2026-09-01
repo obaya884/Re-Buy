@@ -4,20 +4,20 @@
     <string name="name_error_duplicate">同じ名前がすでにあります</string>
     <string name="name_error_too_long">30 文字以内で入力してください</string>
 
-    <string name="home_title">ホーム</string>
-    <string name="home_bottom_sheet_title">買い物リスト</string>
-    <string name="home_bottom_sheet_empty_message">アイテムを追加してください</string>
-    <string name="home_extend_floating_action_button">買い物に行く</string>
-    <string name="home_need_item_add_snack_bar">買い物リストにアイテムを追加してください</string>
-    <string name="home_add_item_button">リストに追加</string>
-    <string name="home_remove_item_button">追加済み</string>
-    <string name="home_remove_item_button_from_shopping_list">リストから削除</string>
-    <string name="home_no_item_message_category">このカテゴリーにアイテムが登録されていません。\nアイテム一覧からアイテムを登録してください。</string>
-    <string name="home_no_item_message_all">アイテムが登録されていません。\nアイテム一覧からアイテムを登録してください。</string>
-    <string name="home_no_item_message_in_basket">買い物リストにアイテムがありません。\nアイテムを追加してください。</string>
-    <string name="home_no_item_button">アイテム一覧へ</string>
-    <string name="home_no_item_button_shopping_list">アイテムを追加する</string>
-    <string name="home_last_bought_at">最終購入：%1$s</string>
+    <!-- 01 プール（画面定義書 画面 01） -->
+    <string name="pool_title">Re-Buy</string>
+    <string name="pool_total_count">全 %1$s 件</string>
+    <string name="pool_filter_all">すべて</string>
+    <string name="pool_filter_anywhere">🏬 どこでも</string>
+    <string name="pool_destination_prefix">🏬 %1$s</string>
+    <string name="pool_last_bought_at">前回 %1$s</string>
+    <string name="pool_last_bought_at_never">前回 —</string>
+    <string name="pool_start_shopping">買い物を始める</string>
+    <string name="pool_empty_title">まだ何も登録されていません</string>
+    <string name="pool_empty_message">右上の ＋ から登録できます</string>
+    <string name="pool_filtered_empty">この条件のものはありません</string>
+    <!-- 暫定: 買い物画面のボトムナビに出すラベル。タブは F-009 で無くなる -->
+    <string name="pool_nav_label">一覧</string>
 
     <string name="shopping_title">買い物</string>
     <string name="shopping_bottom_button">買い物を終わる</string>
@@ -40,7 +40,6 @@
     <string name="item_edit_empty_message">アイテムがありません</string>
     <string name="item_edit_add_item_suggestion">アイテムを追加しましょう</string>
 
-
     <string name="category_edit_title">カテゴリー</string>
     <string name="category_edit_add_dialog_title">カテゴリー追加</string>
     <string name="category_edit_edit_dialog_title">カテゴリー名変更</string>
@@ -58,7 +57,7 @@
 
     <string name="setting_title">設定</string>
     <string name="setting_row_item_edit">アイテム一覧</string>
-    <string name="setting_row_category_edit">カテゴリ一覧</string>
+    <string name="setting_row_category_edit">カテゴリの管理</string>
 
     <string name="text_field_add_dialog_positive_button">追加</string>
     <string name="text_field_add_dialog_negative_button">キャンセル</string>

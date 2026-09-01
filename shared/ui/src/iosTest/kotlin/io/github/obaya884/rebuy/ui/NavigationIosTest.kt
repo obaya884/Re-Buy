@@ -2,6 +2,8 @@ package io.github.obaya884.rebuy.ui
 
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
+import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -10,17 +12,15 @@ import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.resources.category_edit_title
-import io.github.obaya884.rebuy.ui.resources.home_no_item_button
-import io.github.obaya884.rebuy.ui.resources.home_no_item_message_all
-import io.github.obaya884.rebuy.ui.resources.home_remove_item_button
-import io.github.obaya884.rebuy.ui.resources.home_remove_item_button_from_shopping_list
-import io.github.obaya884.rebuy.ui.resources.home_title
 import io.github.obaya884.rebuy.ui.resources.item_edit_title
+import io.github.obaya884.rebuy.ui.resources.setting_row_category_edit
 import io.github.obaya884.rebuy.ui.resources.setting_title
+import io.github.obaya884.rebuy.ui.resources.pool_empty_message
+import io.github.obaya884.rebuy.ui.resources.pool_title
+import io.github.obaya884.rebuy.ui.resources.pool_empty_title
 import io.github.obaya884.rebuy.ui.resources.shopping_title
 import io.github.obaya884.rebuy.ui.resources.theme_title
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
-import io.github.obaya884.rebuy.ui.screen.home.HomeTab
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -44,18 +44,17 @@ class NavigationIosTest {
     /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
     private fun string(resource: StringResource): String = runBlocking { getString(resource) }
 
-    private val homeTitle = string(Res.string.home_title)
+    private val poolTitle = string(Res.string.pool_title)
     private val shoppingTitle = string(Res.string.shopping_title)
     private val settingTitle = string(Res.string.setting_title)
     private val itemEditTitle = string(Res.string.item_edit_title)
     private val categoryEditTitle = string(Res.string.category_edit_title)
-    private val noItemMessage = string(Res.string.home_no_item_message_all)
-    private val noItemButton = string(Res.string.home_no_item_button)
-    private val removeLabel = string(Res.string.home_remove_item_button)
-    private val removeFromListLabel = string(Res.string.home_remove_item_button_from_shopping_list)
+    private val emptyTitle = string(Res.string.pool_empty_title)
+    private val emptyMessage = string(Res.string.pool_empty_message)
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
+    private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val themeLabel = string(Res.string.theme_title)
 
     /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
@@ -91,52 +90,26 @@ class NavigationIosTest {
     }
 
     @Test
-    fun 起動直後はホームが表示される() = app {
-        assertCurrentScreenIs(homeTitle)
+    fun 起動直後はプールが表示される() = app {
+        assertCurrentScreenIs(poolTitle)
     }
 
-    /**
-     * 品目があるときは空状態ではなく行が出る。
-     *
-     * `IN_SHOPPING_LIST` なのは、`NO_DEAL` だと行のボタンが「リストに追加」側へ分岐して
-     * タブによる出し分けに到達しないため。**その選択を [removeLabel] の assert で固定している。**
-     */
+    /** 品目があるときは空状態ではなく行が出る。 */
     @Test
-    fun 品目があるホームは空状態ではなく行を出す() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
+    fun 品目があるプールは空状態ではなく行を出す() = app(oneItem(ItemStatus.NO_DEAL)) {
         onNodeWithText("アイテム1").assertExists()
-        onNodeWithText(removeLabel).assertExists()
-        onNodeWithText(noItemMessage).assertDoesNotExist()
-        onNodeWithText(noItemButton).assertDoesNotExist()
-    }
-
-    /**
-     * カゴタブでは行のボタンの文言が変わる。
-     *
-     * **`HomeListItemRow` のタブ分岐を通す唯一の経路。** ここを assert しないと、
-     * 分岐が壊れても行そのものは出るので気づけない。
-     */
-    @Test
-    fun カゴタブの行はリストから削除を出す() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
-        onNodeWithText(HomeTab.InBasket.title).performClick()
-        onNodeWithText(removeFromListLabel).assertExists()
-        onNodeWithText(removeLabel).assertDoesNotExist()
+        onNodeWithText(emptyTitle).assertDoesNotExist()
     }
 
     @Test
-    fun 品目が無いホームは空状態の文言とボタンを出す() = app {
-        onNodeWithText(noItemMessage).assertExists()
-        onNodeWithText(noItemButton).assertExists()
-    }
-
-    @Test
-    fun 空状態のボタンからアイテム一覧へ遷移する() = app {
-        onNodeWithText(noItemButton).performClick()
-        assertCurrentScreenIs(itemEditTitle)
+    fun 品目が無いプールは空状態の文言を出す() = app {
+        onNodeWithText(emptyTitle).assertExists()
+        onNodeWithText(emptyMessage).assertExists()
     }
 
     @Test
     fun 設定からテーマへ遷移して戻る矢印で設定に帰る() = app {
-        onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         onNodeWithText(themeLabel).performClick()
         assertCurrentScreenIs(themeLabel)
 
@@ -145,17 +118,17 @@ class NavigationIosTest {
     }
 
     @Test
-    fun ホームから設定へ遷移して戻る矢印でホームに帰る() = app {
-        onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+    fun プールから設定へ遷移して戻る矢印でプールに帰る() = app {
+        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         assertCurrentScreenIs(settingTitle)
 
         tapBackArrow()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
-    fun 設定からライセンスへ遷移して戻る矢印で1段ずつホームまで帰る() = app {
-        onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+    fun 設定からライセンスへ遷移して戻る矢印で1段ずつプールまで帰る() = app {
+        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         onNodeWithText(licenseLabel).performClick()
         assertCurrentScreenIs(licenseLabel)
 
@@ -163,33 +136,74 @@ class NavigationIosTest {
         assertCurrentScreenIs(settingTitle)
 
         tapBackArrow()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
-    fun アイテム一覧の戻る矢印でホームに帰る() = app {
-        onNodeWithTag(TestTags.HOME_ITEM_EDIT_BUTTON).performClick()
+    fun アイテム一覧の戻る矢印でプールに帰る() = app {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
         assertCurrentScreenIs(itemEditTitle)
 
         tapBackArrow()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
-    fun カテゴリー一覧の戻る矢印でホームに帰る() = app {
-        onNodeWithTag(TestTags.HOME_CATEGORY_EDIT_BUTTON).performClick()
+    fun カテゴリー一覧の戻る矢印で設定に帰る() = app {
+        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+        onNodeWithText(categoryEditLabel).performClick()
         assertCurrentScreenIs(categoryEditTitle)
 
         tapBackArrow()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(settingTitle)
     }
 
+    /**
+     * プールの CTA から買い物へ入り、ボトムナビでプールへ戻る。
+     *
+     * **CTA はカゴが空だと押せない**ので、カゴに 1 件置いてから踏む（画面 01）。
+     * 買い物側のボトムナビは F-009 で 03 経由に組み替えるまでの暫定。
+     */
     @Test
-    fun ボトムナビでホームと買い物を往復できる() = app {
-        tapTab(BottomNavigationItem.Shopping)
+    fun CTAから買い物へ入りボトムナビでプールに帰る() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
+        onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
         assertCurrentScreenIs(shoppingTitle)
 
-        tapTab(BottomNavigationItem.Home)
-        assertCurrentScreenIs(homeTitle)
+        tapTab(BottomNavigationItem.Pool)
+        assertCurrentScreenIs(poolTitle)
+    }
+
+    /**
+     * **行タップがカゴの出し入れに繋がっていること**（画面 01・§2）。
+     *
+     * `PoolViewModelTest` は ViewModel までしか見ないので、**行に `onClick` を付け忘れても
+     * 全件緑になる**。カゴ件数が CTA の有効・無効に出るのを使って、UI 段で押さえる。
+     */
+    @Test
+    fun 行タップでカゴに入りCTAが押せるようになる() = app(oneItem(ItemStatus.NO_DEAL)) {
+        onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertIsNotEnabled()
+
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).performClick()
+
+        onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertIsEnabled()
+    }
+
+    /** もう一度タップすると出る。 */
+    @Test
+    fun もう一度タップするとカゴから出る() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
+        onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertIsEnabled()
+
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).performClick()
+
+        onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertIsNotEnabled()
+    }
+
+    /** カゴが空のときは CTA が押せない（画面 01）。 */
+    @Test
+    fun カゴが空なら買い物を始められない() = app(oneItem(ItemStatus.NO_DEAL)) {
+        onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertIsNotEnabled()
+
+        onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
+        assertCurrentScreenIs(poolTitle)
     }
 }

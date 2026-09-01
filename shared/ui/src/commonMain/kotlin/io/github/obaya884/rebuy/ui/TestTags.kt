@@ -17,9 +17,22 @@ object TestTags {
     /** カテゴリー追加の FAB。画面を離れて戻ったときに ViewModel が作り直されるかを見るために使う。 */
     const val CATEGORY_EDIT_ADD_BUTTON = "category_edit_add_button"
 
-    const val HOME_ITEM_EDIT_BUTTON = "home_item_edit_button"
-    const val HOME_CATEGORY_EDIT_BUTTON = "home_category_edit_button"
-    const val HOME_SETTINGS_BUTTON = "home_settings_button"
+    /** プール（画面 01）のアプリバーと CTA。 */
+    const val POOL_ADD_BUTTON = "pool_add_button"
+    const val POOL_SETTINGS_BUTTON = "pool_settings_button"
+    const val POOL_START_SHOPPING_BUTTON = "pool_start_shopping_button"
+
+    /** プールの行。**タップでカゴを出し入れする**ので、行ごとに掴めるようにする。 */
+    fun poolRow(itemId: Int): String = "pool_row_$itemId"
+
+    /**
+     * 絞り込みチップ。**カテゴリー名や行き先名は行にも出る**ので、文言で掴むと
+     * チップと行のどちらを指すか決まらない。
+     */
+    const val POOL_CHIP_ALL = "pool_chip_all"
+    const val POOL_CHIP_ANYWHERE = "pool_chip_anywhere"
+    fun poolCategoryChip(categoryId: Int): String = "pool_chip_category_$categoryId"
+    fun poolDestinationChip(destinationId: Int): String = "pool_chip_destination_$destinationId"
 
     /** ボトムナビの項目。ラベル文字列は画面タイトルと衝突しうるので、テストからはこちらで掴む。 */
     fun bottomNavItem(item: BottomNavigationItem): String = "bottom_nav_${item.name}"

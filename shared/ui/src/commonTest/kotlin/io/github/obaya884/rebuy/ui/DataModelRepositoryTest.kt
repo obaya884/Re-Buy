@@ -2,6 +2,7 @@ package io.github.obaya884.rebuy.ui
 
 import io.github.obaya884.rebuy.domain.CategoryRepository
 import io.github.obaya884.rebuy.domain.DestinationRepository
+import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.domain.ItemRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -90,6 +91,19 @@ class DataModelRepositoryTest {
         categoryRepository.updateSortOrder(id = 2, newSortOrder = 0)
 
         assertEquals(listOf(2, 1), categoryRepository.getAll().first().map { it.id })
+    }
+
+    /**
+     * **同じ状態への更新は no-op**（テスト戦略定義書 §3）。`PoolViewModel` は状態で分岐するので
+     * この早期 return に到達せず、ここでしか見られない。`updatedAt` が動かないことで見る。
+     */
+    @Test
+    fun 常駐の品目をカゴから出しても更新しない() = runTest {
+        db.seed(items = listOf(item(id = 1, status = ItemStatus.NO_DEAL)))
+
+        itemRepository.updateStatusAsNoDeal(db.storedItem(1))
+
+        assertEquals(CREATED_AT, db.storedItem(1).updatedAt)
     }
 
     @Test

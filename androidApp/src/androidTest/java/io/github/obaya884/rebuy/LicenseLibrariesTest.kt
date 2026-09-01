@@ -123,7 +123,7 @@ class LicenseLibrariesTest {
         // Libs.Builder().build() が名前順に並べ替えるので、先頭はスクロールせずに見えるはず
         val firstLibrary = readLibs().forCurrentPlatform().libraries.first().name
 
-        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
         // 遷移が壊れたのか一覧が出ないのかを、失敗した行で切り分けられるようにする
         composeRule.onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals(licenseLabel)
@@ -145,7 +145,7 @@ class LicenseLibrariesTest {
             .first { library -> library.targets.isNotEmpty() && library.targets.none { it.startsWith("android") } }
             .name
 
-        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
         composeRule.waitUntilAtLeastOneExists(hasText(filtered.first().name), timeoutMillis = 10_000)
 

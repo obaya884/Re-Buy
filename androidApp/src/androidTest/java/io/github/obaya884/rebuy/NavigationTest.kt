@@ -8,7 +8,6 @@ import androidx.compose.ui.test.performClick
 import androidx.test.espresso.Espresso
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
-import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -23,7 +22,7 @@ import org.junit.Test
  * 遷移規則そのもの（スタックの積み方・タブごとの履歴保持）は JVM 段の `NavigatorTest` が持つ。
  * ここが見るのは「UI の操作がその規則に正しく結線されているか」。
  *
- * DB の中身に依存する遷移（買い物終了でホームへ戻る）は、データを用意する必要があるため扱わない。
+ * DB の中身に依存する遷移（買い物終了でプールへ戻る）は、データを用意する必要があるため扱わない。
  *
  * **iOS 側の対は `shared/ui/src/iosTest` の `NavigationIosTest`。** 共通化する手立てが無い
  * （モジュールも source set も別）ので、**遷移を足したら両方に足すこと**。
@@ -37,11 +36,11 @@ class NavigationTest {
     /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
     private fun string(resource: StringResource): String = runBlocking { getString(resource) }
 
-    private val homeTitle = string(Res.string.home_title)
-    private val shoppingTitle = string(Res.string.shopping_title)
+    private val poolTitle = string(Res.string.pool_title)
     private val settingTitle = string(Res.string.setting_title)
     private val itemEditTitle = string(Res.string.item_edit_title)
     private val categoryEditTitle = string(Res.string.category_edit_title)
+    private val categoryEditLabel = string(Res.string.setting_row_category_edit)
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
@@ -60,36 +59,38 @@ class NavigationTest {
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
     }
 
-    private fun tapTab(item: BottomNavigationItem) {
-        composeRule.onNodeWithTag(TestTags.bottomNavItem(item)).performClick()
+    /** 設定の下にあるカテゴリーの管理を開く。 */
+    private fun openCategoryEdit() {
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithText(categoryEditLabel).performClick()
     }
 
     @Test
-    fun 起動直後はホームが表示される() {
-        assertCurrentScreenIs(homeTitle)
+    fun 起動直後はプールが表示される() {
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
-    fun ホームから設定へ遷移して端末の戻るでホームに帰る() {
-        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+    fun プールから設定へ遷移して端末の戻るでプールに帰る() {
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         assertCurrentScreenIs(settingTitle)
 
         pressBack()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
-    fun ホームから設定へ遷移して戻る矢印でホームに帰る() {
-        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+    fun プールから設定へ遷移して戻る矢印でプールに帰る() {
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         assertCurrentScreenIs(settingTitle)
 
         tapBackArrow()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
-    fun 設定からライセンスへ遷移して端末の戻るで1段ずつホームまで帰る() {
-        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+    fun 設定からライセンスへ遷移して端末の戻るで1段ずつプールまで帰る() {
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
         assertCurrentScreenIs(licenseLabel)
 
@@ -97,12 +98,12 @@ class NavigationTest {
         assertCurrentScreenIs(settingTitle)
 
         pressBack()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
     fun ライセンスの戻る矢印で設定に帰る() {
-        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
         assertCurrentScreenIs(licenseLabel)
 
@@ -111,62 +112,44 @@ class NavigationTest {
     }
 
     @Test
-    fun ホームからアイテム一覧へ遷移して端末の戻るでホームに帰る() {
-        composeRule.onNodeWithTag(TestTags.HOME_ITEM_EDIT_BUTTON).performClick()
+    fun プールからアイテム一覧へ遷移して端末の戻るでプールに帰る() {
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
         assertCurrentScreenIs(itemEditTitle)
 
         pressBack()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
-    fun アイテム一覧の戻る矢印でホームに帰る() {
-        composeRule.onNodeWithTag(TestTags.HOME_ITEM_EDIT_BUTTON).performClick()
+    fun アイテム一覧の戻る矢印でプールに帰る() {
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
         assertCurrentScreenIs(itemEditTitle)
 
         tapBackArrow()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 
     @Test
-    fun ホームからカテゴリー一覧へ遷移して端末の戻るでホームに帰る() {
-        composeRule.onNodeWithTag(TestTags.HOME_CATEGORY_EDIT_BUTTON).performClick()
+    fun 設定からカテゴリー一覧へ遷移して端末の戻るで設定に帰る() {
+        openCategoryEdit()
         assertCurrentScreenIs(categoryEditTitle)
 
         pressBack()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(settingTitle)
     }
 
     @Test
-    fun カテゴリー一覧の戻る矢印でホームに帰る() {
-        composeRule.onNodeWithTag(TestTags.HOME_CATEGORY_EDIT_BUTTON).performClick()
+    fun カテゴリー一覧の戻る矢印で設定に帰る() {
+        openCategoryEdit()
         assertCurrentScreenIs(categoryEditTitle)
 
         tapBackArrow()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(settingTitle)
     }
 
     @Test
-    fun ボトムナビでホームと買い物を往復できる() {
-        tapTab(BottomNavigationItem.Shopping)
-        assertCurrentScreenIs(shoppingTitle)
-
-        tapTab(BottomNavigationItem.Home)
-        assertCurrentScreenIs(homeTitle)
-    }
-
-    @Test
-    fun 買い物タブから端末の戻るでホームに帰る() {
-        tapTab(BottomNavigationItem.Shopping)
-        assertCurrentScreenIs(shoppingTitle)
-
-        pressBack()
-        assertCurrentScreenIs(homeTitle)
-    }
-
-    @Test
-    fun ホームで戻るとアプリが終了する() {
-        assertCurrentScreenIs(homeTitle)
+    fun プールで戻るとアプリが終了する() {
+        assertCurrentScreenIs(poolTitle)
 
         // Activity が破棄されると composeRule.activity は取得自体が落ちるので、先に掴んでおく
         val activity = composeRule.activity

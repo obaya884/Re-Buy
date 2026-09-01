@@ -95,7 +95,7 @@ fun ShoppingScreen(
                 onTapConfirm = {
                     viewModel.hideFinishShoppingAlertDialog()
                     viewModel.changeBoughtConfirm {
-                        navigator.navigateAsRoot(Screen.Home)
+                        navigator.navigateAsRoot(Screen.Pool)
                     }
                 },
                 onTapCancel = {

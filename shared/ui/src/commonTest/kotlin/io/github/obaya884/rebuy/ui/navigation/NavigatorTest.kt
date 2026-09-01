@@ -11,23 +11,23 @@ import kotlin.test.assertFailsWith
 /**
  * 遷移規則のテスト。UI にも DB にも依存しない純粋ロジックなので JVM 段で全分岐を通す。
  *
- * ここが固定しているのは「ホームと買い物がそれぞれ独立した履歴を持ち、タブを離れても保持される」
+ * ここが固定しているのは「プールと買い物がそれぞれ独立した履歴を持ち、タブを離れても保持される」
  * というアプリの遷移仕様そのもの。ナビゲーションの実装を差し替えても、この規則は変えない。
  */
 class NavigatorTest {
 
     private fun navigationState(
-        currentTopLevelRoute: NavKey = Screen.Home
+        currentTopLevelRoute: NavKey = Screen.Pool
     ): NavigationState = NavigationState(
-        startRoute = Screen.Home,
+        startRoute = Screen.Pool,
         topLevelRoute = mutableStateOf(currentTopLevelRoute),
         backStacks = mapOf(
-            Screen.Home to NavBackStack<NavKey>(Screen.Home),
+            Screen.Pool to NavBackStack<NavKey>(Screen.Pool),
             Screen.Shopping to NavBackStack<NavKey>(Screen.Shopping)
         )
     )
 
-    private fun NavigationState.homeStack() = backStacks.getValue(Screen.Home)
+    private fun NavigationState.poolStack() = backStacks.getValue(Screen.Pool)
     private fun NavigationState.shoppingStack() = backStacks.getValue(Screen.Shopping)
 
     @Test
@@ -37,8 +37,8 @@ class NavigatorTest {
 
         navigator.navigate(Screen.Setting)
 
-        assertEquals(listOf(Screen.Home, Screen.Setting), state.homeStack().toList())
-        assertEquals(Screen.Home, state.topLevelRoute)
+        assertEquals(listOf(Screen.Pool, Screen.Setting), state.poolStack().toList())
+        assertEquals(Screen.Pool, state.topLevelRoute)
     }
 
     @Test
@@ -49,7 +49,7 @@ class NavigatorTest {
         navigator.navigate(Screen.Shopping)
 
         assertEquals(Screen.Shopping, state.topLevelRoute)
-        assertEquals(listOf(Screen.Home), state.homeStack().toList())
+        assertEquals(listOf(Screen.Pool), state.poolStack().toList())
         assertEquals(listOf(Screen.Shopping), state.shoppingStack().toList())
     }
 
@@ -62,8 +62,8 @@ class NavigatorTest {
         navigator.navigate(Screen.Setting)
 
         assertEquals(
-            listOf(Screen.Home, Screen.Setting, Screen.Setting),
-            state.homeStack().toList()
+            listOf(Screen.Pool, Screen.Setting, Screen.Setting),
+            state.poolStack().toList()
         )
     }
 
@@ -76,43 +76,43 @@ class NavigatorTest {
 
         navigator.goBack()
 
-        assertEquals(listOf(Screen.Home, Screen.Setting), state.homeStack().toList())
+        assertEquals(listOf(Screen.Pool, Screen.Setting), state.poolStack().toList())
     }
 
     @Test
-    fun 買い物タブの根で戻るとホームへ移りつつ買い物の履歴は残る() {
+    fun 買い物タブの根で戻るとプールへ移りつつ買い物の履歴は残る() {
         val state = navigationState(currentTopLevelRoute = Screen.Shopping)
         val navigator = Navigator(state)
 
         navigator.goBack()
 
-        assertEquals(Screen.Home, state.topLevelRoute)
+        assertEquals(Screen.Pool, state.topLevelRoute)
         assertEquals(listOf(Screen.Shopping), state.shoppingStack().toList())
     }
 
     @Test
-    fun ホームの根で戻っても状態は変わらない() {
+    fun プールの根で戻っても状態は変わらない() {
         val state = navigationState()
         val navigator = Navigator(state)
 
         navigator.goBack()
 
-        assertEquals(Screen.Home, state.topLevelRoute)
-        assertEquals(listOf(Screen.Home), state.homeStack().toList())
+        assertEquals(Screen.Pool, state.topLevelRoute)
+        assertEquals(listOf(Screen.Pool), state.poolStack().toList())
     }
 
     @Test
     fun navigateAsRootは全てのスタックを根まで畳んで指定のタブへ移る() {
         val state = navigationState(currentTopLevelRoute = Screen.Shopping)
         val navigator = Navigator(state)
-        state.homeStack().add(Screen.Setting)
-        state.homeStack().add(Screen.License)
+        state.poolStack().add(Screen.Setting)
+        state.poolStack().add(Screen.License)
         state.shoppingStack().add(Screen.ItemEdit)
 
-        navigator.navigateAsRoot(Screen.Home)
+        navigator.navigateAsRoot(Screen.Pool)
 
-        assertEquals(Screen.Home, state.topLevelRoute)
-        assertEquals(listOf(Screen.Home), state.homeStack().toList())
+        assertEquals(Screen.Pool, state.topLevelRoute)
+        assertEquals(listOf(Screen.Pool), state.poolStack().toList())
         assertEquals(listOf(Screen.Shopping), state.shoppingStack().toList())
     }
 
@@ -121,10 +121,10 @@ class NavigatorTest {
         val state = navigationState()
         val navigator = Navigator(state)
 
-        navigator.navigateAsRoot(Screen.Home)
+        navigator.navigateAsRoot(Screen.Pool)
 
-        assertEquals(Screen.Home, state.topLevelRoute)
-        assertEquals(listOf(Screen.Home), state.homeStack().toList())
+        assertEquals(Screen.Pool, state.topLevelRoute)
+        assertEquals(listOf(Screen.Pool), state.poolStack().toList())
         assertEquals(listOf(Screen.Shopping), state.shoppingStack().toList())
     }
 
@@ -138,14 +138,14 @@ class NavigatorTest {
     }
 
     @Test
-    fun 表示に使うスタックはホームにいるときホームだけ() {
-        assertEquals(listOf(Screen.Home), navigationState().stacksInUse)
+    fun 表示に使うスタックはプールにいるときプールだけ() {
+        assertEquals(listOf(Screen.Pool), navigationState().stacksInUse)
     }
 
     @Test
-    fun 表示に使うスタックは買い物にいるときホームの上に買い物を重ねる() {
+    fun 表示に使うスタックは買い物にいるときプールの上に買い物を重ねる() {
         val state = navigationState(currentTopLevelRoute = Screen.Shopping)
 
-        assertEquals(listOf(Screen.Home, Screen.Shopping), state.stacksInUse)
+        assertEquals(listOf(Screen.Pool, Screen.Shopping), state.stacksInUse)
     }
 }

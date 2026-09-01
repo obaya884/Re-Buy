@@ -15,7 +15,7 @@ import io.github.obaya884.rebuy.ui.navigation.rememberNavigationState
 import io.github.obaya884.rebuy.ui.navigation.toEntries
 import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditScreen
-import io.github.obaya884.rebuy.ui.screen.home.HomeScreen
+import io.github.obaya884.rebuy.ui.screen.pool.PoolScreen
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditScreen
 import io.github.obaya884.rebuy.ui.screen.license.LicenseScreen
 import io.github.obaya884.rebuy.ui.screen.setting.SettingScreen
@@ -36,7 +36,7 @@ fun ReBuyApp() {
     val palette by themeRepository.palette.collectAsState()
 
     val navigationState = rememberNavigationState(
-        startRoute = Screen.Home,
+        startRoute = Screen.Pool,
         topLevelRoutes = BottomNavigationItem.topLevelRoutes,
         configuration = screenSavedStateConfiguration
     )
@@ -44,7 +44,7 @@ fun ReBuyApp() {
 
     val entryProvider = remember(navigator, snackbarHostState) {
         entryProvider<NavKey> {
-            entry<Screen.Home> { HomeScreen(navigator, snackbarHostState) }
+            entry<Screen.Pool> { PoolScreen(navigator, snackbarHostState) }
             entry<Screen.Shopping> { ShoppingScreen(navigator, snackbarHostState) }
             entry<Screen.Setting> { SettingScreen(navigator, snackbarHostState) }
             entry<Screen.CategoryEdit> { CategoryEditScreen(navigator, snackbarHostState) }
@@ -76,7 +76,7 @@ fun ReBuyApp() {
  */
 @Serializable
 sealed interface Screen : NavKey {
-    @Serializable data object Home : Screen
+    @Serializable data object Pool : Screen
     @Serializable data object Shopping : Screen
     @Serializable data object Setting : Screen
     @Serializable data object CategoryEdit : Screen
@@ -95,7 +95,7 @@ sealed interface Screen : NavKey {
 internal val screenSavedStateConfiguration = SavedStateConfiguration {
     serializersModule = SerializersModule {
         polymorphic(NavKey::class) {
-            subclass(Screen.Home::class)
+            subclass(Screen.Pool::class)
             subclass(Screen.Shopping::class)
             subclass(Screen.Setting::class)
             subclass(Screen.CategoryEdit::class)

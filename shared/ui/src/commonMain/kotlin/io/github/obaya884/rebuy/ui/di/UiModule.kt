@@ -2,7 +2,7 @@ package io.github.obaya884.rebuy.ui.di
 
 import io.github.obaya884.rebuy.domain.di.domainModule
 import io.github.obaya884.rebuy.ui.screen.category_edit.CategoryEditViewModel
-import io.github.obaya884.rebuy.ui.screen.home.HomeViewModel
+import io.github.obaya884.rebuy.ui.screen.pool.PoolViewModel
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditViewModel
 import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingViewModel
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
@@ -21,7 +21,7 @@ import org.koin.dsl.module
 val uiModule = module {
     includes(domainModule)
 
-    viewModelOf(::HomeViewModel)
+    viewModelOf(::PoolViewModel)
     viewModelOf(::ShoppingViewModel)
     viewModelOf(::CategoryEditViewModel)
     viewModelOf(::ItemEditViewModel)

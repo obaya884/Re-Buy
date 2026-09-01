@@ -9,7 +9,6 @@ import androidx.compose.ui.test.performClick
 import io.github.obaya884.rebuy.ui.ReBuyApp
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
-import io.github.obaya884.rebuy.ui.screen.BottomNavigationItem
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
@@ -37,8 +36,7 @@ class NavigationStateRestorationTest {
 
     private fun string(resource: StringResource): String = runBlocking { getString(resource) }
 
-    private val homeTitle = string(Res.string.home_title)
-    private val shoppingTitle = string(Res.string.shopping_title)
+    private val poolTitle = string(Res.string.pool_title)
     private val settingTitle = string(Res.string.setting_title)
 
     /** ライセンス画面のタイトルは実装側もハードコードなので、ここでも文字列で持つ。 */
@@ -52,7 +50,7 @@ class NavigationStateRestorationTest {
     fun 復元後も同じ画面にいる() {
         restorationTester.setContent { ReBuyApp() }
 
-        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
         assertCurrentScreenIs(licenseLabel)
 
@@ -61,17 +59,22 @@ class NavigationStateRestorationTest {
         assertCurrentScreenIs(licenseLabel)
     }
 
+    /**
+     * 開いていた画面が復元されること。
+     *
+     * **プールにボトムナビは無い**ので、タブの往復ではなく設定を開いた状態で見る。
+     * 買い物モードを 03 経由に組み替える F-009 で、この経路を見直す。
+     */
     @Test
-    fun 復元後も同じタブにいる() {
+    fun 復元後も開いていた画面にいる() {
         restorationTester.setContent { ReBuyApp() }
 
-        composeRule.onNodeWithTag(TestTags.bottomNavItem(BottomNavigationItem.Shopping))
-            .performClick()
-        assertCurrentScreenIs(shoppingTitle)
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+        assertCurrentScreenIs(settingTitle)
 
         restorationTester.emulateSavedInstanceStateRestore()
 
-        assertCurrentScreenIs(shoppingTitle)
+        assertCurrentScreenIs(settingTitle)
     }
 
     @Test
@@ -80,15 +83,15 @@ class NavigationStateRestorationTest {
         // 復元されているかは、戻ってみないと分からない
         restorationTester.setContent { ReBuyApp() }
 
-        composeRule.onNodeWithTag(TestTags.HOME_SETTINGS_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
 
         restorationTester.emulateSavedInstanceStateRestore()
 
-        // ホーム → 設定 → ライセンスの 3 段が残っていれば、戻るたびに 1 段ずつ下りる
+        // プール → 設定 → ライセンスの 3 段が残っていれば、戻るたびに 1 段ずつ下りる
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
         assertCurrentScreenIs(settingTitle)
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-        assertCurrentScreenIs(homeTitle)
+        assertCurrentScreenIs(poolTitle)
     }
 }

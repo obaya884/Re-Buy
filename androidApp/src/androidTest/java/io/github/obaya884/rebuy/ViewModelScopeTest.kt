@@ -35,8 +35,17 @@ class ViewModelScopeTest {
     /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
     private val addDialogTitle = runBlocking { getString(Res.string.category_edit_add_dialog_title) }
 
+    /** 設定の行の文言。プールのアプリバーからカテゴリーの管理は外れた（画面 01）。 */
+    private val categoryEditLabel = runBlocking { getString(Res.string.setting_row_category_edit) }
+
+    private fun openSetting() {
+        composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+        composeRule.waitForIdle()
+    }
+
+    /** **設定の下から開く。** 戻る矢印で戻る先も設定なので、2 回目はここだけを踏む。 */
     private fun openCategoryEdit() {
-        composeRule.onNodeWithTag(TestTags.HOME_CATEGORY_EDIT_BUTTON).performClick()
+        composeRule.onNodeWithText(categoryEditLabel).performClick()
         composeRule.waitForIdle()
     }
 
@@ -47,6 +56,7 @@ class ViewModelScopeTest {
 
     @Test
     fun 画面を離れて戻るとダイアログは閉じている() {
+        openSetting()
         openCategoryEdit()
         composeRule.onNodeWithTag(TestTags.CATEGORY_EDIT_ADD_BUTTON).performClick()
         composeRule.waitForIdle()
