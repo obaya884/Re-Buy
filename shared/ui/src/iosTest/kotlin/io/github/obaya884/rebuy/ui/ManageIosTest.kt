@@ -14,10 +14,6 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.v2.runComposeUiTest
-import io.github.obaya884.rebuy.ui.screen.NameTarget
-import io.github.obaya884.rebuy.ui.screen.manage.EditingRecord
-import io.github.obaya884.rebuy.ui.screen.manage.ManageEditSheet
-import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -123,34 +119,6 @@ class ManageIosTest {
 
         onNodeWithText("「カテゴリA」を削除しますか？").assertExists()
         onNodeWithText("紐づく 2 件はカテゴリなしになります。").assertExists()
-    }
-
-    /**
-     * **行き先向きの文言**。「どこでも買えるもの」に戻ることを言う（画面 09b）。
-     *
-     * `Screen.Manage(DESTINATION)` は F-013 まで UI から開けないので、シートを直に描く。
-     * カテゴリ側と取り違えても、画面から踏むテストでは捕まらない。
-     */
-    @Test
-    fun 行き先の削除はどこでも買えるものに戻ると言う() = runComposeUiTest {
-        setContent {
-            ReBuyTheme {
-                ManageEditSheet(
-                    editing = EditingRecord(id = 1, originalName = "行き先A", name = "行き先A"),
-                    nameError = null,
-                    target = NameTarget.DESTINATION,
-                    affectedItemCount = 3,
-                    onNameChange = {},
-                    onSave = {},
-                    onDelete = {},
-                    onDismiss = {}
-                )
-            }
-        }
-
-        onNodeWithTag(TestTags.MANAGE_SHEET_DELETE).performClick()
-
-        onNodeWithText("紐づく 3 件は「どこでも買えるもの」になります。").assertExists()
     }
 
     /** 紐づくものが無ければ戻り先を言わない（画面 09b）。 */

@@ -92,6 +92,7 @@
     <!-- 07 設定（画面定義書 画面 07） -->
     <string name="setting_title">設定</string>
     <string name="setting_row_category_edit">カテゴリの管理</string>
+    <string name="setting_row_destination_manage">行き先の管理</string>
     <string name="setting_row_license">ライセンス</string>
     <string name="setting_version">Re-Buy %1$s</string>
 

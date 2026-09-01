@@ -53,14 +53,23 @@ class ScreenSerializationTest {
      */
     @Test
     fun 引数を持つルートは引数も保存される() {
-        val serializer = screenSavedStateConfiguration.serializersModule
-            .getPolymorphic(NavKey::class, Screen.Shopping(destinationId = 1))
-
         assertEquals(
             listOf("destinationId"),
-            serializer?.descriptor?.elementNames?.toList()
+            elementNamesOf(Screen.Shopping(destinationId = 1))
+        )
+        // 09 の向き。落ちると、行き先の管理を開いた状態で復元したときカテゴリの管理に化ける
+        assertEquals(
+            listOf("target"),
+            elementNamesOf(Screen.Manage(NameTarget.DESTINATION))
         )
     }
+
+    private fun elementNamesOf(route: Screen): List<String>? =
+        screenSavedStateConfiguration.serializersModule
+            .getPolymorphic(NavKey::class, route)
+            ?.descriptor
+            ?.elementNames
+            ?.toList()
 
     @Test
     fun ルートの顔ぶれが変わっていない() {

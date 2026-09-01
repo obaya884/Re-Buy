@@ -84,8 +84,8 @@ class NavigationStateRestorationTest {
      *
      * 上の 3 件はすべて `data object` のルートしか踏まないので、引数付きのルートで
      * 保存が落ちても全件緑になる。**引数の値まで見ているのは
-     * `ScreenSerializationTest`（androidHostTest）**——行き先を作るには F-013 が要るので、
-     * ここで行き先付きの 04 へは入れない。
+     * `ScreenSerializationTest`（androidHostTest）**。行き先付きの 04 の復元は、
+     * 実機の DB に行き先を作って消す手数が要るので置いていない（テスト戦略定義書 §6）。
      */
     @Test
     fun 引数を持つルートも保存復元できる() {

@@ -66,6 +66,7 @@ object TestTags {
      * セマンティクスが束ねられるので、値だけに付けたタグは `useUnmergedTree` なしでは掴めない。
      */
     const val SETTING_ROW_CATEGORY_EDIT = "setting_row_category_edit"
+    const val SETTING_ROW_DESTINATION_MANAGE = "setting_row_destination_manage"
     const val SETTING_ROW_THEME = "setting_row_theme"
     const val SETTING_ROW_LICENSE = "setting_row_license"
     const val SETTING_VERSION = "setting_version"
