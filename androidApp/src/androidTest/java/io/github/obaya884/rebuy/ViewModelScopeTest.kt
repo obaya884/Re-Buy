@@ -21,7 +21,7 @@ import org.junit.Test
  * 戻ってきたときにダイアログが開いたままになる。
  *
  * ダイアログの開閉フラグは UiState が持つ（CLAUDE.md「アーキテクチャ / UI 層」）ので、
- * それを外から観測できる唯一の一時状態として使う。
+ * それを外から観測できる唯一の一時状態として使う。踏むのは 09 の破線行から開く 02b。
  *
  * 逆向き（entry が backstack に残っている間は ViewModel が保持されること）は、
  * 買い物画面の終了確認ダイアログを開くのにチェック済みの品目が要るため、
@@ -33,10 +33,11 @@ class ViewModelScopeTest {
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
-    private val addDialogTitle = runBlocking { getString(Res.string.category_edit_add_dialog_title) }
+    private val addDialogTitle =
+        runBlocking { getString(Res.string.item_form_dialog_category_title) }
 
-    /** 設定の行の文言。プールのアプリバーからカテゴリーの管理は外れた（画面 01）。 */
-    private val categoryEditLabel = runBlocking { getString(Res.string.setting_row_category_edit) }
+    /** 設定の行の文言。プールのアプリバーからカテゴリの管理は外れた（画面 01）。 */
+    private val categoryManageLabel = runBlocking { getString(Res.string.setting_row_category_edit) }
 
     private fun openSetting() {
         composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
@@ -44,8 +45,8 @@ class ViewModelScopeTest {
     }
 
     /** **設定の下から開く。** 戻る矢印で戻る先も設定なので、2 回目はここだけを踏む。 */
-    private fun openCategoryEdit() {
-        composeRule.onNodeWithText(categoryEditLabel).performClick()
+    private fun openCategoryManage() {
+        composeRule.onNodeWithText(categoryManageLabel).performClick()
         composeRule.waitForIdle()
     }
 
@@ -57,16 +58,16 @@ class ViewModelScopeTest {
     @Test
     fun 画面を離れて戻るとダイアログは閉じている() {
         openSetting()
-        openCategoryEdit()
-        composeRule.onNodeWithTag(TestTags.CATEGORY_EDIT_ADD_BUTTON).performClick()
+        openCategoryManage()
+        composeRule.onNodeWithTag(TestTags.MANAGE_ADD_ROW).performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText(addDialogTitle).assertIsDisplayed()
 
         tapBackArrow()
-        openCategoryEdit()
+        openCategoryManage()
 
         // 画面が出ていないことを「ダイアログが無い」と読み違えないための錨
-        composeRule.onNodeWithTag(TestTags.CATEGORY_EDIT_ADD_BUTTON).assertIsDisplayed()
+        composeRule.onNodeWithTag(TestTags.MANAGE_ADD_ROW).assertIsDisplayed()
         composeRule.onNodeWithText(addDialogTitle).assertDoesNotExist()
     }
 }

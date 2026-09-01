@@ -222,10 +222,11 @@ class AppDatabaseIosTest {
      * `RoomMigrationTest` にも現れない**ので、3 テーブルとも実物で見る。
      */
     /**
-     * 並び替えの保存（画面 09）。**`@Transaction` の既定実装は `FakeDatabase` が
-     * そのまま継ぐ**ので、本当に 1 回の変更になることは本物でしか見られない。
+     * 並び替えの保存（画面 09）。**振り直しと no-op を本物の SQL で見る。**
      *
-     * 位置が変わらない行を書かないことも、`updatedAt` が動かないことで見る。
+     * `updateSortOrders` の既定実装は `FakeDatabase` がそのまま継ぐので、あちらで
+     * 通っても本物の `UPDATE` が正しいとは限らない。**`@Transaction` が 1 回の変更に
+     * まとめていること自体はここでも見ていない**（テスト戦略定義書 §6）。
      */
     @Test
     fun 並び替えは渡した順に振り直し動かない行は書かない() = runBlocking {
@@ -374,6 +375,8 @@ class AppDatabaseIosTest {
      *
      * **native の driver で外部キー制約が効いているかを見る唯一のテスト**でもある（T-49）。
      * 効いていなければ消えた行き先の id が品目に残り、どの買い物モードにも出てこなくなる。
+     *
+     * **消すのは id 版**——09b の削除が通るのはこちらで、実体版はもう本番から呼ばれない。
      */
     @Test
     fun 行き先を消しても品目は残る() = runBlocking {
@@ -382,10 +385,25 @@ class AppDatabaseIosTest {
         val destinationId = destinationDao.insert(destination(name = "行き先1")).toInt()
         itemDao.insertItem(item(name = "アイテム1", destinationId = destinationId))
 
-        destinationDao.delete(destinationDao.getAllDestinations().first().single())
+        destinationDao.deleteById(destinationId)
 
         val stored = itemDao.getAllItems().first().single()
         assertEquals("アイテム1", stored.name)
         assertNull(stored.destinationId)
+    }
+
+    /** カテゴリ側も同じ（消えた行を指したままにならない）。09b の削除が通る経路。 */
+    @Test
+    fun カテゴリをidで消しても品目は残りカテゴリなしになる() = runBlocking {
+        val categoryDao = database.categoryDao()
+        val itemDao = database.itemDao()
+        val categoryId = categoryDao.insert(category(name = "カテゴリー1")).toInt()
+        itemDao.insertItem(item(name = "アイテム1", categoryId = categoryId))
+
+        categoryDao.deleteById(categoryId)
+
+        val stored = itemDao.getAllItems().first().single()
+        assertEquals("アイテム1", stored.name)
+        assertNull(stored.categoryId)
     }
 }

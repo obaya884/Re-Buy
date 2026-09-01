@@ -60,12 +60,23 @@ class FakeDatabase {
         lastItemId = items.maxOfOrNull { it.id } ?: 0
         lastCategoryId = categories.maxOfOrNull { it.id } ?: 0
         lastDestinationId = destinations.maxOfOrNull { it.id } ?: 0
+        sortOrderSaveCount = 0
     }
 
     /** すでに入っているものへ 1 件足す。「後から増えた」ことを表したいときに使う。 */
     fun add(item: Item) {
         items.update { (it + item).sortedBy { stored -> stored.id } }
     }
+
+    /**
+     * 並び替えの保存が**呼ばれた回数**。`updateSortOrders` の既定実装が必ず
+     * `currentSortOrders()` を 1 回読むので、そこを数えている。
+     *
+     * 「同じ位置で離したら書かない」のように、**結果が同じでも呼んだかどうかが違う**
+     * ものを見分けるために要る（DAO 側の no-op が効いて結果だけでは区別できない）。
+     */
+    var sortOrderSaveCount = 0
+        private set
 
     val storedItems: List<Item> get() = items.value
 
@@ -197,8 +208,10 @@ class FakeDatabase {
         ) = updateCategory(id) { it.copy(sortOrder = newSortOrder, updatedAt = updatedAt) }
 
         /** `updateSortOrders` の既定実装がここを読む（本物と同じく id と並び順だけ）。 */
-        override suspend fun currentSortOrders(): List<SortOrderRow> =
-            categories.value.map { SortOrderRow(it.id, it.sortOrder) }
+        override suspend fun currentSortOrders(): List<SortOrderRow> {
+            sortOrderSaveCount++
+            return categories.value.map { SortOrderRow(it.id, it.sortOrder) }
+        }
 
         override suspend fun maxSortOrder(): Int = categories.value.maxOfOrNull { it.sortOrder } ?: 0
 
@@ -262,8 +275,10 @@ class FakeDatabase {
         ) = updateDestination(id) { it.copy(sortOrder = newSortOrder, updatedAt = updatedAt) }
 
         /** `updateSortOrders` の既定実装がここを読む（本物と同じく id と並び順だけ）。 */
-        override suspend fun currentSortOrders(): List<SortOrderRow> =
-            destinations.value.map { SortOrderRow(it.id, it.sortOrder) }
+        override suspend fun currentSortOrders(): List<SortOrderRow> {
+            sortOrderSaveCount++
+            return destinations.value.map { SortOrderRow(it.id, it.sortOrder) }
+        }
 
         override suspend fun maxSortOrder(): Int =
             destinations.value.maxOfOrNull { it.sortOrder } ?: 0

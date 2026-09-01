@@ -6,12 +6,13 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import io.github.obaya884.rebuy.domain.NameError
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.NameTarget
@@ -28,25 +29,33 @@ import org.jetbrains.compose.resources.stringResource
  * 何件が戻るのかが分かれば判断できる（画面 09b）。
  */
 @Composable
-fun ManageEditSheet(uiState: ManageScreenUiState, viewModel: ManageViewModel) {
-    val editing = uiState.editing ?: return
+fun ManageEditSheet(
+    editing: EditingRecord,
+    nameError: NameError?,
+    target: NameTarget,
+    affectedItemCount: Int,
+    onNameChange: (String) -> Unit,
+    onSave: () -> Unit,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit
+) {
     var isDeleteDialogOpen by remember { mutableStateOf(false) }
 
     ReBuyBottomSheet(
         // 見出しは**編集前の名前**。入力に追随させると直している最中に見出しが揺れる
         title = editing.originalName,
-        onDismiss = viewModel::dismissEditing
+        onDismiss = onDismiss
     ) {
         NameTextField(
             value = editing.name,
-            onValueChange = viewModel::changeName,
-            error = uiState.nameError,
+            onValueChange = onNameChange,
+            error = nameError,
             placeholder = stringResource(Res.string.item_form_name_placeholder),
             modifier = Modifier.testTag(TestTags.MANAGE_SHEET_NAME_FIELD)
         )
 
         Button(
-            onClick = viewModel::save,
+            onClick = onSave,
             modifier = Modifier.fillMaxWidth().testTag(TestTags.MANAGE_SHEET_SAVE)
         ) {
             Text(stringResource(Res.string.manage_sheet_save))
@@ -73,12 +82,12 @@ fun ManageEditSheet(uiState: ManageScreenUiState, viewModel: ManageViewModel) {
                     )
                 )
             },
-            text = { Text(deleteMessage(uiState)) },
+            text = { Text(deleteMessage(target, affectedItemCount)) },
             confirmButton = {
                 TextButton(
                     onClick = {
                         isDeleteDialogOpen = false
-                        viewModel.delete()
+                        onDelete()
                     },
                     modifier = Modifier.testTag(TestTags.MANAGE_SHEET_DELETE_CONFIRM)
                 ) {
@@ -102,17 +111,11 @@ fun ManageEditSheet(uiState: ManageScreenUiState, viewModel: ManageViewModel) {
  * 「カテゴリなしになります」と言われても意味が取れない（画面 09b）。
  */
 @Composable
-private fun deleteMessage(uiState: ManageScreenUiState): String = when {
-    uiState.affectedItemCount == 0 ->
-        stringResource(Res.string.manage_sheet_delete_dialog_none)
+private fun deleteMessage(target: NameTarget, affectedItemCount: Int): String = when {
+    affectedItemCount == 0 -> stringResource(Res.string.manage_sheet_delete_dialog_none)
 
-    uiState.target == NameTarget.CATEGORY -> stringResource(
-        Res.string.manage_sheet_delete_dialog_category,
-        uiState.affectedItemCount
-    )
+    target == NameTarget.CATEGORY ->
+        stringResource(Res.string.manage_sheet_delete_dialog_category, affectedItemCount)
 
-    else -> stringResource(
-        Res.string.manage_sheet_delete_dialog_destination,
-        uiState.affectedItemCount
-    )
+    else -> stringResource(Res.string.manage_sheet_delete_dialog_destination, affectedItemCount)
 }

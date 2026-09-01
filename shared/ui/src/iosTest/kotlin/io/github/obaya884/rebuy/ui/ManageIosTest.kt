@@ -14,6 +14,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.v2.runComposeUiTest
+import io.github.obaya884.rebuy.ui.screen.NameTarget
+import io.github.obaya884.rebuy.ui.screen.manage.EditingRecord
+import io.github.obaya884.rebuy.ui.screen.manage.ManageEditSheet
+import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -52,16 +56,23 @@ class ManageIosTest {
         block()
     }
 
+    /** 1 つ隣へ落ちるのに指が進む距離（行の高さ＋行間 8dp）。 */
+    private fun ComposeUiTest.rowPitchPx(): Float {
+        val first = onNodeWithTag(TestTags.manageRow(1)).fetchSemanticsNode().positionInRoot.y
+        val second = onNodeWithTag(TestTags.manageRow(2)).fetchSemanticsNode().positionInRoot.y
+        return second - first
+    }
+
     /** 画面に出ている順の名前。**座標ではなく並びで見る**（位置の assert は脆い）。 */
     private fun ComposeUiTest.rowNames(): List<String> =
-        onAllNodesWithTag(TestTags.MANAGE_ROW, useUnmergedTree = true)
+        onAllNodesWithTag(TestTags.MANAGE_ROW_NAME, useUnmergedTree = true)
             .fetchSemanticsNodes()
             .sortedBy { it.positionInRoot.y }
             .map { node -> node.config[SemanticsProperties.Text].first().text }
 
     @Test
     fun 並び順に行が出て末尾に破線行がある() = manage {
-        onNodeWithTag(TestTags.manageRow(1)).assertExists()
+        assertEquals(listOf("カテゴリA", "カテゴリB", "カテゴリC"), rowNames())
         onNodeWithTag(TestTags.MANAGE_ADD_ROW).assertExists()
     }
 
@@ -69,7 +80,7 @@ class ManageIosTest {
     @Test
     fun 一件も無ければ破線行だけ() = manage(prepare = {}) {
         onNodeWithTag(TestTags.MANAGE_ADD_ROW).assertExists()
-        onAllNodesWithTag(TestTags.MANAGE_ROW, useUnmergedTree = true)
+        onAllNodesWithTag(TestTags.MANAGE_ROW_NAME, useUnmergedTree = true)
             .fetchSemanticsNodes()
             .let { assertEquals(0, it.size) }
     }
@@ -87,7 +98,8 @@ class ManageIosTest {
     /** 行の長押しで 09b が開き、保存で名前が変わる（画面 09・09b）。 */
     @Test
     fun 長押しで開いた編集シートで名前を変えられる() = manage {
-        onNodeWithTag(TestTags.manageRow(1)).performTouchInput { longClick() }
+        // 面ではなく**名前**が長押しを受ける（ハンドルはドラッグに使うため）
+        onNodeWithText("カテゴリA").performTouchInput { longClick() }
         onNodeWithTag(TestTags.MANAGE_SHEET_NAME_FIELD).assertExists()
 
         onNodeWithTag(TestTags.MANAGE_SHEET_NAME_FIELD).performTextReplacement("カテゴリA改")
@@ -105,11 +117,40 @@ class ManageIosTest {
             categories = listOf(category(id = 1, name = "カテゴリA"))
         )
     }) {
-        onNodeWithTag(TestTags.manageRow(1)).performTouchInput { longClick() }
+        // 面ではなく**名前**が長押しを受ける（ハンドルはドラッグに使うため）
+        onNodeWithText("カテゴリA").performTouchInput { longClick() }
         onNodeWithTag(TestTags.MANAGE_SHEET_DELETE).performClick()
 
         onNodeWithText("「カテゴリA」を削除しますか？").assertExists()
         onNodeWithText("紐づく 2 件はカテゴリなしになります。").assertExists()
+    }
+
+    /**
+     * **行き先向きの文言**。「どこでも買えるもの」に戻ることを言う（画面 09b）。
+     *
+     * `Screen.Manage(DESTINATION)` は F-013 まで UI から開けないので、シートを直に描く。
+     * カテゴリ側と取り違えても、画面から踏むテストでは捕まらない。
+     */
+    @Test
+    fun 行き先の削除はどこでも買えるものに戻ると言う() = runComposeUiTest {
+        setContent {
+            ReBuyTheme {
+                ManageEditSheet(
+                    editing = EditingRecord(id = 1, originalName = "行き先A", name = "行き先A"),
+                    nameError = null,
+                    target = NameTarget.DESTINATION,
+                    affectedItemCount = 3,
+                    onNameChange = {},
+                    onSave = {},
+                    onDelete = {},
+                    onDismiss = {}
+                )
+            }
+        }
+
+        onNodeWithTag(TestTags.MANAGE_SHEET_DELETE).performClick()
+
+        onNodeWithText("紐づく 3 件は「どこでも買えるもの」になります。").assertExists()
     }
 
     /** 紐づくものが無ければ戻り先を言わない（画面 09b）。 */
@@ -117,7 +158,8 @@ class ManageIosTest {
     fun 紐づくものが無ければその旨だけ出る() = manage({
         seed(categories = listOf(category(id = 1, name = "カテゴリA")))
     }) {
-        onNodeWithTag(TestTags.manageRow(1)).performTouchInput { longClick() }
+        // 面ではなく**名前**が長押しを受ける（ハンドルはドラッグに使うため）
+        onNodeWithText("カテゴリA").performTouchInput { longClick() }
         onNodeWithTag(TestTags.MANAGE_SHEET_DELETE).performClick()
 
         onNodeWithText("紐づくものはありません。").assertExists()
@@ -130,7 +172,8 @@ class ManageIosTest {
             categories = listOf(category(id = 1, name = "カテゴリA"))
         )
     }) {
-        onNodeWithTag(TestTags.manageRow(1)).performTouchInput { longClick() }
+        // 面ではなく**名前**が長押しを受ける（ハンドルはドラッグに使うため）
+        onNodeWithText("カテゴリA").performTouchInput { longClick() }
         onNodeWithTag(TestTags.MANAGE_SHEET_DELETE).performClick()
         onNodeWithTag(TestTags.MANAGE_SHEET_DELETE_CONFIRM).performClick()
 
@@ -163,6 +206,99 @@ class ManageIosTest {
         }
 
         assertEquals(listOf("カテゴリB", "カテゴリA", "カテゴリC"), rowNames())
+    }
+
+    /** 削除の確認で「キャンセル」を選ぶと消えず、シートも残る（画面 09b）。 */
+    @Test
+    fun 削除の確認をキャンセルすると消えない() = manage {
+        onNodeWithText("カテゴリA").performTouchInput { longClick() }
+        onNodeWithTag(TestTags.MANAGE_SHEET_DELETE).performClick()
+
+        onNodeWithText("キャンセル").performClick()
+
+        onNodeWithTag(TestTags.MANAGE_SHEET_NAME_FIELD).assertExists()
+        assertEquals(listOf("カテゴリA", "カテゴリB", "カテゴリC"), rowNames())
+    }
+
+    /** 削除ボタンの文言は**編集前の名前**。打ちかけの名前では聞かない（06 と同じ）。 */
+    @Test
+    fun 削除の文言は打ちかけの名前にならない() = manage {
+        onNodeWithText("カテゴリA").performTouchInput { longClick() }
+
+        onNodeWithTag(TestTags.MANAGE_SHEET_NAME_FIELD).performTextReplacement("打ちかけ")
+
+        onNodeWithText("「カテゴリA」を削除…").assertExists()
+    }
+
+    /**
+     * **ハンドルを掴んだまま止めても編集シートは開かない**（ドラッグと長押しの取り合い）。
+     *
+     * ハンドルが長押しを止めていないと、指を置いたまま 0.5 秒待った瞬間に 09b が開く。
+     */
+    @Test
+    fun ハンドルを掴んだまま止めても編集シートは開かない() = manage {
+        onNodeWithTag(TestTags.manageHandle(1), useUnmergedTree = true).performTouchInput {
+            down(center)
+            advanceEventTime(1000)
+            up()
+        }
+
+        onNodeWithTag(TestTags.MANAGE_SHEET_NAME_FIELD).assertDoesNotExist()
+    }
+
+    /**
+     * **移動量は積み上がる。** 半行に満たない動きを重ねても、合計が半行を超えれば入れ替わる。
+     *
+     * 1 回ぶんだけを見る実装（`dragPx = delta`）だと、この筋書きでは 1 つも動かない。
+     */
+    @Test
+    fun 半行に満たない動きも積み上がって入れ替わる() = manage {
+        val pitch = rowPitchPx()
+        onNodeWithTag(TestTags.manageHandle(1), useUnmergedTree = true).performTouchInput {
+            down(center)
+            repeat(4) {
+                moveBy(Offset(0f, pitch / 4f))
+                advanceEventTime(16)
+            }
+            up()
+        }
+
+        assertEquals(listOf("カテゴリB", "カテゴリA", "カテゴリC"), rowNames())
+    }
+
+    /** **真ん中の行を上へ**。掴んだ位置を取り違えていると、別の行が動く。 */
+    @Test
+    fun 真ん中の行を上へ動かせる() = manage {
+        val pitch = rowPitchPx()
+        onNodeWithTag(TestTags.manageHandle(2), useUnmergedTree = true).performTouchInput {
+            down(center)
+            moveBy(Offset(0f, -32f))
+            advanceEventTime(16)
+            moveBy(Offset(0f, -pitch))
+            advanceEventTime(16)
+            up()
+        }
+
+        assertEquals(listOf("カテゴリB", "カテゴリA", "カテゴリC"), rowNames())
+    }
+
+    /**
+     * **2 行ぶん動かすと 2 つ動く。** 行間を数えていないと、動かすほど行き過ぎる
+     * （高さだけで割ると 2 行ぶんの距離が 2.3 行と数えられる）。
+     */
+    @Test
+    fun 二行ぶん動かすと二つ動く() = manage {
+        val pitch = rowPitchPx()
+        onNodeWithTag(TestTags.manageHandle(1), useUnmergedTree = true).performTouchInput {
+            down(center)
+            moveBy(Offset(0f, 32f))
+            advanceEventTime(16)
+            moveBy(Offset(0f, 2 * pitch - 32f))
+            advanceEventTime(16)
+            up()
+        }
+
+        assertEquals(listOf("カテゴリB", "カテゴリC", "カテゴリA"), rowNames())
     }
 
     /** 離した並びは残る。**開き直しても戻らない**なら保存されている（画面 09）。 */

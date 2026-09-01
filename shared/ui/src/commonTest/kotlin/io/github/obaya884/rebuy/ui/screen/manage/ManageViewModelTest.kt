@@ -40,6 +40,9 @@ class ManageViewModelTest : ViewModelTestBase() {
         target = target
     )
 
+    /** 行の間隔ぶんを丸めた値。**画素の値は画面が持つ**ので、テストは行数だけを気にする。 */
+    private val rowPitch = 100f
+
     private fun seedThree() = db.seed(
         categories = listOf(
             category(id = 1, sortOrder = 1),
@@ -95,7 +98,7 @@ class ManageViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         viewModel.startDrag(index = 2)
-        viewModel.dragTo(index = 0)
+        viewModel.dragBy(dragPx = -2 * rowPitch, rowPitchPx = rowPitch)
         advanceUntilIdle()
 
         assertEquals(listOf(3, 1, 2), viewModel.uiState.value.rows.map { it.id })
@@ -111,7 +114,7 @@ class ManageViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         viewModel.startDrag(index = 2)
-        viewModel.dragTo(index = 0)
+        viewModel.dragBy(dragPx = -2 * rowPitch, rowPitchPx = rowPitch)
         advanceUntilIdle()
 
         assertEquals(listOf(1, 2, 3), db.categoryDao.getAllCategories().first().map { it.id })
@@ -124,7 +127,7 @@ class ManageViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         viewModel.startDrag(index = 2)
-        viewModel.dragTo(index = 0)
+        viewModel.dragBy(dragPx = -2 * rowPitch, rowPitchPx = rowPitch)
         viewModel.endDrag()
         advanceUntilIdle()
 
@@ -133,6 +136,12 @@ class ManageViewModelTest : ViewModelTestBase() {
     }
 
     /** 掴んで元の位置で離したら何も書かない。 */
+    /**
+     * 掴んで元の位置で離したら**保存そのものを呼ばない**。
+     *
+     * `updatedAt` だけを見ると、DAO 側の「値が変わらない行は書かない」が効いて
+     * 早期 return が無くても緑になる。呼んだ回数で 2 段のどちらが効いたかを分ける。
+     */
     @Test
     fun 同じ位置で離せば書かない() = runTest {
         seedThree()
@@ -143,8 +152,31 @@ class ManageViewModelTest : ViewModelTestBase() {
         viewModel.endDrag()
         advanceUntilIdle()
 
+        assertEquals(0, db.sortOrderSaveCount)
         val stored = db.categoryDao.getAllCategories().first()
         assertEquals(listOf(CREATED_AT, CREATED_AT, CREATED_AT), stored.map { it.updatedAt })
+    }
+
+    /** 行き先向きなら**行き先の並び**が変わる。カテゴリは触らない。 */
+    @Test
+    fun 行き先向きの並び替えは行き先だけを動かす() = runTest {
+        db.seed(
+            categories = listOf(category(id = 1, sortOrder = 1), category(id = 2, sortOrder = 2)),
+            destinations = listOf(
+                destination(id = 1, sortOrder = 1),
+                destination(id = 2, sortOrder = 2)
+            )
+        )
+        val viewModel = viewModel(NameTarget.DESTINATION)
+        advanceUntilIdle()
+
+        viewModel.startDrag(index = 1)
+        viewModel.dragBy(dragPx = -rowPitch, rowPitchPx = rowPitch)
+        viewModel.endDrag()
+        advanceUntilIdle()
+
+        assertEquals(listOf(2, 1), db.storedDestinations.map { it.id })
+        assertEquals(listOf(1, 2), db.storedCategories.map { it.id })
     }
 
     // ---- 09b 編集シート ----
@@ -177,6 +209,46 @@ class ManageViewModelTest : ViewModelTestBase() {
         assertNull(viewModel.uiState.value.editing)
     }
 
+    /** 行き先向きなら**行き先の名前**が変わる。カテゴリは触らない。 */
+    @Test
+    fun 行き先向きの保存は行き先の名前を変える() = runTest {
+        db.seed(
+            categories = listOf(category(id = 1, name = "カテゴリA")),
+            destinations = listOf(destination(id = 1, name = "行き先A"))
+        )
+        val viewModel = viewModel(NameTarget.DESTINATION)
+        advanceUntilIdle()
+        viewModel.startEditing(viewModel.uiState.value.rows.single())
+
+        viewModel.changeName("行き先B")
+        viewModel.save()
+        advanceUntilIdle()
+
+        assertEquals(listOf("行き先B"), db.storedDestinations.map { it.name })
+        assertEquals(listOf("カテゴリA"), db.storedCategories.map { it.name })
+    }
+
+    /** 行き先向きなら**行き先が消え**、紐づく品目は「どこでも買えるもの」に戻る。 */
+    @Test
+    fun 行き先向きの削除は行き先だけを消す() = runTest {
+        db.seed(
+            items = listOf(item(id = 1, destinationId = 1, categoryId = 1)),
+            categories = listOf(category(id = 1)),
+            destinations = listOf(destination(id = 1))
+        )
+        val viewModel = viewModel(NameTarget.DESTINATION)
+        advanceUntilIdle()
+        viewModel.startEditing(viewModel.uiState.value.rows.single())
+
+        viewModel.delete()
+        advanceUntilIdle()
+
+        assertEquals(emptyList(), db.storedDestinations)
+        assertEquals(1, db.storedCategories.size)
+        assertNull(db.storedItem(1).destinationId)
+        assertEquals(1, db.storedItem(1).categoryId)
+    }
+
     /** 弾かれたらシートは閉じない（画面定義書 §2）。 */
     @Test
     fun 同じ名前があると弾かれて閉じない() = runTest {
@@ -207,6 +279,8 @@ class ManageViewModelTest : ViewModelTestBase() {
         viewModel.changeName("打ちかけ")
         advanceUntilIdle()
 
+        // 打った側は変わっている（no-op でも通る形にしない）
+        assertEquals("打ちかけ", viewModel.uiState.value.editing?.name)
         assertEquals("カテゴリA", viewModel.uiState.value.editing?.originalName)
     }
 
@@ -221,6 +295,8 @@ class ManageViewModelTest : ViewModelTestBase() {
         viewModel.changeName("カテゴリB")
         viewModel.save()
         advanceUntilIdle()
+        // 消す前に出ていたことを確かめる。出ていなければこのテストは何も見ていない
+        assertEquals(NameError.DUPLICATE, viewModel.uiState.value.nameError)
 
         viewModel.dismissEditing()
         advanceUntilIdle()
@@ -268,8 +344,13 @@ class ManageViewModelTest : ViewModelTestBase() {
 
     @Test
     fun 行き先向きなら行き先に紐づく品目を数える() = runTest {
+        // **件数を変えておく**。同じ件数だとカテゴリ側を数えても通ってしまう
         db.seed(
-            items = listOf(item(id = 1, destinationId = 1), item(id = 2, categoryId = 1)),
+            items = listOf(
+                item(id = 1, destinationId = 1),
+                item(id = 2, destinationId = 1),
+                item(id = 3, categoryId = 1)
+            ),
             categories = listOf(category(id = 1)),
             destinations = listOf(destination(id = 1))
         )
@@ -279,7 +360,7 @@ class ManageViewModelTest : ViewModelTestBase() {
         viewModel.startEditing(viewModel.uiState.value.rows.single())
         advanceUntilIdle()
 
-        assertEquals(1, viewModel.uiState.value.affectedItemCount)
+        assertEquals(2, viewModel.uiState.value.affectedItemCount)
     }
 
     @Test

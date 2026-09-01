@@ -5,20 +5,21 @@ import kotlin.math.roundToInt
 /**
  * ドラッグ量から**落とし先の位置**を出す（画面 09）。
  *
- * 行の高さは一定（画面 09。長い名前は 1 行に省略する）なので、動かした距離を行の高さで
+ * 行の高さは一定（画面 09。長い名前は 1 行に省略する）なので、動かした距離を行の間隔で
  * 割れば何行ぶん動いたかが出る。**半行を超えたところで隣と入れ替わる**——`roundToInt` が
  * その丸めをそのまま表す。
  *
  * @param fromIndex 掴んだときの位置
  * @param dragPx 掴んでからの移動量。下が正
- * @param rowHeightPx 行の高さ。**0 以下なら動かさない**（測る前に呼ばれても壊れないように）
+ * @param rowPitchPx **行の高さ＋行間**。高さだけで割ると、動かすほど行数を多く数える。
+ *   **0 以下なら動かさない**（測る前に呼ばれても壊れないように）
  * @param count 並びの件数。**末尾の破線行は数に入れない**——落とし先にはならない（画面 09）
  */
-fun dropTargetIndex(fromIndex: Int, dragPx: Float, rowHeightPx: Float, count: Int): Int {
+fun dropTargetIndex(fromIndex: Int, dragPx: Float, rowPitchPx: Float, count: Int): Int {
     if (count <= 0) return 0
-    if (rowHeightPx <= 0f) return fromIndex.coerceIn(0, count - 1)
+    if (rowPitchPx <= 0f) return fromIndex.coerceIn(0, count - 1)
 
-    val moved = (dragPx / rowHeightPx).roundToInt()
+    val moved = (dragPx / rowPitchPx).roundToInt()
     return (fromIndex + moved).coerceIn(0, count - 1)
 }
 

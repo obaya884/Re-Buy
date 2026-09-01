@@ -1,15 +1,12 @@
 package io.github.obaya884.rebuy.ui.screen.manage
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -29,12 +26,12 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -47,7 +44,6 @@ import io.github.obaya884.rebuy.ui.screen.NameTarget
 import io.github.obaya884.rebuy.ui.screen.NewNameDialog
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
-import io.github.obaya884.rebuy.ui.screen.reorder.dropTargetIndex
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -70,15 +66,11 @@ fun ManageScreen(
     val viewModel = koinViewModel<ManageViewModel> { parametersOf(route) }
     val uiState by viewModel.uiState.collectAsState()
 
-    // ドラッグ中の px は画面の中だけの値。ViewModel へ渡すのは確定した位置だけ
+    // ドラッグ中の画素の値は画面の中だけで持つ。どこへ落ちるかの判断は ViewModel
     var dragPx by remember { mutableFloatStateOf(0f) }
     var rowHeightPx by remember { mutableFloatStateOf(0f) }
-
-    /**
-     * 掴んだ位置。**ViewModel からは読めない**——`uiState` は `stateIn` 越しなので、
-     * 掴んだ直後の 1 フレームはまだ空（実測）。掴んだのは画面なので画面が覚える
-     */
-    var dragFromIndex by remember { mutableStateOf<Int?>(null) }
+    // 1 つ隣へ落ちるのに指が進む距離は**行の高さ＋行間**。高さだけで割ると動かすほど行き過ぎる
+    val rowPitchPx = rowHeightPx + with(LocalDensity.current) { ROW_SPACING.toPx() }
 
     ReBuyAppScaffold(
         topBarTitle = stringResource(
@@ -98,7 +90,7 @@ fun ManageScreen(
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
         Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(ROW_SPACING),
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
@@ -109,24 +101,21 @@ fun ManageScreen(
                 ManageRow(
                     record = record,
                     isDragging = record.id == uiState.draggingId,
-                    dragPx = dragPx,
+                    // 落とし先を当てた並びで描かれるぶんを引く。引かないと落とし先が
+                    // 変わるたびに行が 1 行ぶん飛び出す
+                    dragPx = dragPx - uiState.draggingRowShift * rowPitchPx,
                     onMeasured = { rowHeightPx = it },
                     onLongPress = { viewModel.startEditing(record) },
                     onDragStart = {
                         dragPx = 0f
-                        dragFromIndex = index
                         viewModel.startDrag(index)
                     },
                     onDrag = { delta ->
                         dragPx += delta
-                        val from = dragFromIndex ?: return@ManageRow
-                        viewModel.dragTo(
-                            dropTargetIndex(from, dragPx, rowHeightPx, uiState.rows.size)
-                        )
+                        viewModel.dragBy(dragPx, rowPitchPx)
                     },
                     onDragEnd = {
                         dragPx = 0f
-                        dragFromIndex = null
                         viewModel.endDrag()
                     }
                 )
@@ -154,18 +143,29 @@ fun ManageScreen(
         )
     }
 
-    if (uiState.editing != null) {
-        ManageEditSheet(uiState = uiState, viewModel = viewModel)
+    uiState.editing?.let { editing ->
+        ManageEditSheet(
+            editing = editing,
+            nameError = uiState.nameError,
+            target = route.target,
+            affectedItemCount = uiState.affectedItemCount,
+            onNameChange = viewModel::changeName,
+            onSave = viewModel::save,
+            onDelete = viewModel::delete,
+            onDismiss = viewModel::dismissEditing
+        )
     }
 }
 
 /**
- * 1 行。**ハンドルだけがドラッグを受ける**——行そのものは長押しで 09b を開くので、
- * ハンドルの `pointerInput` が先に指を掴む。
+ * 1 行。**ハンドルはドラッグ、名前は長押し**と受け口を分ける。
+ *
+ * 面そのものには何も付けない。**カード全体で長押しを取ると、ハンドルを掴んだまま
+ * 止めた瞬間に編集シートが開く**——`draggable` はタッチスロップを超えるまで何も
+ * 消費しないので、その間に親の長押しが先に成立してしまう（実測）。
  *
  * @param onMeasured 行の高さ。落とし先の計算に要る（画面 09 は行の高さが一定）
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ManageRow(
     record: ManagedRecord,
@@ -179,10 +179,8 @@ private fun ManageRow(
 ) {
     ReBuyRowCard(
         highlighted = isDragging,
-        onTap = {},
+        onTap = null,
         testTag = TestTags.manageRow(record.id),
-        role = Role.Button,
-        onLongPress = onLongPress,
         modifier = Modifier
             .onSizeChanged { onMeasured(it.height.toFloat()) }
             // 掴んでいる行だけ指に付いてくる。他の行は並びが入れ替わって見える
@@ -197,8 +195,7 @@ private fun ManageRow(
                 .padding(end = 16.dp)
                 .size(24.dp)
                 .testTag(TestTags.manageHandle(record.id))
-                // **縦のドラッグだけを取る。** 親のスクロールにも長押し（09b）にも渡さないので、
-                // 掴んだまま止めても編集シートは開かない
+                // 縦のドラッグだけを取る。親のスクロールには渡らない
                 .draggable(
                     orientation = Orientation.Vertical,
                     state = rememberDraggableState { onDrag(it) },
@@ -210,11 +207,21 @@ private fun ManageRow(
             text = record.name,
             style = MaterialTheme.typography.bodyLarge,
             color = ReBuyTheme.colors.ink,
-            // 並びを数えるための共通タグ。名前を読むので Text に付ける
-            modifier = Modifier.testTag(TestTags.MANAGE_ROW),
             // 行の高さは一定。入りきらない名前は末尾を省略する（画面 09）
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .weight(1f)
+                // 長押しだけを取る。**タップには意味が無い**ので clickable にはしない
+                // （押せそうに見えて何も起きない行になる）
+                .pointerInput(record.id) {
+                    detectTapGestures(onLongPress = { onLongPress() })
+                }
+                // 並びを数えるための共通タグ。名前を読むので Text に付ける
+                .testTag(TestTags.MANAGE_ROW_NAME)
         )
     }
 }
+
+/** 行の間隔。落とし先の計算にも使うので 1 か所から引く。 */
+private val ROW_SPACING = 8.dp
