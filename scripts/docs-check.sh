@@ -315,7 +315,7 @@ def check_tech_backlog(path):
 
 
 def is_iso_date(text):
-    """`[0-9]` で書くのは、Python の `\d` が全角数字（２０２６）も拾うため。
+    r"""`[0-9]` で書くのは、Python の `\d` が全角数字（２０２６）も拾うため。
     IME で全角のまま確定するのは、この台帳でいちばん起きやすい打ち間違い"""
     if not re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", text):
         return False
