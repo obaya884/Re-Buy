@@ -28,3 +28,6 @@ DerivedData/
 keystore.properties
 *.jks
 *.keystore
+
+# 手元だけのビルド設定
+iosApp/Configuration/Local.xcconfig

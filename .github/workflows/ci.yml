@@ -17,12 +17,17 @@ permissions:
   contents: read
 
 jobs:
-  # docs の機械検査。JDK も Gradle も要らないので他のジョブとは別に並列で回す
+  # docs の機械検査と、リポジトリの衛生。JDK も Gradle も要らないので
+  # 他のジョブとは別に並列で回す
   docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - run: sh scripts/docs-check.sh
+      # docs-check が落ちても走らせる。直列だと、片方の失敗でもう片方の指摘が
+      # 次の push まで出てこない
+      - run: sh scripts/check-ios-signing.sh
+        if: ${{ !cancelled() }}
 
   # lint・unit test・debug/release の assemble
   build:

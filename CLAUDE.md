@@ -118,6 +118,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - `./gradlew installDebug` — 端末・エミュレータへインストール
 - `./gradlew clean` — KSP（Room。`:shared:data` だけで回る）の生成コードが壊れたとき
 - `sh scripts/docs-check.sh` — docs・本書・README・`.claude/` の機械検査
+- `sh scripts/check-ios-signing.sh [--staged]` — iOS の署名設定が追跡ファイルに入っていないか（`--staged` は index を見る。pre-commit が使う）
 - `sh scripts/ledger-move.sh T-XX [--status '完了 YYYY-MM-DD']` — 台帳 23 のエントリを完了記録へ移す
 - `android emulator list` / `android emulator start <name>` — エミュレータ（`android` CLI）
 
@@ -126,6 +127,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 `obaya884/Re-Buy` は公開リポジトリ。**到達手段・実データ・資格情報につながる記述はコミットしない**。コミットの author（氏名・メールアドレス）だけは例外として受け入れている（要求定義書 §11）。
 
 - 署名鍵（`*.jks` `*.keystore`）・`keystore.properties`・Play Console / App Store Connect の内部 ID・API キーは値も所在も書かない（`.claude/settings.json` の deny で読み取りも塞いである）
+- **iOS のビルド設定は `iosApp/Configuration/` の xcconfig に置き、`project.pbxproj` には入れない**。**clone したら 1 回だけ `git config core.hooksPath .githooks` を実行する**——`sh scripts/check-ios-signing.sh` が pre-commit と CI で見る
 - オーナーの生活が読み取れる実データ（品目名・カテゴリ名）を docs の例示に使わない
 - 一度 push した内容は履歴から消せない。迷ったら書かない
 - ソースは閲覧のみ可（README「ライセンス」）。他者の PR は受け付けない
