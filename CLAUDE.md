@@ -120,7 +120,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - `./gradlew clean` — KSP（Room。`:shared:data` だけで回る）の生成コードが壊れたとき
 - `sh scripts/docs-check.sh` — docs・本書・README・`.claude/` の機械検査
 - `sh scripts/check-ios-signing.sh [--staged]` — iOS の署名設定が追跡ファイルに入っていないか（`--staged` は index を見る。pre-commit が使う）
-- `sh scripts/ledger-move.sh T-XX [--status '完了 YYYY-MM-DD']` — 台帳 23 のエントリを完了記録へ移す
+- `sh scripts/ledger-move.sh <FB-XX|T-XX> [--status '完了 YYYY-MM-DD']` — 台帳 21・23 のエントリを完了記録へ移す
 - `android emulator list` / `android emulator start <name>` — エミュレータ（`android` CLI）
 
 ## このリポジトリは public

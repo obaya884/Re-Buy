@@ -5,8 +5,9 @@
 # 使い方:
 #   sh scripts/ledger-move.sh T-05
 #   sh scripts/ledger-move.sh T-05 --status '完了 2026-08-29'
+#   sh scripts/ledger-move.sh FB-07 --status '完了 2026-09-01'
 #
-# 台帳23（T-XX）の当該エントリを完了記録へ移す（台帳21 FB-XX は ④ で足す）。
+# 台帳21（FB-XX）・台帳23（T-XX）の当該エントリを完了記録へ移す。
 # --status を与えると状態列を差し替える（5番目のセル）。
 #
 # 1エントリは「§一覧の1行」と「§詳細の `### <ID>` 節」の2か所に分かれており、
@@ -30,13 +31,19 @@ import sys
 
 args = sys.argv[1:]
 if not args:
-    print("使い方: sh scripts/ledger-move.sh <T-XX> [--status '<新しい状態列>']", file=sys.stderr)
+    print("使い方: sh scripts/ledger-move.sh <FB-XX|T-XX> [--status '<新しい状態列>']", file=sys.stderr)
     sys.exit(1)
 
 # 台帳ごとの差は3つだけ。ここに閉じ込めて、以降の処理は共通にする
 #   columns    … 一覧の列数（状態は5番目のセル）
 #   classified … 一覧が分類（### 見出し）で分かれているか。23 は1枚の表（④ で足す 21 は分かれる）
 LEDGERS = {
+    "FB": {
+        "live": "docs/案件/21_FB台帳.md",
+        "closed": "docs/案件/closed_21_FB台帳.md",
+        "columns": 5,
+        "classified": True,
+    },
     "T": {
         "live": "docs/案件/23_技術改善バックログ.md",
         "closed": "docs/案件/closed_23_技術改善バックログ.md",
@@ -46,9 +53,9 @@ LEDGERS = {
 }
 
 entry_id = args[0]
-matched = re.fullmatch(r"(T)-\d+", entry_id)
+matched = re.fullmatch(r"(FB|T)-\d+", entry_id)
 if not matched:
-    print(f"ID は T-XX の形で指定してください（受け取った値: {entry_id}）", file=sys.stderr)
+    print(f"ID は FB-XX か T-XX の形で指定してください（受け取った値: {entry_id}）", file=sys.stderr)
     sys.exit(1)
 ledger = LEDGERS[matched.group(1)]
 

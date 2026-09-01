@@ -59,6 +59,12 @@ TARGETS = DOCS + ["CLAUDE.md", "README.md"] + sorted(glob.glob(".claude/**/*.md"
 # `paired` は「§一覧の行 ＋ §詳細の節」の書式かどうか、`closed_status` はライブ側に
 # 残っていたらエラーにする状態列の語
 LEDGERS = {
+    "21": {
+        "live": "docs/案件/21_FB台帳.md",
+        "closed": "docs/案件/closed_21_FB台帳.md",
+        "paired": True,
+        "closed_status": ("完了", "対処不要"),
+    },
     "22": {
         "live": "docs/案件/22_要件バックログ.md",
         "closed": "docs/案件/closed_22_要件バックログ.md",
