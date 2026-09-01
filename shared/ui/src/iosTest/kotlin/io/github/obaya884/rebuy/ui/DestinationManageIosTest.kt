@@ -1,6 +1,5 @@
 package io.github.obaya884.rebuy.ui
 
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextEquals
@@ -22,7 +21,10 @@ import kotlin.test.assertEquals
  *
  * **画面そのものは `ManageIosTest` がカテゴリ向きで見ている**（09 は同型の 2 画面で、
  * 実装は 1 つ）。ここが見るのは**向きで変わるところ**だけ——設定からの入口・タイトル・
- * 破線行の文言・削除の文言、そして「行き先を触ってもカテゴリは動かない」こと。
+ * 破線行と削除の文言、そして「行き先を触ってもカテゴリは動かない」こと。
+ *
+ * **ドラッグは置かない。** ジェスチャは `ManageIosTest` が、向きごとの保存先は
+ * `ManageViewModelTest` が見ており、両方の積でしかないものを遅い段で再演しない。
  *
  * 文言はリテラルで持つ（テスト戦略定義書 §2.1）。
  */
@@ -31,7 +33,10 @@ class DestinationManageIosTest {
 
     private val twoOfEach: FakeDatabase.() -> Unit = {
         seed(
-            categories = listOf(category(id = 1, name = "カテゴリA", sortOrder = 1)),
+            categories = listOf(
+                category(id = 1, name = "カテゴリA", sortOrder = 1),
+                category(id = 2, name = "カテゴリB", sortOrder = 2)
+            ),
             destinations = listOf(
                 destination(id = 1, name = "行き先A", sortOrder = 1),
                 destination(id = 2, name = "行き先B", sortOrder = 2)
@@ -87,10 +92,10 @@ class DestinationManageIosTest {
         onNodeWithTag(TestTags.MANAGE_SHEET_SAVE).performClick()
 
         assertEquals(listOf("行き先A改", "行き先B"), rowNames())
-        // 設定へ戻ってカテゴリ側を見る
+        // 設定へ戻ってカテゴリ側を見る。名前も並びも無傷
         onNodeWithTag(TestTags.BACK_BUTTON).performClick()
         onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT).performClick()
-        assertEquals(listOf("カテゴリA"), rowNames())
+        assertEquals(listOf("カテゴリA", "カテゴリB"), rowNames())
     }
 
     /** 削除の確認は**「どこでも買えるもの」に戻る**と言う（画面 09b）。 */
@@ -120,30 +125,10 @@ class DestinationManageIosTest {
         onNodeWithTag(TestTags.MANAGE_SHEET_DELETE_CONFIRM).performClick()
 
         assertEquals(emptyList(), rowNames())
+        // プールへ戻ると、品目は残って**「どこでも買えるもの」の側**に入っている
         onNodeWithTag(TestTags.BACK_BUTTON).performClick()
         onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-        onNodeWithText("アイテムA").assertExists()
-        // 行き先が外れたので、絞り込みの「🏬 どこでも」に入る
         onNodeWithTag(TestTags.POOL_CHIP_ANYWHERE).performClick()
         onNodeWithText("アイテムA").assertExists()
-    }
-
-    /** 並び替えも同じように効く（保存先が行き先であること）。 */
-    @Test
-    fun ハンドルで並び替えられる() = manage {
-        val first = onNodeWithTag(TestTags.manageRow(1)).fetchSemanticsNode().positionInRoot.y
-        val second = onNodeWithTag(TestTags.manageRow(2)).fetchSemanticsNode().positionInRoot.y
-        val pitch = second - first
-
-        onNodeWithTag(TestTags.manageHandle(1), useUnmergedTree = true).performTouchInput {
-            down(center)
-            moveBy(Offset(0f, 32f))
-            advanceEventTime(16)
-            moveBy(Offset(0f, pitch - 32f))
-            advanceEventTime(16)
-            up()
-        }
-
-        assertEquals(listOf("行き先B", "行き先A"), rowNames())
     }
 }

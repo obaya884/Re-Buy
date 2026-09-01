@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
@@ -33,13 +34,26 @@ class SettingIosTest {
         block()
     }
 
-    /** 条項の 4 行が並ぶ（画面 07）。 */
+    /** 条項の 4 行が**この順で**並ぶ（画面 07）。存在だけ見ると入れ替えても緑になる。 */
     @Test
-    fun 管理とテーマとライセンスの行が並ぶ() = setting {
-        onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT).assertIsDisplayed()
-        onNodeWithTag(TestTags.SETTING_ROW_DESTINATION_MANAGE).assertIsDisplayed()
-        onNodeWithTag(TestTags.SETTING_ROW_THEME).assertIsDisplayed()
-        onNodeWithTag(TestTags.SETTING_ROW_LICENSE).assertIsDisplayed()
+    fun 管理とテーマとライセンスの行がこの順で並ぶ() = setting {
+        val order = listOf(
+            TestTags.SETTING_ROW_CATEGORY_EDIT,
+            TestTags.SETTING_ROW_DESTINATION_MANAGE,
+            TestTags.SETTING_ROW_THEME,
+            TestTags.SETTING_ROW_LICENSE
+        )
+        order.forEach { onNodeWithTag(it).assertIsDisplayed() }
+
+        val sorted = order.sortedBy { onNodeWithTag(it).fetchSemanticsNode().positionInRoot.y }
+        assertEquals(order, sorted)
+    }
+
+    /** 行の文言。タグだけで掴むと、別の文言を渡す変異が素通りする。 */
+    @Test
+    fun 管理の2行は行き先とカテゴリを名乗る() = setting {
+        onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT).assertTextEquals("カテゴリの管理")
+        onNodeWithTag(TestTags.SETTING_ROW_DESTINATION_MANAGE).assertTextEquals("行き先の管理")
     }
 
     /**
