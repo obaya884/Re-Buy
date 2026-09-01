@@ -50,6 +50,17 @@ object TestTags {
     fun shoppingStartRow(destinationId: Int): String = "shopping_start_row_$destinationId"
     const val SHOPPING_START_ALL_ROW = "shopping_start_row_all"
 
+    /**
+     * 設定（画面 07）。行の文言は他の画面のタイトルとも重なるので、タグで掴む。
+     *
+     * **右端の値は行のタグごと見る**（`assertTextEquals("テーマ", "藍")`）。行が clickable で
+     * セマンティクスが束ねられるので、値だけに付けたタグは `useUnmergedTree` なしでは掴めない。
+     */
+    const val SETTING_ROW_CATEGORY_EDIT = "setting_row_category_edit"
+    const val SETTING_ROW_THEME = "setting_row_theme"
+    const val SETTING_ROW_LICENSE = "setting_row_license"
+    const val SETTING_VERSION = "setting_version"
+
     /** 買い物モード（画面 04）。 */
     fun shoppingRow(itemId: Int): String = "shopping_row_$itemId"
     const val SHOPPING_PROGRESS = "shopping_progress"

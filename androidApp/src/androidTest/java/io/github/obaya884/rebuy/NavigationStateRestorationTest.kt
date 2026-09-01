@@ -42,8 +42,9 @@ class NavigationStateRestorationTest {
     private val poolTitle = string(Res.string.pool_title)
     private val settingTitle = string(Res.string.setting_title)
 
-    /** ライセンス画面のタイトルは実装側もハードコードなので、ここでも文字列で持つ。 */
-    private val licenseLabel = "ライセンス"
+    /** ライセンス画面のタイトルは実装側がハードコードなので、ここでも文字列で持つ。 */
+    private val licenseTitle = "ライセンス"
+    private val licenseLabel = string(Res.string.setting_row_license)
     private val shoppingTitleAll = string(Res.string.shopping_title_all)
 
     private fun assertCurrentScreenIs(title: String) {
@@ -56,11 +57,11 @@ class NavigationStateRestorationTest {
 
         composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
-        assertCurrentScreenIs(licenseLabel)
+        assertCurrentScreenIs(licenseTitle)
 
         restorationTester.emulateSavedInstanceStateRestore()
 
-        assertCurrentScreenIs(licenseLabel)
+        assertCurrentScreenIs(licenseTitle)
     }
 
     /**

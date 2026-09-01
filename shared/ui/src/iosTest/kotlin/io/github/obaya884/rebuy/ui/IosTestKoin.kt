@@ -4,6 +4,8 @@ import io.github.obaya884.rebuy.data.category.CategoryDao
 import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.item.ItemDao
 import io.github.obaya884.rebuy.data.settings.SettingsStore
+import io.github.obaya884.rebuy.domain.ThemePalette
+import io.github.obaya884.rebuy.domain.ThemeRepository
 import io.github.obaya884.rebuy.ui.di.initKoin
 import org.koin.dsl.module
 import org.koin.mp.KoinPlatformTools
@@ -20,15 +22,16 @@ val fakeDatabase = FakeDatabase()
  * 設定値の置き場も差し替える。本番は `NSUserDefaults` なので、**差し替えないと選んだテーマが
  * シミュレータに残り**、テストの実行順で結果が変わる。
  *
- * **戻せるのは保存先までで、`ThemeRepository` が読み終えた値は戻らない**（`single` が
- * プロセスに 1 つで、生成時に 1 度だけ読む）。選択に依存するテストは**事前状態を自分で
- * assert すること**。
+ * `ThemeRepository` は `single` でプロセスに 1 つ、生成時に 1 度だけ保存先を読むので、
+ * **保存先を空にしても読み終えた値は戻らない**。[startTestKoin] が既定へ選び直すことで
+ * 揃えているが、選択に依存するテストは**事前状態を自分で assert すること**——
+ * 揃え方が外れたときに、テストの実行順で結果が変わる形に戻る。
  */
 val fakeSettingsStore = FakeSettingsStore()
 
 /**
- * テスト用の Koin を用意し、[fakeDatabase] と [fakeSettingsStore] を空へ戻してから
- * [prepare] を適用する。
+ * テスト用の Koin を用意し、[fakeDatabase] と [fakeSettingsStore] とテーマの選択を
+ * 既定の状態へ戻してから [prepare] を適用する。
  *
  * **Koin はプロセスにつき 1 回だけ起動し、止めない。** 止めると 2 件目以降が
  * `ClosedScopeException` で落ちる——一度掴んだ root scope がプロセス単位でキャッシュされ、
@@ -64,6 +67,19 @@ fun startTestKoin(prepare: FakeDatabase.() -> Unit = {}) {
         )
     }
     fakeDatabase.seed()
+    // **戻す順に意味がある。** resetTheme が保存先に既定を書くので、clear はその後。
+    // こうしないと「何も設定していない端末」の状態が二度と作れない
+    resetTheme()
     fakeSettingsStore.clear()
     fakeDatabase.prepare()
+}
+
+/**
+ * 選んだテーマを既定へ戻す。**保存先を空にするだけでは戻らない**（`ThemeRepository` は
+ * `single` で、生成時に 1 度だけ読む）ので、テーマを変えるテストの後ろに並んだテストが
+ * 巻き添えになる（実測）。
+ */
+private fun resetTheme() {
+    val koin = KoinPlatformTools.defaultContext().get()
+    koin.get<ThemeRepository>().select(ThemePalette.DEFAULT)
 }

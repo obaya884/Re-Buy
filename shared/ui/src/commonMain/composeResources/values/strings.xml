@@ -84,8 +84,11 @@
     <string name="theme_ai">藍</string>
     <string name="theme_kaki">柿</string>
 
+    <!-- 07 設定（画面定義書 画面 07） -->
     <string name="setting_title">設定</string>
     <string name="setting_row_category_edit">カテゴリの管理</string>
+    <string name="setting_row_license">ライセンス</string>
+    <string name="setting_version">Re-Buy %1$s</string>
 
     <string name="text_field_add_dialog_positive_button">追加</string>
     <string name="text_field_add_dialog_negative_button">キャンセル</string>

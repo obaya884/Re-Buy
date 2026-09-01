@@ -13,6 +13,7 @@ import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.resources.category_edit_title
 import io.github.obaya884.rebuy.ui.resources.setting_row_category_edit
+import io.github.obaya884.rebuy.ui.resources.setting_row_license
 import io.github.obaya884.rebuy.ui.resources.setting_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_message
 import io.github.obaya884.rebuy.ui.resources.pool_title
@@ -49,8 +50,9 @@ class NavigationIosTest {
     private val emptyTitle = string(Res.string.pool_empty_title)
     private val emptyMessage = string(Res.string.pool_empty_message)
 
-    /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
-    private val licenseLabel = "ライセンス"
+    /** ライセンス画面のタイトルは実装側がハードコードなので、ここでも文字列で持つ。 */
+    private val licenseTitle = "ライセンス"
+    private val licenseLabel = string(Res.string.setting_row_license)
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val themeLabel = string(Res.string.theme_title)
 
@@ -123,7 +125,7 @@ class NavigationIosTest {
     fun 設定からライセンスへ遷移して戻る矢印で1段ずつプールまで帰る() = app {
         onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         onNodeWithText(licenseLabel).performClick()
-        assertCurrentScreenIs(licenseLabel)
+        assertCurrentScreenIs(licenseTitle)
 
         tapBackArrow()
         assertCurrentScreenIs(settingTitle)

@@ -112,13 +112,32 @@ class ThemeIosTest {
         assertEquals(expected.accent, primary)
     }
 
+    /**
+     * 3 つのパレットの名前が並ぶこと（画面 08）。
+     *
+     * **若葉はここでしか通らない。** 他のテストは藍と柿しか触らないので、
+     * `labelResource()` の若葉の枝を取り違えても捕まらない。
+     */
+    @Test
+    fun パレットの名前が3つとも並ぶ() = runComposeUiTest {
+        startTestKoin()
+        setContent { ReBuyApp() }
+
+        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+        onNodeWithTag(TestTags.SETTING_ROW_THEME).performClick()
+
+        onNodeWithText("若葉").assertExists()
+        onNodeWithText("藍").assertExists()
+        onNodeWithText("柿").assertExists()
+    }
+
     @Test
     fun 設定からテーマを開いて選べる() = runComposeUiTest {
         startTestKoin()
         setContent { ReBuyApp() }
 
         onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
-        onNodeWithText("テーマ").performClick()
+        onNodeWithTag(TestTags.SETTING_ROW_THEME).performClick()
 
         onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("テーマ")
 
