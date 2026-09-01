@@ -34,20 +34,25 @@ if not args:
     print("使い方: sh scripts/ledger-move.sh <FB-XX|T-XX> [--status '<新しい状態列>']", file=sys.stderr)
     sys.exit(1)
 
-# 台帳ごとの差は3つだけ。ここに閉じ込めて、以降の処理は共通にする
-#   columns    … 一覧の列数（状態は5番目のセル）
-#   classified … 一覧が分類（### 見出し）で分かれているか。23 は1枚の表（④ で足す 21 は分かれる）
+# 台帳ごとの差はここに閉じ込めて、以降の処理は共通にする
+#   columns      … 一覧の列数
+#   status_index … 状態列が `row.split("|")` の何番目か。**列数からは導けない**——
+#                  21（ID/起票日/タイトル/詳細/状態）と 23（ID/タイトル/種別/優先度/状態/詳細）は
+#                  列数が違うのに、たまたまどちらも5番目に来ている。3本目を足すときに数える
+#   classified   … 一覧が分類（### 見出し）で分かれているか。21 は分かれ、23 は1枚の表
 LEDGERS = {
     "FB": {
         "live": "docs/案件/21_FB台帳.md",
         "closed": "docs/案件/closed_21_FB台帳.md",
         "columns": 5,
+        "status_index": 5,
         "classified": True,
     },
     "T": {
         "live": "docs/案件/23_技術改善バックログ.md",
         "closed": "docs/案件/closed_23_技術改善バックログ.md",
         "columns": 6,
+        "status_index": 5,
         "classified": False,
     },
 }
@@ -106,13 +111,13 @@ if ledger["classified"]:
     if section is None:
         fail(f"{entry_id} の行が属する分類（### 見出し）を特定できません")
 
-# 例: "| ID | 起票日 | タイトル | 詳細 | 状態 |" → 前後の空要素を含めて 7 要素
-# （セル内に | を書く運用はない。書くと列がずれるのでここで落ちる）
+# 前後の空要素を含めて 列数 + 2 要素になる（21 は 7、23 は 8）。
+# セル内に | を書く運用はない——書くと列がずれるのでここで落ちる
 cells = row.split("|")
 if len(cells) != ledger["columns"] + 2:
     fail(f"想定外の列数です（{len(cells) - 2} 列・この台帳は {ledger['columns']} 列）。手で直してから再実行してください")
 if new_status is not None:
-    cells[5] = f" {new_status} "
+    cells[ledger["status_index"]] = f" {new_status} "
     row = "|".join(cells)
 
 # ---- ライブ台帳から詳細節を取り出す ----

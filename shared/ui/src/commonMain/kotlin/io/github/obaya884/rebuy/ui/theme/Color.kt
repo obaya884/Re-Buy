@@ -15,7 +15,6 @@ import io.github.obaya884.rebuy.domain.ThemePalette
 data class ReBuyColors(
     /** 画面の地 */
     val page: Color,
-    /** コンテンツ面 */
     /** 行・カード */
     val card: Color,
     /** 罫線・枠 */

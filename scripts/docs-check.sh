@@ -310,6 +310,26 @@ def check_tech_backlog(path):
     return out
 
 
+def check_fb_ledger(path):
+    """21 の状態列は語彙を宣言している（未対応／完了 YYYY-MM-DD／対処不要 YYYY-MM-DD）。
+    手書きが増える台帳なので、23 の種別・優先度と同じく語彙そのものを見る"""
+    out = []
+    lines, _ = read(path)
+    for line_no, line in enumerate(lines, start=1):
+        if not re.match(r"^\|\s*FB-\d+\s*\|", line):
+            continue
+        cells = cells_of(line)
+        # "| ID | 起票日 | タイトル | 詳細 | 状態 |" → 前後の空要素を含めて 7 要素
+        if len(cells) != 7:
+            continue  # 列数の異常は表構造の検査が報告済み
+        entry_id, raised, status = cells[1], cells[2], cells[5]
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", raised):
+            out.append((path, line_no, f"{entry_id} の起票日「{raised}」が YYYY-MM-DD でない"))
+        if not re.fullmatch(r"未対応|(?:完了|対処不要) \d{4}-\d{2}-\d{2}", status):
+            out.append((path, line_no, f"{entry_id} の状態「{status}」が語彙外"))
+    return out
+
+
 # ---- ライブ台帳の状態列 ------------------------------------------------------
 
 
@@ -477,7 +497,11 @@ for path in TARGETS:
 
 # ライブ側だけが持つ固有の検査（列の記入・語彙）。LEDGERS に併記できないのは、
 # 辞書を組み立てる時点でこれらの関数がまだ定義されていないため
-LEDGER_CHECKS = {"22": (check_requirement_backlog,), "23": (check_tech_backlog,)}
+LEDGER_CHECKS = {
+    "21": (check_fb_ledger,),
+    "22": (check_requirement_backlog,),
+    "23": (check_tech_backlog,),
+}
 
 for key, entry in LEDGERS.items():
     for side in ("live", "closed"):
