@@ -39,6 +39,7 @@
 | T-48 | iOS のテストで DB を差し替えられるようにする | テスト | 中 | 完了 2026-08-31 | [詳細](#t-48) |
 | T-35 | iOS の DB と DI の経路にスモークテストを置く | テスト | 中 | 完了 2026-08-31 | [詳細](#t-35) |
 | T-39 | ライセンス一覧の収集範囲を iOS にも合わせる | 調査 | 中 | 完了 2026-08-31 | [詳細](#t-39) |
+| T-27 | Ripple とスピナーのための遅延を UI 層へ戻す | 内部設計 | 低 | 対処不要 2026-09-01 | [詳細](#t-27) |
 
 ## 詳細
 
@@ -248,3 +249,11 @@
 - 対応: 収集を `all = true` ＋ 構成名の名指し（android の compile/runtime と iOS 2 ターゲットの klib）に変え、`includeTargets = true` で全 entry に `targets` を付けた。json は 1 つのまま、`LicenseScreen` が表示時に**実行中のプラットフォームのターゲットで絞る**（`forCurrentPlatform`。`targets` が空の entry は表示に倒す）。配線の詳細は[アーキテクチャ定義書](../仕様/15_アーキテクチャ定義書.md) §6
 - 網: `PlatformLibrariesTest`（commonTest・絞りの規則）／`LicenseLibrariesTest`（instrumented・リソースの中身・画面が絞りを通していること）／`LicenseLibrariesIosTest`（iosTest・iOS 側の絞り）
 - 関連: T-31 のステップ 14 で判明
+
+### T-27
+
+- 背景: `HomeViewModel.RIPPLE_DELAY_MS`（200ms）と `ShoppingViewModel.FINISH_SHOPPING_DELAY_MS`（500ms）は、波紋が出切る前に行が動かないように・スピナーが一瞬で消えないようにという **UI の見せ方の都合**が ViewModel に降りてきたもの。T-26 でこの遅延を「守るべき挙動」としてテストに固定したため、正しい置き場所へ動かすと網が赤くなる
+- 対応方針: 遅延を Composable 側（クリックハンドラ）へ移す。移した先で待っている間に画面を離れると更新が落ちうるので、どのスコープで待つかを決めてから動かす
+- 優先度の根拠: 現状で困っていない。③ の段 3 で UI を `:shared:ui` へ移すときに一緒に片づけるのが自然
+- 関連: T-26 のレビューで code-quality-reviewer が指摘
+- 結末: **移さずに消えた**。`HomeViewModel` は F-005（画面 01 の作り直し）で、`ShoppingViewModel` の遅延は F-009（画面 04 の作り直し）で無くなった。04 は確認ダイアログを挟まなくなり、押した結果が一覧の消失として即見えるので、待たせる理由が無い（オーナー判断。[画面定義書の決定ログ](../仕様/log_13_画面定義書.md) 2026-09-01）

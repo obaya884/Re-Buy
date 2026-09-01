@@ -143,7 +143,7 @@ kotlin {
                 // Android では JetBrains の別名アーティファクトが androidx へ解決するので、
                 // :androidApp が持つ androidx の BOM とはぶつからない。
                 // :androidApp と instrumented テストが直に触る型を出すものを api にする
-                //   compose.ui: BottomNavigationItem の ImageVector
+                //   compose.ui: instrumented テストの Modifier・onNodeWithTag
                 //   material3: 画面 Composable が受け取る SnackbarHostState
                 // runtime と foundation はこの 2 つが api で推移的に引くので implementation
                 implementation(compose.runtime)
@@ -183,6 +183,11 @@ kotlin {
                 // json は使っていない（保存形式は savedstate が決める）ので core だけ
                 implementation(libs.kotlinx.serialization.core)
             }
+        }
+
+        androidMain.dependencies {
+            // SystemBackHandler の Android 実装。compose.ui には端末の戻りを受ける口が無い
+            implementation(libs.androidx.activity.compose)
         }
 
         commonTest.dependencies {

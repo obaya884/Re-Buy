@@ -1,405 +1,336 @@
 package io.github.obaya884.rebuy.ui.screen.shopping
 
-import io.github.obaya884.rebuy.ui.CREATED_AT
-import io.github.obaya884.rebuy.ui.ViewModelTestBase
-import io.github.obaya884.rebuy.ui.FakeDatabase
 import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.domain.DestinationRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
+import io.github.obaya884.rebuy.ui.CREATED_AT
+import io.github.obaya884.rebuy.ui.FakeDatabase
+import io.github.obaya884.rebuy.ui.ViewModelTestBase
+import io.github.obaya884.rebuy.ui.destination
 import io.github.obaya884.rebuy.ui.item
-import io.github.obaya884.rebuy.ui.screen.shopping.ShoppingViewModel.Companion.FINISH_SHOPPING_DELAY_MS
-import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
+import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.test.Test
 
-/** 買い物画面の ViewModel。③ の移植で挙動が変わっていないことを確かめる網。 */
+/**
+ * 買い物モード（画面 04）の一覧と、チェック・終了の書き込み。
+ *
+ * 一覧が固定するのは 3 つ。**選んだ行き先の品目とどこでも買えるものが別の群になること**、
+ * **他の行き先の品目とカゴ外は出ないこと**、**全件モードは 1 群にまとまること**。
+ * 終了は **「一覧のチェック済みだけ」が戻る**ところを見る（データモデル定義書 §3）。
+ */
 class ShoppingViewModelTest : ViewModelTestBase() {
 
     private val db = FakeDatabase()
 
-    private fun viewModel() = ShoppingViewModel(itemRepository = ItemRepository(db.itemDao))
+    private fun viewModel(destinationId: Int?) = ShoppingViewModel(
+        itemRepository = ItemRepository(db.itemDao),
+        destinationRepository = DestinationRepository(db.destinationDao),
+        destinationId = destinationId
+    )
 
-    // ---- 流れ込み ----
+    private val inBasket = ItemStatus.IN_SHOPPING_LIST
+    private val checked = ItemStatus.CHECKED_IN_SHOPPING_LIST
+
+    // ---- 一覧 ----
 
     @Test
-    fun 初期値は空で始まる() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.IN_SHOPPING_LIST)))
+    fun 選んだ行き先の品目とどこでも買えるものが別の群になる() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = inBasket, destinationId = 1),
+                item(2, status = inBasket),
+                item(3, status = inBasket, destinationId = 1)
+            ),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
 
-        val viewModel = viewModel()
+        advanceUntilIdle()
 
-        assertEquals(emptyList<Item>(), viewModel.uiState.value.shoppingListItems)
+        assertEquals(listOf(1, 3), viewModel.uiState.value.destinationItems.map { it.id })
+        assertEquals(listOf(2), viewModel.uiState.value.anywhereItems.map { it.id })
+    }
+
+    @Test
+    fun 他の行き先の品目は一覧に出ない() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = inBasket, destinationId = 1),
+                item(2, status = inBasket, destinationId = 2)
+            ),
+            destinations = listOf(destination(1), destination(2))
+        )
+        val viewModel = viewModel(destinationId = 1)
+
+        advanceUntilIdle()
+
+        assertEquals(listOf(1), viewModel.uiState.value.visibleItems.map { it.id })
+    }
+
+    /** カゴに入っていないもの（状態 0）は買い物の対象ではない。 */
+    @Test
+    fun カゴに入っていない品目は一覧に出ない() = runTest {
+        db.seed(
+            items = listOf(item(1, destinationId = 1), item(2, status = inBasket, destinationId = 1)),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
+
+        advanceUntilIdle()
+
+        assertEquals(listOf(2), viewModel.uiState.value.destinationItems.map { it.id })
+    }
+
+    /** チェック済み（状態 2）も一覧に残る。**行の位置は動かさない**ので順も変わらない。 */
+    @Test
+    fun チェック済みも一覧に残り順も変わらない() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = checked, destinationId = 1),
+                item(2, status = inBasket, destinationId = 1)
+            ),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
+
+        advanceUntilIdle()
+
+        assertEquals(listOf(1, 2), viewModel.uiState.value.destinationItems.map { it.id })
+    }
+
+    /** 全件モードは行き先で分けない。どこでも買えるものも同じ群に入る。 */
+    @Test
+    fun 全件モードはカゴの中身が1群にまとまる() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = inBasket, destinationId = 1),
+                item(2, status = inBasket)
+            ),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = null)
+
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.isAllMode)
+        assertEquals(listOf(1, 2), viewModel.uiState.value.destinationItems.map { it.id })
+        assertEquals(emptyList(), viewModel.uiState.value.anywhereItems)
+    }
+
+    /** **選んだ行き先の名前**であること。先頭を返す実装では 1 件目の名前が出てしまう。 */
+    @Test
+    fun 行き先名はアプリバーのために引かれる() = runTest {
+        db.seed(destinations = listOf(destination(1), destination(2, name = "行き先B")))
+        val viewModel = viewModel(destinationId = 2)
+
+        advanceUntilIdle()
+
+        assertEquals("行き先B", viewModel.uiState.value.destinationName)
+    }
+
+    @Test
+    fun 全件モードには行き先名が無い() = runTest {
+        db.seed(destinations = listOf(destination(1)))
+        val viewModel = viewModel(destinationId = null)
+
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.destinationName)
+    }
+
+    /** 進捗「x / n」。n は一覧の総数なので、どこでも買えるものも数に入る。 */
+    @Test
+    fun 進捗はチェック済みと一覧総数を数える() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = checked, destinationId = 1),
+                item(2, status = inBasket, destinationId = 1),
+                item(3, status = checked),
+                item(4, status = inBasket, destinationId = 2)
+            ),
+            destinations = listOf(destination(1), destination(2))
+        )
+        val viewModel = viewModel(destinationId = 1)
+
+        advanceUntilIdle()
+
+        assertEquals(2, viewModel.uiState.value.checkedCount)
+        assertEquals(3, viewModel.uiState.value.totalCount)
+    }
+
+    /**
+     * 一覧は**買い物中も DB に追随する**。05（F-010）で品目を足すとここに現れる。
+     * 最初の 1 回だけ読む実装だと、足したものが出ないまま買い物が終わる。
+     */
+    @Test
+    fun 買い物中に増えた品目も一覧に現れる() = runTest {
+        db.seed(
+            items = listOf(item(1, status = inBasket, destinationId = 1)),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
+        advanceUntilIdle()
+
+        db.add(item(2, status = inBasket, destinationId = 1))
+        advanceUntilIdle()
+
+        assertEquals(listOf(1, 2), viewModel.uiState.value.destinationItems.map { it.id })
+        assertEquals(2, viewModel.uiState.value.totalCount)
     }
 
     // ---- チェックの付け外し ----
 
     @Test
-    fun チェックを付けると確認済みの状態になる() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
+    fun チェックを付けるとチェック済みになる() = runTest {
+        db.seed(items = listOf(item(1, status = inBasket)))
+        val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
 
-        viewModel.markScheduledBought(db.storedItem(1))
+        viewModel.toggleCheck(db.storedItem(1))
         advanceUntilIdle()
 
-        assertEquals(ItemStatus.CHECKED_IN_SHOPPING_LIST, db.storedItem(1).status)
+        assertEquals(checked, db.storedItem(1).status)
+        // 進捗も追随する
+        assertEquals(1, viewModel.uiState.value.checkedCount)
     }
 
     @Test
-    fun チェックを外すと買い物リストの状態に戻る() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
+    fun もう一度タップするとチェックが外れる() = runTest {
+        db.seed(items = listOf(item(1, status = checked)))
+        val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
 
-        viewModel.unMarkScheduledBought(db.storedItem(1))
+        viewModel.toggleCheck(db.storedItem(1))
         advanceUntilIdle()
 
-        assertEquals(ItemStatus.IN_SHOPPING_LIST, db.storedItem(1).status)
+        assertEquals(inBasket, db.storedItem(1).status)
     }
 
-    @Test
-    fun 既にチェック済みの品目にチェックを付けても更新しない() = runTest {
-        val original = item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-        db.seed(items = listOf(original))
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.markScheduledBought(db.storedItem(1))
-        advanceUntilIdle()
-
-        // 早期 return するので updatedAt も書き換わらない
-        assertEquals(original, db.storedItem(1))
-    }
-
-    @Test
-    fun チェックの付いていない品目のチェックを外しても更新しない() = runTest {
-        val original = item(1, status = ItemStatus.IN_SHOPPING_LIST)
-        db.seed(items = listOf(original))
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.unMarkScheduledBought(db.storedItem(1))
-        advanceUntilIdle()
-
-        assertEquals(original, db.storedItem(1))
-    }
-
+    /** チェックは買った印ではない。最終購入日が入るのは「終了」のときだけ。 */
     @Test
     fun チェックを付けても最終購入日は変わらない() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
+        db.seed(items = listOf(item(1, status = inBasket)))
+        val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
 
-        viewModel.markScheduledBought(db.storedItem(1))
+        viewModel.toggleCheck(db.storedItem(1))
         advanceUntilIdle()
 
         assertNull(db.storedItem(1).lastBoughtAt)
     }
 
-    @Test
-    fun チェックを付けても作成日時は変わらない() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.markScheduledBought(db.storedItem(1))
-        advanceUntilIdle()
-
-        assertEquals(CREATED_AT, db.storedItem(1).createdAt)
-    }
-
     // ---- 買い物の終了 ----
 
     @Test
-    fun 買い物を終えるとチェック済みの品目が取引なしに戻る() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
+    fun 終了でチェック済みがプールへ戻り最終購入日が入る() = runTest {
+        db.seed(items = listOf(item(1, status = checked)))
+        val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
 
-        viewModel.changeBoughtConfirm {}
+        viewModel.finishShopping {}
         advanceUntilIdle()
 
         assertEquals(ItemStatus.NO_DEAL, db.storedItem(1).status)
-    }
-
-    @Test
-    fun 買い物を終えるとチェック済みの品目に最終購入日が入る() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.changeBoughtConfirm {}
-        advanceUntilIdle()
-
         assertNotNull(db.storedItem(1).lastBoughtAt)
     }
 
     @Test
-    fun 最終購入日は更新日時と同じ値になる() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.changeBoughtConfirm {}
-        advanceUntilIdle()
-
-        assertEquals(db.storedItem(1).updatedAt, db.storedItem(1).lastBoughtAt)
-    }
-
-    @Test
     fun 前回の最終購入日は上書きされる() = runTest {
-        db.seed(
-            items = listOf(
-                item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST, lastBoughtAt = CREATED_AT)
-            )
-        )
-        val viewModel = viewModel()
+        db.seed(items = listOf(item(1, status = checked, lastBoughtAt = CREATED_AT)))
+        val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
 
-        viewModel.changeBoughtConfirm {}
+        viewModel.finishShopping {}
         advanceUntilIdle()
 
         assertNotEquals(CREATED_AT, db.storedItem(1).lastBoughtAt)
     }
 
     @Test
-    fun チェック済みが複数あればすべて取引なしに戻る() = runTest {
+    fun 終了してもチェックしていない品目はカゴに残る() = runTest {
+        db.seed(items = listOf(item(1, status = inBasket), item(2, status = checked)))
+        val viewModel = viewModel(destinationId = null)
+        advanceUntilIdle()
+
+        viewModel.finishShopping {}
+        advanceUntilIdle()
+
+        assertEquals(inBasket, db.storedItem(1).status)
+        assertNull(db.storedItem(1).lastBoughtAt)
+    }
+
+    /**
+     * **一覧に無いチェック済みは戻さない**（データモデル定義書 §3）。
+     * 05 で他の行き先へ足したものや、前回別の店で付けたチェックが巻き添えにならないように。
+     */
+    @Test
+    fun 一覧に出ていないチェック済みは戻らない() = runTest {
         db.seed(
             items = listOf(
-                item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST),
-                item(2, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-            )
+                item(1, status = checked, destinationId = 1),
+                item(2, status = checked, destinationId = 2)
+            ),
+            destinations = listOf(destination(1), destination(2))
         )
-        val viewModel = viewModel()
+        val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeBoughtConfirm {}
+        viewModel.finishShopping {}
         advanceUntilIdle()
 
-        assertEquals(
-            listOf(ItemStatus.NO_DEAL, ItemStatus.NO_DEAL),
-            db.storedItems.map { it.status }
-        )
+        assertEquals(ItemStatus.NO_DEAL, db.storedItem(1).status)
+        assertEquals(checked, db.storedItem(2).status)
     }
 
     @Test
-    fun チェック済みが複数あればすべてに最終購入日が入る() = runTest {
+    fun どこでも買えるもののチェック済みも戻る() = runTest {
         db.seed(
-            items = listOf(
-                item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST),
-                item(2, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-            )
+            items = listOf(item(1, status = checked, destinationId = 1), item(2, status = checked)),
+            destinations = listOf(destination(1))
         )
-        val viewModel = viewModel()
+        val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeBoughtConfirm {}
+        viewModel.finishShopping {}
         advanceUntilIdle()
 
+        assertEquals(emptyList<Item>(), db.storedItems.filter { it.status != ItemStatus.NO_DEAL })
         assertEquals(emptyList<Item>(), db.storedItems.filter { it.lastBoughtAt == null })
     }
 
+    /** 画面を離れる前に書き終えていること。**先に離れると viewModelScope ごと畳まれる**。 */
     @Test
     fun 完了が通知される時点で更新は終わっている() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
+        db.seed(items = listOf(item(1, status = checked)))
+        val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
         var statusOnFinished: ItemStatus? = null
 
-        viewModel.changeBoughtConfirm { statusOnFinished = db.storedItem(1).status }
+        viewModel.finishShopping { statusOnFinished = db.storedItem(1).status }
         advanceUntilIdle()
 
         assertEquals(ItemStatus.NO_DEAL, statusOnFinished)
     }
 
+    /** チェックが 1 件も無くても終了できる（画面 04）。 */
     @Test
-    fun チェック済みが1件も無くても完了が通知される() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
+    fun チェック済みが1件も無くても終了できる() = runTest {
+        db.seed(items = listOf(item(1, status = inBasket)))
+        val viewModel = viewModel(destinationId = null)
         advanceUntilIdle()
         var finished = false
 
-        viewModel.changeBoughtConfirm { finished = true }
+        viewModel.finishShopping { finished = true }
         advanceUntilIdle()
 
         assertTrue(finished)
-    }
-
-    @Test
-    fun 買い物を終えてもチェックしていない品目は買い物リストに残る() = runTest {
-        db.seed(
-            items = listOf(
-                item(1, status = ItemStatus.IN_SHOPPING_LIST),
-                item(2, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-            )
-        )
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.changeBoughtConfirm {}
-        advanceUntilIdle()
-
-        assertEquals(ItemStatus.IN_SHOPPING_LIST, db.storedItem(1).status)
-    }
-
-    @Test
-    fun 買い物を終えてもチェックしていない品目に最終購入日は入らない() = runTest {
-        db.seed(
-            items = listOf(
-                item(1, status = ItemStatus.IN_SHOPPING_LIST),
-                item(2, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-            )
-        )
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.changeBoughtConfirm {}
-        advanceUntilIdle()
-
-        assertNull(db.storedItem(1).lastBoughtAt)
-    }
-
-    // ---- 終了処理中の読み込み表示 ----
-
-    @Test
-    fun 買い物を終える処理の途中は読み込み中になる() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.changeBoughtConfirm {}
-        // advanceTimeBy はちょうどその時刻に積まれたタスクを実行しない
-        advanceTimeBy(FINISH_SHOPPING_DELAY_MS)
-
-        assertTrue(viewModel.uiState.value.isLoading)
-    }
-
-    @Test
-    fun 遅延を過ぎると読み込み中が解除される() = runTest {
-        db.seed(items = listOf(item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
-        advanceUntilIdle()
-
-        viewModel.changeBoughtConfirm {}
-        advanceTimeBy(FINISH_SHOPPING_DELAY_MS + 1)
-
-        assertFalse(viewModel.uiState.value.isLoading)
-    }
-
-    @Test
-    fun 初期状態では読み込み中ではない() = runTest {
-        val viewModel = viewModel()
-
-        assertFalse(viewModel.uiState.value.isLoading)
-    }
-
-    // ---- 終了確認ダイアログ ----
-
-    @Test
-    fun 終了確認ダイアログは初期状態では閉じている() = runTest {
-        val viewModel = viewModel()
-
-        assertFalse(viewModel.uiState.value.isShowFinishShoppingAlertDialog)
-    }
-
-    @Test
-    fun 終了確認ダイアログを開ける() = runTest {
-        val viewModel = viewModel()
-
-        viewModel.showFinishShoppingAlertDialog()
-        advanceUntilIdle()
-
-        assertTrue(viewModel.uiState.value.isShowFinishShoppingAlertDialog)
-    }
-
-    @Test
-    fun 終了確認ダイアログを閉じられる() = runTest {
-        val viewModel = viewModel()
-        viewModel.showFinishShoppingAlertDialog()
-        advanceUntilIdle()
-
-        viewModel.hideFinishShoppingAlertDialog()
-        advanceUntilIdle()
-
-        assertFalse(viewModel.uiState.value.isShowFinishShoppingAlertDialog)
-    }
-
-    // ---- 派生値 ----
-
-    @Test
-    fun shoppingListItemsは買い物リストと確認済みを集める() = runTest {
-        db.seed(
-            items = listOf(
-                item(1),
-                item(2, status = ItemStatus.IN_SHOPPING_LIST),
-                item(3, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-            )
-        )
-        val viewModel = viewModel()
-
-        advanceUntilIdle()
-
-        assertEquals(listOf(2, 3), viewModel.uiState.value.shoppingListItems.map { it.id })
-    }
-
-    @Test
-    fun checkedInShoppingListItemsは確認済みだけを集める() = runTest {
-        db.seed(
-            items = listOf(
-                item(2, status = ItemStatus.IN_SHOPPING_LIST),
-                item(3, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-            )
-        )
-        val viewModel = viewModel()
-
-        advanceUntilIdle()
-
-        assertEquals(listOf(3), viewModel.uiState.value.checkedInShoppingListItems.map { it.id })
-    }
-
-    @Test
-    fun 確認済みが1件でもあればisExistCheckedInShoppingListItemsが立つ() = runTest {
-        db.seed(
-            items = listOf(
-                item(2, status = ItemStatus.IN_SHOPPING_LIST),
-                item(3, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-            )
-        )
-        val viewModel = viewModel()
-
-        advanceUntilIdle()
-
-        assertTrue(viewModel.uiState.value.isExistCheckedInShoppingListItems)
-    }
-
-    @Test
-    fun 確認済みが無ければisExistCheckedInShoppingListItemsは立たない() = runTest {
-        db.seed(items = listOf(item(2, status = ItemStatus.IN_SHOPPING_LIST)))
-        val viewModel = viewModel()
-
-        advanceUntilIdle()
-
-        assertFalse(viewModel.uiState.value.isExistCheckedInShoppingListItems)
-    }
-
-    @Test
-    fun inShoppingListItemsは買い物リストの状態だけを集める() = runTest {
-        db.seed(
-            items = listOf(
-                item(2, status = ItemStatus.IN_SHOPPING_LIST),
-                item(3, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
-            )
-        )
-        val viewModel = viewModel()
-
-        advanceUntilIdle()
-
-        assertEquals(listOf(2), viewModel.uiState.value.inShoppingListItems.map { it.item.id })
+        assertEquals(inBasket, db.storedItem(1).status)
     }
 }

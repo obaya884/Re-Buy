@@ -98,7 +98,7 @@ class ShoppingStartSheetIosTest {
     fun 行タップで買い物に入りシートは閉じる() = sheet(withDestinations()) {
         onNodeWithTag(TestTags.shoppingStartRow(destinationId = 1)).performClick()
 
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("買い物")
+        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("行き先1で買い物中")
         onNodeWithTag(TestTags.shoppingStartRow(destinationId = 1)).assertDoesNotExist()
     }
 }

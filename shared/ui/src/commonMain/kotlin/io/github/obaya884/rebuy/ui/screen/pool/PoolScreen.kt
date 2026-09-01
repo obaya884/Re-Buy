@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -19,8 +17,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -35,9 +31,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.data.category.Category
@@ -49,6 +43,7 @@ import io.github.obaya884.rebuy.ui.formatMonthDay
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditSheet
 import io.github.obaya884.rebuy.ui.screen.register.RegisterSheet
 import io.github.obaya884.rebuy.ui.screen.shopping_start.ShoppingStartSheet
@@ -64,9 +59,7 @@ import org.koin.compose.viewmodel.koinViewModel
  * 押した場所がそのまま結果になるほうが、連続して触るときに迷わないため。
  *
  * 行の長押しで編集シート（06）を、「買い物を始める」で開始シート（03）を開く。
- * 04 買い物モードは F-009 なので、そこだけ旧画面へ暫定で繋いである（`// 暫定:` で grep）。
  */
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PoolScreen(
     navigator: Navigator,
@@ -157,10 +150,9 @@ fun PoolScreen(
     }
     if (isShoppingStartSheetOpen) {
         ShoppingStartSheet(
-            // 暫定: 04 買い物モードは F-009。いまは行き先を持たない旧画面へ入る
-            onEnterShopping = {
+            onEnterShopping = { destinationId ->
                 isShoppingStartSheetOpen = false
-                navigator.navigate(Screen.Shopping)
+                navigator.navigate(Screen.Shopping(destinationId))
             },
             onDismiss = { isShoppingStartSheetOpen = false }
         )
@@ -216,53 +208,36 @@ private fun FilterChips(
     }
 }
 
-/**
- * 一覧の 1 行。カゴ入りは**面の色**で示す（トグルの ✓ と合わせて 2 通りで分かるように）。
- */
+/** 一覧の 1 行。行タップ＝カゴの出し入れ、長押し＝編集シート（画面定義書 §2）。 */
 @Composable
 private fun PoolRow(poolItem: PoolItem, onTap: () -> Unit, onLongPress: () -> Unit) {
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (poolItem.isInBasket) {
-                ReBuyTheme.colors.accentSoft
-            } else {
-                ReBuyTheme.colors.card
-            }
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            // **clip を先に置く**。後ろに置くとリップルがカードの角丸からはみ出る
-            .clip(CardDefaults.shape)
-            // 行タップ＝カゴの出し入れ、長押し＝編集シート（画面定義書 §2）
-            .combinedClickable(role = Role.Button, onClick = onTap, onLongClick = onLongPress)
-            .testTag(TestTags.poolRow(poolItem.item.id))
+    ReBuyRowCard(
+        highlighted = poolItem.isInBasket,
+        onTap = onTap,
+        testTag = TestTags.poolRow(poolItem.item.id),
+        onLongPress = onLongPress
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = poolItem.item.name,
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = ReBuyTheme.colors.ink
-                )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    poolItem.category?.let { RowMetaText(it.name) }
-                    poolItem.destination?.let {
-                        RowMetaText(stringResource(Res.string.pool_destination_prefix, it.name))
-                    }
-                    Text(
-                        text = poolItem.item.lastBoughtAt
-                            ?.let { stringResource(Res.string.pool_last_bought_at, formatMonthDay(it)) }
-                            ?: stringResource(Res.string.pool_last_bought_at_never),
-                        style = MaterialTheme.typography.labelMedium.tabularNumbers(),
-                        color = ReBuyTheme.colors.muted
-                    )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = poolItem.item.name,
+                style = MaterialTheme.typography.bodyLarge,
+                color = ReBuyTheme.colors.ink
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                poolItem.category?.let { RowMetaText(it.name) }
+                poolItem.destination?.let {
+                    RowMetaText(stringResource(Res.string.pool_destination_prefix, it.name))
                 }
+                Text(
+                    text = poolItem.item.lastBoughtAt
+                        ?.let { stringResource(Res.string.pool_last_bought_at, formatMonthDay(it)) }
+                        ?: stringResource(Res.string.pool_last_bought_at_never),
+                    style = MaterialTheme.typography.labelMedium.tabularNumbers(),
+                    color = ReBuyTheme.colors.muted
+                )
             }
-            BasketCheckMark(isInBasket = poolItem.isInBasket)
         }
+        BasketCheckMark(isInBasket = poolItem.isInBasket)
     }
 }
 

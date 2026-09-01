@@ -106,6 +106,25 @@ class DataModelRepositoryTest {
         assertEquals(CREATED_AT, db.storedItem(1).updatedAt)
     }
 
+    /** 04 の行タップは状態で分岐するので、この早期 return には UI から到達しない。 */
+    @Test
+    fun チェック済みの品目にチェックを付けても更新しない() = runTest {
+        db.seed(items = listOf(item(id = 1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)))
+
+        itemRepository.updateStatusAsCheckedInBasket(db.storedItem(1))
+
+        assertEquals(CREATED_AT, db.storedItem(1).updatedAt)
+    }
+
+    @Test
+    fun チェックの付いていない品目のチェックを外しても更新しない() = runTest {
+        db.seed(items = listOf(item(id = 1, status = ItemStatus.IN_SHOPPING_LIST)))
+
+        itemRepository.updateStatusAsInBasket(db.storedItem(1))
+
+        assertEquals(CREATED_AT, db.storedItem(1).updatedAt)
+    }
+
     @Test
     fun 品目の行き先を付け替えられる() = runTest {
         db.seed(items = listOf(item(id = 1)), destinations = listOf(destination(id = 1)))
