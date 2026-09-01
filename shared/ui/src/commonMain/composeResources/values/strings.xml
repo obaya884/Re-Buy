@@ -84,8 +84,7 @@
     <string name="theme_ai">藍</string>
     <string name="theme_kaki">柿</string>
 
-    <!-- 07 設定（画面定義書 画面 07）。利用規約・プライバシーポリシー・問い合わせは
-         リリース前まで行ごと出さない -->
+    <!-- 07 設定（画面定義書 画面 07） -->
     <string name="setting_title">設定</string>
     <string name="setting_row_category_edit">カテゴリの管理</string>
     <string name="setting_row_license">ライセンス</string>

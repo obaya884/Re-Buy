@@ -30,8 +30,8 @@ val fakeDatabase = FakeDatabase()
 val fakeSettingsStore = FakeSettingsStore()
 
 /**
- * テスト用の Koin を用意し、[fakeDatabase] と [fakeSettingsStore] を空へ戻してから
- * [prepare] を適用する。
+ * テスト用の Koin を用意し、[fakeDatabase] と [fakeSettingsStore] とテーマの選択を
+ * 既定の状態へ戻してから [prepare] を適用する。
  *
  * **Koin はプロセスにつき 1 回だけ起動し、止めない。** 止めると 2 件目以降が
  * `ClosedScopeException` で落ちる——一度掴んだ root scope がプロセス単位でキャッシュされ、
@@ -67,9 +67,19 @@ fun startTestKoin(prepare: FakeDatabase.() -> Unit = {}) {
         )
     }
     fakeDatabase.seed()
+    // **戻す順に意味がある。** resetTheme が保存先に既定を書くので、clear はその後。
+    // こうしないと「何も設定していない端末」の状態が二度と作れない
+    resetTheme()
     fakeSettingsStore.clear()
-    // 選んだテーマもここで既定へ戻す。**保存先を空にするだけでは戻らない**ので、
-    // テーマを変えるテストの後ろに並んだテストが巻き添えになる（実測）
-    KoinPlatformTools.defaultContext().get().get<ThemeRepository>().select(ThemePalette.DEFAULT)
     fakeDatabase.prepare()
+}
+
+/**
+ * 選んだテーマを既定へ戻す。**保存先を空にするだけでは戻らない**（`ThemeRepository` は
+ * `single` で、生成時に 1 度だけ読む）ので、テーマを変えるテストの後ろに並んだテストが
+ * 巻き添えになる（実測）。
+ */
+private fun resetTheme() {
+    val koin = KoinPlatformTools.defaultContext().get()
+    koin.get<ThemeRepository>().select(ThemePalette.DEFAULT)
 }

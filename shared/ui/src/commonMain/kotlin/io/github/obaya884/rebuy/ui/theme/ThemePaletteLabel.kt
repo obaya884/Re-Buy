@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy.ui.screen.theme
+package io.github.obaya884.rebuy.ui.theme
 
 import io.github.obaya884.rebuy.domain.ThemePalette
 import io.github.obaya884.rebuy.ui.resources.Res
@@ -9,7 +9,7 @@ import org.jetbrains.compose.resources.StringResource
 
 /**
  * パレットの表示名。**08 で選ぶときと 07 で今の選択を出すときで同じ語を使う**ので、
- * 対応を 1 か所に置く。
+ * 対応を 1 か所に置く。**どちらの画面にも属さない語彙**なので配色トークンと同居させる。
  */
 internal fun ThemePalette.labelResource(): StringResource = when (this) {
     ThemePalette.WAKABA -> Res.string.theme_wakaba

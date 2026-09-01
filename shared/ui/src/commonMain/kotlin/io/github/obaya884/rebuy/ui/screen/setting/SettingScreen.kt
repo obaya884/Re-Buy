@@ -29,7 +29,7 @@ import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
-import io.github.obaya884.rebuy.ui.screen.theme.labelResource
+import io.github.obaya884.rebuy.ui.theme.labelResource
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
@@ -42,6 +42,8 @@ import org.koin.compose.viewmodel.koinViewModel
  *
  * 現在のテーマ名を出すために 08 と同じ [ThemeViewModel] を見る。**選択は
  * `ThemeRepository` が持つ**ので、読むだけの ViewModel をもう 1 つ作る必要がない。
+ * **07 が自分の状態を持ち始めたら**（行が増えて件数やトグルが乗るなど）、`SettingViewModel` を
+ * 起こしてテーマ名の読み取りもそちらへ移すこと——いまの形は状態がゼロの間だけ素直。
  */
 @Composable
 fun SettingScreen(
@@ -70,13 +72,14 @@ fun SettingScreen(
                 // 暫定: 09 カテゴリの管理は F-012。いまは旧画面へ入る
                 onTap = { navigator.navigate(Screen.CategoryEdit) }
             )
-            // 暫定: 「行き先の管理」の行は F-013 で足す。行き先の管理画面がまだ無い
+            // 暫定: ここに「行き先の管理」が入る（F-013。管理画面がまだ無いので出していない）
+
             SettingRow(
                 label = stringResource(Res.string.theme_title),
                 testTag = TestTags.SETTING_ROW_THEME,
                 onTap = { navigator.navigate(Screen.Theme) },
                 // 開かなくても今どれを選んでいるか分かるように（画面 07）
-                value = stringResource(palette.labelResource())
+                currentValue = stringResource(palette.labelResource())
             )
             SettingRow(
                 label = stringResource(Res.string.setting_row_license),
@@ -96,13 +99,18 @@ fun SettingScreen(
     }
 }
 
-/** 1 行。右端は [value] があればその文言、無ければ「開く」ことを示す ＞。 */
+/**
+ * 1 行。右端は常に「開く」ことを示す ＞ で、[currentValue] があればその手前に今の値を添える。
+ *
+ * 縦の余白は 08 の行（12dp）より広い。**右端に値を持つぶん行の中身が増える**ので、
+ * 一覧として詰まって見えないようにしている。
+ */
 @Composable
 private fun SettingRow(
     label: String,
     testTag: String,
     onTap: () -> Unit,
-    value: String? = null
+    currentValue: String? = null
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -118,7 +126,7 @@ private fun SettingRow(
             color = ReBuyTheme.colors.ink,
             modifier = Modifier.weight(1f)
         )
-        value?.let {
+        currentValue?.let {
             Text(
                 text = it,
                 style = MaterialTheme.typography.bodyMedium,

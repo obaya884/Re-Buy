@@ -5,7 +5,10 @@ import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.item.ItemDao
 import io.github.obaya884.rebuy.data.settings.SettingsStore
 import org.koin.mp.KoinPlatformTools
+import io.github.obaya884.rebuy.domain.ThemePalette
+import io.github.obaya884.rebuy.domain.ThemeRepository
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertSame
 
 /**
@@ -35,5 +38,21 @@ class IosTestKoinTest {
         startTestKoin()
 
         assertSame(fakeSettingsStore, KoinPlatformTools.defaultContext().get().get<SettingsStore>())
+    }
+
+    /**
+     * **テーマの選択も既定へ戻ること。** ここが外れると、テーマを変えるテストの後ろに
+     * 並んだテストが巻き添えになる（実測）。実行順に依らずここで見る——
+     * 「別のテストが先に走るから守られている」形にすると、名前を変えた日に黙って外れる。
+     */
+    @Test
+    fun テーマの選択も既定へ戻る() {
+        startTestKoin()
+        val themeRepository = KoinPlatformTools.defaultContext().get().get<ThemeRepository>()
+        themeRepository.select(ThemePalette.KAKI)
+
+        startTestKoin()
+
+        assertEquals(ThemePalette.DEFAULT, themeRepository.palette.value)
     }
 }

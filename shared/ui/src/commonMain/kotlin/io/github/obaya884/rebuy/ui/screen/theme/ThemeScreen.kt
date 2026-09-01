@@ -31,12 +31,10 @@ import io.github.obaya884.rebuy.domain.ThemePalette
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.Res
-import io.github.obaya884.rebuy.ui.resources.theme_ai
-import io.github.obaya884.rebuy.ui.resources.theme_kaki
 import io.github.obaya884.rebuy.ui.resources.theme_title
-import io.github.obaya884.rebuy.ui.resources.theme_wakaba
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
+import io.github.obaya884.rebuy.ui.theme.labelResource
 import io.github.obaya884.rebuy.ui.theme.reBuyColors
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
