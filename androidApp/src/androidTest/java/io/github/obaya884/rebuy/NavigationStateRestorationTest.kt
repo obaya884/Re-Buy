@@ -45,7 +45,6 @@ class NavigationStateRestorationTest {
     /** ライセンス画面のタイトルは実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
     private val shoppingTitleAll = string(Res.string.shopping_title_all)
-    private val leaveConfirmLabel = string(Res.string.shopping_leave_dialog_confirm)
 
     private fun assertCurrentScreenIs(title: String) {
         composeRule.onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals(title)
@@ -106,7 +105,7 @@ class NavigationStateRestorationTest {
 
         // 後始末: 実機の DB に残さない
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-        composeRule.onNodeWithText(leaveConfirmLabel).performClick()
+        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
         composeRule.onNodeWithText("復元の確認用").performTouchInput { longClick() }
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()

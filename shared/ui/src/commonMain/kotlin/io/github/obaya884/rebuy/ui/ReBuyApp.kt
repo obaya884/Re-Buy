@@ -59,7 +59,7 @@ fun ReBuyApp() {
 }
 
 /**
- * 画面のルート。宣言順は [entryProvider] の登録順（トップレベルが先）に揃える。
+ * 画面のルート。宣言順は [entryProvider] の登録順に揃える。
  *
  * **画面を足すときは 3 か所そろえる**——ここの宣言、[entryProvider] の `entry<...>`、
  * そして [screenSavedStateConfiguration] の `subclass(...)`。

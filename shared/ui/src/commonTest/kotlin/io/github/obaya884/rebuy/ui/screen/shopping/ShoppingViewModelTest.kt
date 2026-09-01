@@ -54,8 +54,8 @@ class ShoppingViewModelTest : ViewModelTestBase() {
 
         advanceUntilIdle()
 
-        assertEquals(listOf(1, 3), viewModel.uiState.value.ofDestination.map { it.id })
-        assertEquals(listOf(2), viewModel.uiState.value.anywhere.map { it.id })
+        assertEquals(listOf(1, 3), viewModel.uiState.value.destinationItems.map { it.id })
+        assertEquals(listOf(2), viewModel.uiState.value.anywhereItems.map { it.id })
     }
 
     @Test
@@ -85,7 +85,7 @@ class ShoppingViewModelTest : ViewModelTestBase() {
 
         advanceUntilIdle()
 
-        assertEquals(listOf(2), viewModel.uiState.value.ofDestination.map { it.id })
+        assertEquals(listOf(2), viewModel.uiState.value.destinationItems.map { it.id })
     }
 
     /** チェック済み（状態 2）も一覧に残る。**行の位置は動かさない**ので順も変わらない。 */
@@ -102,7 +102,7 @@ class ShoppingViewModelTest : ViewModelTestBase() {
 
         advanceUntilIdle()
 
-        assertEquals(listOf(1, 2), viewModel.uiState.value.ofDestination.map { it.id })
+        assertEquals(listOf(1, 2), viewModel.uiState.value.destinationItems.map { it.id })
     }
 
     /** 全件モードは行き先で分けない。どこでも買えるものも同じ群に入る。 */
@@ -120,8 +120,8 @@ class ShoppingViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         assertTrue(viewModel.uiState.value.isAllMode)
-        assertEquals(listOf(1, 2), viewModel.uiState.value.ofDestination.map { it.id })
-        assertEquals(emptyList(), viewModel.uiState.value.anywhere)
+        assertEquals(listOf(1, 2), viewModel.uiState.value.destinationItems.map { it.id })
+        assertEquals(emptyList(), viewModel.uiState.value.anywhereItems)
     }
 
     @Test

@@ -26,21 +26,19 @@ fun rememberNavigationState(
 ): NavigationState {
     val backStack = rememberNavBackStack(configuration, startRoute)
 
-    return remember(startRoute, backStack) { NavigationState(startRoute, backStack) }
+    return remember(backStack) { NavigationState(backStack) }
 }
 
 /**
  * ナビゲーション状態の保持者。
  *
  * **スタックは 1 本**。プールが唯一の根で、タブを持たない（画面定義書 §1）。
+ * 根は先頭に居座り続けるので、[NavKey] を別に持たなくても
+ * 「どこから抜けるか」は `backStack.first()` で決まる。
  *
- * @param startRoute 開始ルート。ユーザーはここからアプリを抜ける
  * @param backStack 表示中の画面の列。末尾が手前
  */
-class NavigationState(
-    val startRoute: NavKey,
-    val backStack: NavBackStack<NavKey>
-)
+class NavigationState(val backStack: NavBackStack<NavKey>)
 
 /**
  * ナビゲーション状態を [NavEntry] の列に変換する。

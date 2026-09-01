@@ -1,22 +1,19 @@
 package io.github.obaya884.rebuy.ui.screen.shopping
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -29,11 +26,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.data.item.Item
@@ -43,6 +37,7 @@ import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
 import io.github.obaya884.rebuy.ui.screen.SystemBackHandler
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import io.github.obaya884.rebuy.ui.theme.tabularNumbers
@@ -54,8 +49,7 @@ import org.koin.core.parameter.parametersOf
  * 買い物モード（画面 04）。開始シート（03）で行き先を選ぶと入る。
  *
  * **行タップはチェックの付け外しだけ**で、チェックしても行は動かない（01 と同じ作法）。
- * 「買い物を終了する」でチェック済みだけをプールへ戻し、**未チェックはカゴに残す**——
- * 買えなかったものを次の買い物へ持ち越せるように。
+ * 一覧の作り方と「終了」で何を戻すかは `ShoppingScreenUiState`。
  *
  * ← とシステムバックは離脱確認を挟む。**チェックは DB にあるので離脱しても消えない**が、
  * 買い物の途中で誤って抜けると立ち止まることになるので、一度止める（画面 04）。
@@ -72,17 +66,10 @@ fun ShoppingScreen(
     val uiState by viewModel.uiState.collectAsState()
     var isLeaveDialogOpen by remember { mutableStateOf(false) }
 
-    val leave = { navigator.goBack() }
-
     SystemBackHandler { isLeaveDialogOpen = true }
 
     ReBuyAppScaffold(
-        topBarTitle = when {
-            uiState.isAllMode -> stringResource(Res.string.shopping_title_all)
-            // 行き先を読み込むまでは出さない。**空にしておくほうが、全件モードの
-            // タイトルが一瞬出て入れ替わるより誤解が少ない**
-            else -> uiState.destinationName?.let { stringResource(Res.string.shopping_title, it) }.orEmpty()
-        },
+        topBarTitle = shoppingTitle(uiState),
         topBarNavigationIcon = {
             IconButton(
                 onClick = { isLeaveDialogOpen = true },
@@ -111,14 +98,10 @@ fun ShoppingScreen(
                 contentPadding = PaddingValues(16.dp),
                 modifier = Modifier.weight(1f)
             ) {
-                items(uiState.ofDestination, key = { it.id }) { item ->
-                    ShoppingRow(item = item, onTap = { viewModel.toggleCheck(item) })
-                }
-                if (uiState.anywhere.isNotEmpty()) {
+                shoppingRows(uiState.destinationItems, viewModel::toggleCheck)
+                if (uiState.anywhereItems.isNotEmpty()) {
                     item { AnywhereSectionLabel() }
-                    items(uiState.anywhere, key = { it.id }) { item ->
-                        ShoppingRow(item = item, onTap = { viewModel.toggleCheck(item) })
-                    }
+                    shoppingRows(uiState.anywhereItems, viewModel::toggleCheck)
                 }
                 // 暫定: 一覧末尾の「＋ 気づいたものを足す」（05 へ）は F-010
             }
@@ -139,10 +122,29 @@ fun ShoppingScreen(
         LeaveDialog(
             onConfirm = {
                 isLeaveDialogOpen = false
-                leave()
+                // 04 の上に積まれるのは 05（シート＝ルートではない）だけなので 1 段で足りる
+                navigator.goBack()
             },
             onCancel = { isLeaveDialogOpen = false }
         )
+    }
+}
+
+/**
+ * アプリバーのタイトル。全件モードは行き先を持たないので「買い物中」。
+ *
+ * **行き先を読み込むまでは出さない**——空にしておくほうが、全件モードのタイトルが
+ * 一瞬出て入れ替わるより誤解が少ない。
+ */
+@Composable
+private fun shoppingTitle(uiState: ShoppingScreenUiState): String = when {
+    uiState.isAllMode -> stringResource(Res.string.shopping_title_all)
+    else -> uiState.destinationName?.let { stringResource(Res.string.shopping_title, it) }.orEmpty()
+}
+
+private fun LazyListScope.shoppingRows(items: List<Item>, onTap: (Item) -> Unit) {
+    items(items, key = { it.id }) { item ->
+        ShoppingRow(item = item, onTap = { onTap(item) })
     }
 }
 
@@ -150,31 +152,20 @@ fun ShoppingScreen(
 @Composable
 private fun ShoppingRow(item: Item, onTap: () -> Unit) {
     val isChecked = item.status == ItemStatus.CHECKED_IN_SHOPPING_LIST
-    Card(
-        colors = CardDefaults.cardColors(
-            containerColor = if (isChecked) ReBuyTheme.colors.accentSoft else ReBuyTheme.colors.card
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            // clip を先に置く（リップルがカードの角丸からはみ出るため。01 と同じ）
-            .clip(CardDefaults.shape)
-            .clickable(role = Role.Checkbox, onClick = onTap)
-            .testTag(TestTags.shoppingRow(item.id))
+    ReBuyRowCard(
+        highlighted = isChecked,
+        onTap = onTap,
+        testTag = TestTags.shoppingRow(item.id)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-        ) {
-            Text(
-                text = item.name,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (isChecked) ReBuyTheme.colors.muted else ReBuyTheme.colors.ink,
-                textDecoration = if (isChecked) TextDecoration.LineThrough else null,
-                modifier = Modifier.weight(1f)
-            )
-            if (isChecked) {
-                Icon(Icons.Default.Check, contentDescription = null, tint = ReBuyTheme.colors.accent)
-            }
+        Text(
+            text = item.name,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (isChecked) ReBuyTheme.colors.muted else ReBuyTheme.colors.ink,
+            textDecoration = if (isChecked) TextDecoration.LineThrough else null,
+            modifier = Modifier.weight(1f)
+        )
+        if (isChecked) {
+            Icon(Icons.Default.Check, contentDescription = null, tint = ReBuyTheme.colors.accent)
         }
     }
 }
@@ -205,7 +196,10 @@ private fun LeaveDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
             }
         },
         dismissButton = {
-            TextButton(onClick = onCancel) {
+            TextButton(
+                onClick = onCancel,
+                modifier = Modifier.testTag(TestTags.SHOPPING_LEAVE_CANCEL)
+            ) {
                 Text(stringResource(Res.string.shopping_leave_dialog_cancel))
             }
         }

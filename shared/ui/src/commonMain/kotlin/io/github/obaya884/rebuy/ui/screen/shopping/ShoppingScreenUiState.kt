@@ -14,7 +14,7 @@ import io.github.obaya884.rebuy.data.item.isInBasket
  * 画面が見せる派生値はここに集める（アーキテクチャ定義書の「派生値は UiState 側で計算する」）。
  */
 data class ShoppingScreenUiState(
-    val destinationId: Int? = null,
+    val destinationId: Int?,
     val items: List<Item> = emptyList(),
     val destinations: List<Destination> = emptyList()
 ) {
@@ -30,18 +30,18 @@ data class ShoppingScreenUiState(
     private val inBasket: List<Item> = items.filter { it.isInBasket }
 
     /** 選んだ行き先の品目。全件モードではカゴの中身すべて。 */
-    val ofDestination: List<Item> =
+    val destinationItems: List<Item> =
         if (isAllMode) inBasket else inBasket.filter { it.destinationId == destinationId }
 
-    /** どこでも買えるもの。全件モードでは [ofDestination] に含まれるので空。 */
-    val anywhere: List<Item> =
+    /** どこでも買えるもの。全件モードでは [destinationItems] に含まれるので空。 */
+    val anywhereItems: List<Item> =
         if (isAllMode) emptyList() else inBasket.filter { it.destinationId == null }
 
     /**
      * 一覧に出ている品目。**「終了」で戻すのはこの中のチェック済みだけ**で、
      * 他の行き先で付けたチェックは残る（データモデル定義書 §3）。
      */
-    val visibleItems: List<Item> = ofDestination + anywhere
+    val visibleItems: List<Item> = destinationItems + anywhereItems
 
     /** アプリバーの進捗「x / n」。n は一覧の総数（画面 04）。 */
     val checkedCount: Int = visibleItems.count { it.status == ItemStatus.CHECKED_IN_SHOPPING_LIST }

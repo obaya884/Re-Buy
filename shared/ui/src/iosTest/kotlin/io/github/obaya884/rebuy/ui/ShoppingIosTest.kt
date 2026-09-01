@@ -42,7 +42,7 @@ class ShoppingIosTest {
     }
 
     /** 行き先 1 に 2 件、どこでも買えるものが 1 件。 */
-    private fun withAnywhere(): FakeDatabase.() -> Unit = {
+    private val withAnywhere: FakeDatabase.() -> Unit = {
         seed(
             items = listOf(
                 item(1, status = inBasket, destinationId = 1, name = "アイテムA"),
@@ -54,14 +54,14 @@ class ShoppingIosTest {
     }
 
     @Test
-    fun アプリバーに行き先名と進捗が出る() = shopping(withAnywhere()) {
+    fun アプリバーに行き先名と進捗が出る() = shopping(withAnywhere) {
         onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先1で買い物中")
         // どこでも買えるものも一覧の一部なので分母に入る
         onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("0 / 3")
     }
 
     @Test
-    fun どこでも買えるものは区切りの下に並ぶ() = shopping(withAnywhere()) {
+    fun どこでも買えるものは区切りの下に並ぶ() = shopping(withAnywhere) {
         onNodeWithTag(TestTags.SHOPPING_ANYWHERE_SECTION).assertExists()
         onNodeWithTag(TestTags.shoppingRow(itemId = 3)).assertExists()
     }
@@ -78,7 +78,7 @@ class ShoppingIosTest {
 
     /** 行タップがチェックに繋がっていること。進捗の分子で見る。 */
     @Test
-    fun 行タップでチェックが付き進捗が進む() = shopping(withAnywhere()) {
+    fun 行タップでチェックが付き進捗が進む() = shopping(withAnywhere) {
         onNodeWithTag(TestTags.shoppingRow(itemId = 1)).performClick()
         onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("1 / 3")
 
@@ -107,11 +107,11 @@ class ShoppingIosTest {
 
     /** ← の離脱確認で「続ける」を選ぶと 04 に留まる（画面 04）。 */
     @Test
-    fun 離脱確認で続けると買い物に留まる() = shopping(withAnywhere()) {
+    fun 離脱確認で続けると買い物に留まる() = shopping(withAnywhere) {
         onNodeWithTag(TestTags.BACK_BUTTON).performClick()
         onNodeWithText("買い物を途中でやめますか？").assertExists()
 
-        onNodeWithText("続ける").performClick()
+        onNodeWithTag(TestTags.SHOPPING_LEAVE_CANCEL).performClick()
 
         onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先1で買い物中")
     }
@@ -127,7 +127,7 @@ class ShoppingIosTest {
         onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("1 / 1")
 
         onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-        onNodeWithText("やめる").performClick()
+        onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
 
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
         onNodeWithTag(TestTags.shoppingStartRow(destinationId = 1)).performClick()

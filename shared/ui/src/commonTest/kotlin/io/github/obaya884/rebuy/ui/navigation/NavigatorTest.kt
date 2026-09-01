@@ -15,10 +15,7 @@ import kotlin.test.assertEquals
 class NavigatorTest {
 
     private fun navigator(): Navigator = Navigator(
-        NavigationState(
-            startRoute = Screen.Pool,
-            backStack = NavBackStack<NavKey>(Screen.Pool)
-        )
+        NavigationState(backStack = NavBackStack<NavKey>(Screen.Pool))
     )
 
     private fun Navigator.stack(): List<NavKey> = state.backStack.toList()

@@ -29,7 +29,13 @@ val uiModule = module {
     viewModelOf(::RegisterViewModel)
     viewModelOf(::ShoppingStartViewModel)
     // 行き先はルートが持つ。渡ってくるのはキーそのもの（`ShoppingScreen` の KDoc）
-    viewModel { (route: Screen.Shopping) -> ShoppingViewModel(get(), get(), route.destinationId) }
+    viewModel { (route: Screen.Shopping) ->
+        ShoppingViewModel(
+            itemRepository = get(),
+            destinationRepository = get(),
+            destinationId = route.destinationId
+        )
+    }
     viewModelOf(::CategoryEditViewModel)
     viewModelOf(::ItemEditViewModel)
     viewModelOf(::ThemeViewModel)

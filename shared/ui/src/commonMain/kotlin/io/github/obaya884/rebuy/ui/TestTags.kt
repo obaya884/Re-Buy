@@ -1,6 +1,5 @@
 package io.github.obaya884.rebuy.ui
 
-
 /**
  * インストルメンテーションテストから画面要素を引くためのタグ。
  *
@@ -57,6 +56,7 @@ object TestTags {
     const val SHOPPING_ANYWHERE_SECTION = "shopping_anywhere_section"
     const val SHOPPING_FINISH_BUTTON = "shopping_finish_button"
     const val SHOPPING_LEAVE_CONFIRM = "shopping_leave_confirm"
+    const val SHOPPING_LEAVE_CANCEL = "shopping_leave_cancel"
 
     /** 品目編集シート（画面 06）。 */
     const val ITEM_SHEET_NAME_FIELD = "item_sheet_name_field"

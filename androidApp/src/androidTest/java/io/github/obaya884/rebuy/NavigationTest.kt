@@ -46,8 +46,6 @@ class NavigationTest {
     private val categoryEditTitle = string(Res.string.category_edit_title)
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val shoppingTitleAll = string(Res.string.shopping_title_all)
-    private val leaveConfirmLabel = string(Res.string.shopping_leave_dialog_confirm)
-    private val leaveCancelLabel = string(Res.string.shopping_leave_dialog_cancel)
 
     /** ライセンス画面のタイトルと設定画面の行は実装側もハードコードなので、ここでも文字列で持つ。 */
     private val licenseLabel = "ライセンス"
@@ -185,11 +183,11 @@ class NavigationTest {
 
         // 「続ける」なら 04 に留まる
         pressBack()
-        composeRule.onNodeWithText(leaveCancelLabel).performClick()
+        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CANCEL).performClick()
         assertCurrentScreenIs(shoppingTitleAll)
 
         pressBack()
-        composeRule.onNodeWithText(leaveConfirmLabel).performClick()
+        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
         assertCurrentScreenIs(poolTitle)
 
         // 後始末: 実機の DB に残さない

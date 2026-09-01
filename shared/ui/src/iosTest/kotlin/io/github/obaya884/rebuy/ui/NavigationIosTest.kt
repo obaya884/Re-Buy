@@ -17,7 +17,6 @@ import io.github.obaya884.rebuy.ui.resources.setting_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_message
 import io.github.obaya884.rebuy.ui.resources.pool_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_title
-import io.github.obaya884.rebuy.ui.resources.shopping_leave_dialog_confirm
 import io.github.obaya884.rebuy.ui.resources.shopping_title_all
 import io.github.obaya884.rebuy.ui.resources.theme_title
 import kotlinx.coroutines.runBlocking
@@ -54,7 +53,6 @@ class NavigationIosTest {
     private val licenseLabel = "ライセンス"
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val themeLabel = string(Res.string.theme_title)
-    private val leaveLabel = string(Res.string.shopping_leave_dialog_confirm)
 
     /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
     private fun oneItem(status: ItemStatus): FakeDatabase.() -> Unit =
@@ -157,7 +155,7 @@ class NavigationIosTest {
         assertCurrentScreenIs(shoppingTitle)
 
         tapBackArrow()
-        onNodeWithText(leaveLabel).performClick()
+        onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
 
         assertCurrentScreenIs(poolTitle)
     }
