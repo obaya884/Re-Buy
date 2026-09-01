@@ -3,6 +3,7 @@ package io.github.obaya884.rebuy
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.longClick
@@ -67,9 +68,17 @@ class NavigationTest {
     /**
      * 品目を消す。**実機の DB に残すと、次の実行が重複名で弾かれて別の理由で落ち続ける**ので、
      * 品目を作るテストは finally からここを通す。
+     *
+     * **編集シートが開いているかを先に見る。** 開いたまま長押ししようとすると、同じ文言が
+     * 行・シートの見出し・入力欄の 3 か所に出ていて `onNodeWithText` が一意に解けない（実測）。
      */
     private fun deleteItem(name: String) {
-        composeRule.onNodeWithText(name).performTouchInput { longClick() }
+        val isSheetOpen = composeRule.onAllNodesWithTag(TestTags.ITEM_SHEET_DELETE)
+            .fetchSemanticsNodes()
+            .isNotEmpty()
+        if (!isSheetOpen) {
+            composeRule.onNodeWithText(name).performTouchInput { longClick() }
+        }
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
         composeRule.waitForIdle()
