@@ -5,8 +5,9 @@
 # 使い方:
 #   sh scripts/ledger-move.sh T-05
 #   sh scripts/ledger-move.sh T-05 --status '完了 2026-08-29'
+#   sh scripts/ledger-move.sh FB-07 --status '完了 2026-09-01'
 #
-# 台帳23（T-XX）の当該エントリを完了記録へ移す（台帳21 FB-XX は ④ で足す）。
+# 台帳21（FB-XX）・台帳23（T-XX）の当該エントリを完了記録へ移す。
 # --status を与えると状態列を差し替える（5番目のセル）。
 #
 # 1エントリは「§一覧の1行」と「§詳細の `### <ID>` 節」の2か所に分かれており、
@@ -30,33 +31,50 @@ import sys
 
 args = sys.argv[1:]
 if not args:
-    print("使い方: sh scripts/ledger-move.sh <T-XX> [--status '<新しい状態列>']", file=sys.stderr)
+    print("使い方: sh scripts/ledger-move.sh <FB-XX|T-XX> [--status '<新しい状態列>']", file=sys.stderr)
     sys.exit(1)
 
-# 台帳ごとの差は3つだけ。ここに閉じ込めて、以降の処理は共通にする
-#   columns    … 一覧の列数（状態は5番目のセル）
-#   classified … 一覧が分類（### 見出し）で分かれているか。23 は1枚の表（④ で足す 21 は分かれる）
+# 台帳ごとの差はここに閉じ込めて、以降の処理は共通にする
+#   columns      … 一覧の列数
+#   status_index … 状態列が `row.split("|")` の何番目か。**列数からは導けない**——
+#                  21（ID/起票日/タイトル/詳細/状態）と 23（ID/タイトル/種別/優先度/状態/詳細）は
+#                  列数が違うのに、たまたまどちらも5番目に来ている。3本目を足すときに数える
+#   classified   … 一覧が分類（### 見出し）で分かれているか。21 は分かれ、23 は1枚の表
 LEDGERS = {
+    "FB": {
+        "live": "docs/案件/21_FB台帳.md",
+        "closed": "docs/案件/closed_21_FB台帳.md",
+        "columns": 5,
+        "status_index": 5,
+        "classified": True,
+    },
     "T": {
         "live": "docs/案件/23_技術改善バックログ.md",
         "closed": "docs/案件/closed_23_技術改善バックログ.md",
         "columns": 6,
+        "status_index": 5,
         "classified": False,
     },
 }
 
 entry_id = args[0]
-matched = re.fullmatch(r"(T)-\d+", entry_id)
+matched = re.fullmatch(r"(FB|T)-\d+", entry_id)
 if not matched:
-    print(f"ID は T-XX の形で指定してください（受け取った値: {entry_id}）", file=sys.stderr)
+    print(f"ID は FB-XX か T-XX の形で指定してください（受け取った値: {entry_id}）", file=sys.stderr)
     sys.exit(1)
 ledger = LEDGERS[matched.group(1)]
 
 new_status = None
-if len(args) >= 3 and args[1] == "--status":
+if len(args) == 3 and args[1] == "--status":
     new_status = args[2]
 elif len(args) >= 2:
-    print(f"認識できない引数: {args[1:]}", file=sys.stderr)
+    # `--status 完了 2026-09-01`（クォート忘れ）もここで落とす。素通しすると
+    # 日付の無い「完了」が書かれ、成功を報告してしまう
+    print(
+        f"認識できない引数: {args[1:]}"
+        "（--status の値に空白を含むときは '完了 2026-09-01' のように括ること）",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
 LIVE = ledger["live"]
@@ -99,13 +117,13 @@ if ledger["classified"]:
     if section is None:
         fail(f"{entry_id} の行が属する分類（### 見出し）を特定できません")
 
-# 例: "| ID | 起票日 | タイトル | 詳細 | 状態 |" → 前後の空要素を含めて 7 要素
-# （セル内に | を書く運用はない。書くと列がずれるのでここで落ちる）
+# 前後の空要素を含めて 列数 + 2 要素になる（21 は 7、23 は 8）。
+# セル内に | を書く運用はない——書くと列がずれるのでここで落ちる
 cells = row.split("|")
 if len(cells) != ledger["columns"] + 2:
     fail(f"想定外の列数です（{len(cells) - 2} 列・この台帳は {ledger['columns']} 列）。手で直してから再実行してください")
 if new_status is not None:
-    cells[5] = f" {new_status} "
+    cells[ledger["status_index"]] = f" {new_status} "
     row = "|".join(cells)
 
 # ---- ライブ台帳から詳細節を取り出す ----
@@ -165,7 +183,8 @@ for i in range(target + 1, index_end):
 if insert_at is None:
     fail(f"移動先 {CLOSED} §一覧にテーブルが見つかりません")
 
-# 詳細節は移動先 §詳細 の末尾へ積む（並び順は一覧と同じ、が運用ルール）
+# 詳細節は移動先 §詳細 の末尾へ積む。**分類を持つ台帳では §一覧 の並びとは一致しない**
+# （一覧は分類ごとに分かれるため）。完了記録が謳うのは「対応日の古い順」で、それは満たす
 _, detail_section_end = section_range(closed, "詳細")
 
 closed[detail_section_end:detail_section_end] = detail + [""]

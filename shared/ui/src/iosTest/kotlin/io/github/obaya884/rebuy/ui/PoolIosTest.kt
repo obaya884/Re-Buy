@@ -4,6 +4,7 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
+import androidx.compose.ui.test.assertIsNotFocused
 import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -107,19 +108,34 @@ class PoolIosTest {
     }
 
     /**
+     * **開いた時点ではフォーカスを当てない**（画面定義書 §2）。
+     *
+     * 当てるとキーボードがシートと同時に出て、出切った時点でシートがその高さぶん
+     * 持ち上がる——**画面が 2 回動いて見える**（実機で確認）。
+     */
+    @Test
+    fun 開いた時点では名前欄にフォーカスが入らない() = pool {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsNotFocused()
+    }
+
+    /** タップすれば打ち始められる。 */
+    @Test
+    fun 名前欄をタップするとフォーカスが入る() = pool {
+        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performClick()
+
+        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsFocused()
+    }
+
+    /**
      * **登録した後にもう一度開ける。**
      *
      * シートの ViewModel はプールの entry に属するので、シートを閉じても破棄されない。
      * 閉じる合図や入力が残ると、2 回目に開いた瞬間に閉じる／前回の入力が残る。
      */
-    /** 開いたら名前欄にフォーカスが入る（画面 02）。**打ち始められる状態**であること。 */
-    @Test
-    fun 開くと名前欄にフォーカスが入る() = pool {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-
-        onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsFocused()
-    }
-
     @Test
     fun 登録した後にもう一度シートを開ける() = pool {
         onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()

@@ -60,7 +60,7 @@ class AddNoticedSheetIosTest {
         onNodeWithTag(TestTags.ADD_NOTICED_SECTION_ELSEWHERE).assertDoesNotExist()
     }
 
-    /** 検索欄は自動フォーカス（画面 05）。打つと当たりが仕分けられる。 */
+    /** 打つと当たりが行き先ごとに仕分けられる（画面 05）。 */
     @Test
     fun 打つと他の行き先の枠が出る() = sheet {
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("アイテムB")

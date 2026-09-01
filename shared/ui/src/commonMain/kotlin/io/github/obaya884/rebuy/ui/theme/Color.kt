@@ -7,7 +7,7 @@ import io.github.obaya884.rebuy.domain.ThemePalette
 /**
  * 画面が使う配色トークン（画面定義書 §5）。
  *
- * **素の Material のロールではなくこの語彙で書く。** 面が 3 段（[page] / [screen] / [card]）
+ * **素の Material のロールではなくこの語彙で書く。** 面が 2 段（[page] / [card]）
  * あることと、選択面とカゴ入り行が同じ [accentSoft] を使うことは Material のロール名では
  * 表せない。Material のコンポーネントへは [toColorScheme] で橋渡しする。
  */
@@ -15,8 +15,6 @@ import io.github.obaya884.rebuy.domain.ThemePalette
 data class ReBuyColors(
     /** 画面の地 */
     val page: Color,
-    /** コンテンツ面 */
-    val screen: Color,
     /** 行・カード */
     val card: Color,
     /** 罫線・枠 */
@@ -58,7 +56,6 @@ private val scrimDark = Color(0.020f, 0.031f, 0.016f, 0.55f)
 fun reBuyColors(palette: ThemePalette, darkTheme: Boolean): ReBuyColors {
     fun colors(
         page: Long,
-        screen: Long,
         card: Long,
         line: Long,
         accent: Long,
@@ -66,7 +63,6 @@ fun reBuyColors(palette: ThemePalette, darkTheme: Boolean): ReBuyColors {
         accentSoft: Long
     ) = ReBuyColors(
         page = Color(page),
-        screen = Color(screen),
         card = Color(card),
         line = Color(line),
         accent = Color(accent),
@@ -82,36 +78,36 @@ fun reBuyColors(palette: ThemePalette, darkTheme: Boolean): ReBuyColors {
     return when (palette) {
         ThemePalette.WAKABA -> if (darkTheme) {
             colors(
-                page = 0xFF171B15, screen = 0xFF20261E, card = 0xFF2A3127, line = 0xFF3A4234,
+                page = 0xFF171B15, card = 0xFF2A3127, line = 0xFF3A4234,
                 accent = 0xFF74BD93, onAccent = 0xFF14201A, accentSoft = 0xFF2D3E33
             )
         } else {
             colors(
-                page = 0xFFECEFE9, screen = 0xFFFAFBF7, card = 0xFFFFFFFF, line = 0xFFDCE2D5,
+                page = 0xFFECEFE9, card = 0xFFFFFFFF, line = 0xFFDCE2D5,
                 accent = 0xFF2E6B4A, onAccent = 0xFFF6FAF6, accentSoft = 0xFFE4EFE6
             )
         }
 
         ThemePalette.AI -> if (darkTheme) {
             colors(
-                page = 0xFF14171C, screen = 0xFF1D2127, card = 0xFF262B33, line = 0xFF3A414C,
+                page = 0xFF14171C, card = 0xFF262B33, line = 0xFF3A414C,
                 accent = 0xFF8FB0E3, onAccent = 0xFF111927, accentSoft = 0xFF2B3644
             )
         } else {
             colors(
-                page = 0xFFEBEDF1, screen = 0xFFF8F9FB, card = 0xFFFFFFFF, line = 0xFFDBDFE7,
+                page = 0xFFEBEDF1, card = 0xFFFFFFFF, line = 0xFFDBDFE7,
                 accent = 0xFF34558B, onAccent = 0xFFF4F7FB, accentSoft = 0xFFE2E9F4
             )
         }
 
         ThemePalette.KAKI -> if (darkTheme) {
             colors(
-                page = 0xFF1C1712, screen = 0xFF26201A, card = 0xFF302921, line = 0xFF463B2E,
+                page = 0xFF1C1712, card = 0xFF302921, line = 0xFF463B2E,
                 accent = 0xFFDC9660, onAccent = 0xFF251507, accentSoft = 0xFF413228
             )
         } else {
             colors(
-                page = 0xFFF1EDE6, screen = 0xFFFBF8F3, card = 0xFFFFFFFF, line = 0xFFE5DCCE,
+                page = 0xFFF1EDE6, card = 0xFFFFFFFF, line = 0xFFE5DCCE,
                 accent = 0xFFB5541F, onAccent = 0xFFFCF7F2, accentSoft = 0xFFF5E6D8
             )
         }
