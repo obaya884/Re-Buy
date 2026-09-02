@@ -15,9 +15,17 @@ import io.github.obaya884.rebuy.data.item.ItemDao
 /** DB のファイル名。**変えると既存端末のデータを見失う。** */
 internal const val APP_DATABASE_NAME = "app_database"
 
+/**
+ * スキーマ version。**上げるときは必ず `Migration` とセット**（データモデル定義書 §8）。
+ *
+ * **`@Database` の retention は BINARY なので実行時には読めない。** テストが version を
+ * ベタ書きせずに済むよう、ここを唯一の宣言にしている。
+ */
+const val APP_DATABASE_VERSION = 1
+
 @Database(
     entities = [Item::class, Category::class, Destination::class],
-    version = 3,
+    version = APP_DATABASE_VERSION,
     exportSchema = true,
 )
 @TypeConverters(InstantConverter::class, ItemStatusConverter::class)
