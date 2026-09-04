@@ -2,9 +2,9 @@ package io.github.obaya884.rebuy.data.di
 
 import android.content.Context
 import androidx.room.Room
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import io.github.obaya884.rebuy.data.APP_DATABASE_NAME
 import io.github.obaya884.rebuy.data.AppDatabase
+import io.github.obaya884.rebuy.data.applyAppDatabaseOptions
 import io.github.obaya884.rebuy.data.settings.SettingsStore
 import io.github.obaya884.rebuy.data.settings.SharedPreferencesSettingsStore
 import kotlinx.coroutines.Dispatchers
@@ -33,10 +33,6 @@ private fun createAppDatabase(context: Context): AppDatabase {
         context = applicationContext,
         name = applicationContext.getDatabasePath(APP_DATABASE_NAME).absolutePath,
     )
-        .setDriver(BundledSQLiteDriver())
-        .setQueryCoroutineContext(Dispatchers.IO)
-        // ④ の実装中は Migration を書かず入れ直す（データモデル定義書 §8）。
-        // **MVP 投入前に外す**（T-51）。外し忘れると本番でデータが消える
-        .fallbackToDestructiveMigration(dropAllTables = true)
+        .applyAppDatabaseOptions(queryContext = Dispatchers.IO)
         .build()
 }

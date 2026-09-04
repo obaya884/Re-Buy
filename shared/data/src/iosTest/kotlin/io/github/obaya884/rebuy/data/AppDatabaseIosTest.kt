@@ -2,7 +2,6 @@ package io.github.obaya884.rebuy.data
 
 import androidx.room.Room
 import androidx.sqlite.SQLiteException
-import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import io.github.obaya884.rebuy.data.category.Category
 import io.github.obaya884.rebuy.data.destination.Destination
 import io.github.obaya884.rebuy.data.item.Item
@@ -36,9 +35,8 @@ import kotlin.time.Instant
  *
  * ### この網が見ないもの
  *
- * **本番の配線は見ていない。** ここで組む DB は `DataModule.ios.kt` の設定の**複製**なので、
- * 向こうの `setDriver` や `databaseFilePath()` を壊しても全件緑のまま（変異で実測）。
- * 守っているのは「native で Room と `BundledSQLiteDriver` が動くこと」まで。
+ * **本番の設定のうち、パスの解決は見ていない。** DB の開き方は `applyAppDatabaseOptions()`
+ * を通すので `setDriver` を壊せばここが落ちるが、`databaseFilePath()` は誰も通らない。
  *
  * **本番のパス（`NSDocumentDirectory`）も通らない。** テストバイナリはアプリの
  * サンドボックスではなくシミュレータ共有のデータ領域で動くので、実ファイルを開く経路は
@@ -47,8 +45,7 @@ import kotlin.time.Instant
 class AppDatabaseIosTest {
 
     private val database = Room.inMemoryDatabaseBuilder<AppDatabase>()
-        .setDriver(BundledSQLiteDriver())
-        .setQueryCoroutineContext(Dispatchers.IO)
+        .applyAppDatabaseOptions(queryContext = Dispatchers.IO)
         .build()
 
     /** 生成時刻を固定して、`Instant` の往復を値で確かめられるようにする。 */

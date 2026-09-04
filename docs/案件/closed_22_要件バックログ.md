@@ -91,7 +91,7 @@
 
 - 対応: destinations テーブルと `Destination` / `DestinationDao` / `DestinationRepository` を新設。`items.destinationId`（外部キー・`SET_NULL`）、`categories` / `destinations` の `sortOrder`（新規は末尾）、3 テーブルの `name` に UNIQUE インデックス。`OnConflictStrategy` は `REPLACE` から `ABORT` へ（同名の登録で既存の行が消えるのを止めるため）
 - 反映先: [データモデル定義書](../仕様/14_データモデル定義書.md) §2・§4・§6・§7・§8 ／ [テスト戦略定義書](../仕様/17_テスト戦略定義書.md) §3・§6 ／ PR #31
-- 残したもの: 破壊的マイグレーションを外す作業は [T-51](./23_技術改善バックログ.md#t-51)。重複名で旧画面が落ちる 4 経路は F-003 へ申し送り
+- 残したもの: 破壊的マイグレーションを外す作業は [T-51](./closed_23_技術改善バックログ.md#t-51)（2026-09-03 に完了。スキーマ version はそのとき 1 へ畳んだ）。重複名で旧画面が落ちる 4 経路は F-003 へ申し送り
 
 ## F-001 品目名・カテゴリー名の入力を検証する（2026-08-31 吸収）
 
