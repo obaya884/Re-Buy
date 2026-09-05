@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,25 +42,28 @@ fun ChipRow(
             modifier = Modifier.horizontalScroll(rememberScrollState())
         ) {
             noneChip?.let {
-                FilterChip(
+                ReBuySelectableChip(
                     selected = selectedId == null,
                     onClick = it.onSelect,
-                    label = { Text(it.label) },
+                    label = it.label,
                     modifier = Modifier.testTag(it.tag)
                 )
             }
             chips.forEach { chip ->
-                FilterChip(
+                ReBuySelectableChip(
                     selected = chip.id == selectedId,
                     onClick = { onSelect(chip.id) },
-                    label = { Text(chip.label) },
+                    label = chip.label,
                     modifier = Modifier.testTag(chipTag(chip.id))
                 )
             }
-            FilterChip(
+            // 末尾の「＋ 新しい…」は 02b を開くだけで、選ばれる側ではない。**それでも
+            // 選べるチップと同じ部品を通す**——見た目を揃えるため。代償として読み上げが
+            // 「選択されていません」と名乗る（分けない判断。FB-07）
+            ReBuySelectableChip(
                 selected = false,
                 onClick = onCreate,
-                label = { Text(newLabel) },
+                label = newLabel,
                 modifier = Modifier.testTag(newChipTag)
             )
         }

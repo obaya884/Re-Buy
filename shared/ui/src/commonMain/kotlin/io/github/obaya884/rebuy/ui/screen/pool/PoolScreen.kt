@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,11 +18,11 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -45,6 +46,7 @@ import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarCount
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
+import io.github.obaya884.rebuy.ui.screen.ReBuySelectableChip
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditSheet
 import io.github.obaya884.rebuy.ui.screen.register.RegisterSheet
 import io.github.obaya884.rebuy.ui.screen.shopping_start.ShoppingStartSheet
@@ -167,37 +169,48 @@ private fun FilterChips(
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .horizontalScroll(rememberScrollState())
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
-        FilterChip(
+        ReBuySelectableChip(
             selected = isNoFilter,
             onClick = onSelectAll,
-            label = { Text(stringResource(Res.string.pool_filter_all)) },
+            label = stringResource(Res.string.pool_filter_all),
             modifier = Modifier.testTag(TestTags.POOL_CHIP_ALL)
         )
         categories.forEach { category ->
-            FilterChip(
+            ReBuySelectableChip(
                 selected = selectedCategoryId == category.id,
                 onClick = { onSelectCategory(category.id) },
-                label = { Text(category.name) },
+                // 🏷 は表示のときに前置する。名前の一部ではない（画面 01）
+                label = stringResource(Res.string.pool_category_prefix, category.name),
                 modifier = Modifier.testTag(TestTags.poolCategoryChip(category.id))
             )
         }
+        // カテゴリ群と行き先群の境（画面 01）。**カテゴリが 1 つも無いときは出さない**
+        // ——仕切る相手が無く、「すべて」が行き先群から切り離されて見えるだけになる
+        if (categories.isNotEmpty()) {
+            VerticalDivider(
+                color = ReBuyTheme.colors.line,
+                modifier = Modifier
+                    .height(CHIP_DIVIDER_HEIGHT)
+                    .testTag(TestTags.POOL_CHIP_GROUP_DIVIDER)
+            )
+        }
         destinations.forEach { destination ->
-            FilterChip(
+            ReBuySelectableChip(
                 selected = destinationFilter == DestinationFilter.Only(destination.id),
                 onClick = { onSelectDestination(DestinationFilter.Only(destination.id)) },
-                // 🏬 は表示のときに前置する。名前の一部ではない（画面 01）
-                label = { Text(stringResource(Res.string.pool_destination_prefix, destination.name)) },
+                label = stringResource(Res.string.pool_destination_prefix, destination.name),
                 modifier = Modifier.testTag(TestTags.poolDestinationChip(destination.id))
             )
         }
-        FilterChip(
+        ReBuySelectableChip(
             selected = destinationFilter == DestinationFilter.Anywhere,
             onClick = { onSelectDestination(DestinationFilter.Anywhere) },
-            label = { Text(stringResource(Res.string.pool_filter_anywhere)) },
+            label = stringResource(Res.string.pool_filter_anywhere),
             modifier = Modifier.testTag(TestTags.POOL_CHIP_ANYWHERE)
         )
     }
@@ -219,7 +232,9 @@ private fun PoolRow(poolItem: PoolItem, onTap: () -> Unit, onLongPress: () -> Un
                 color = ReBuyTheme.colors.ink
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                poolItem.category?.let { RowMetaText(it.name) }
+                poolItem.category?.let {
+                    RowMetaText(stringResource(Res.string.pool_category_prefix, it.name))
+                }
                 poolItem.destination?.let {
                     RowMetaText(stringResource(Res.string.pool_destination_prefix, it.name))
                 }
@@ -299,3 +314,10 @@ private fun StartShoppingButton(basketCount: Int, enabled: Boolean, onClick: () 
         }
     }
 }
+
+/**
+ * 群の境の高さ（画面定義書 §5）。**指定は必須**——`VerticalDivider` は `fillMaxHeight()` を
+ * 持つので、外すと `Row` の制約いっぱい（画面の高さ）まで線が伸びる。チップ（32dp）より
+ * 低くするのは、同じ高さだと列を断ち切って見えるため。
+ */
+private val CHIP_DIVIDER_HEIGHT = 24.dp

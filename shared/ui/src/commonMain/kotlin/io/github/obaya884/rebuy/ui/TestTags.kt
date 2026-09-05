@@ -29,6 +29,9 @@ object TestTags {
      */
     const val POOL_CHIP_ALL = "pool_chip_all"
     const val POOL_CHIP_ANYWHERE = "pool_chip_anywhere"
+
+    /** カテゴリ群と行き先群の境。**カテゴリが 1 つも無いときは出ない**（画面 01）。 */
+    const val POOL_CHIP_GROUP_DIVIDER = "pool_chip_group_divider"
     fun poolCategoryChip(categoryId: Int): String = "pool_chip_category_$categoryId"
     fun poolDestinationChip(destinationId: Int): String = "pool_chip_destination_$destinationId"
 

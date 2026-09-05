@@ -3,7 +3,10 @@ package io.github.obaya884.rebuy.ui
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -103,7 +106,7 @@ class ItemEditSheetIosTest {
         onNodeWithTag(TestTags.itemFormCategoryChip(categoryId = 2)).performClick()
         onNodeWithTag(TestTags.ITEM_SHEET_SAVE).performClick()
 
-        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("カテゴリー2")
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("🏷 カテゴリー2")
     }
 
     /**
@@ -121,7 +124,32 @@ class ItemEditSheetIosTest {
         onNodeWithTag(TestTags.POOL_CHIP_ANYWHERE).performClick()
         onNodeWithTag(TestTags.poolRow(itemId = 1)).assertIsDisplayed()
         // カテゴリは触っていないので残る
-        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("カテゴリー1")
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("🏷 カテゴリー1")
+    }
+
+    /**
+     * シートのチップでも選択が ✓ で分かること（§2）と、**「＋ 新しい…」は選択状態を
+     * 名乗らない**こと。後者は `selected = false` 固定なので、**書き写しで
+     * `selectedId == null` にすり替わると「なし」と一緒に ✓ が 2 つ付く**。
+     *
+     * **前置の絵文字はシートのチップには付けない**（画面 01 は「行のタグと絞り込みチップ」
+     * に限っている）。揃えようとして足す変更をここで止める。
+     */
+    @Test
+    fun シートのチップは選択が出て新規作成のチップは選ばれない() = sheet {
+        openSheetFor(itemId = 1)
+
+        onNodeWithTag(TestTags.itemFormCategoryChip(categoryId = 1)).assertIsSelected()
+        onNodeWithTag(TestTags.itemFormCategoryChip(categoryId = 1)).assertTextEquals("カテゴリー1")
+        onNodeWithTag(TestTags.ITEM_SHEET_CATEGORY_NONE_CHIP).assertIsNotSelected()
+        onNodeWithTag(TestTags.ITEM_FORM_NEW_CATEGORY_CHIP).assertIsNotSelected()
+
+        onNodeWithTag(TestTags.ITEM_SHEET_CATEGORY_NONE_CHIP).performClick()
+
+        onNodeWithTag(TestTags.ITEM_SHEET_CATEGORY_NONE_CHIP).assertIsSelected()
+        onNodeWithTag(TestTags.itemFormCategoryChip(categoryId = 1)).assertIsNotSelected()
+        // 「なし」が選ばれている間も、新規作成のチップは選ばれたままにならない
+        onNodeWithTag(TestTags.ITEM_FORM_NEW_CATEGORY_CHIP).assertIsNotSelected()
     }
 
     @Test
