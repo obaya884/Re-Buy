@@ -17,6 +17,11 @@ import org.jetbrains.compose.resources.Font
  * 1 ウェイトでこの大きさなので、**目に付く場所に効く見出しと CTA に絞る**という判断
  * （経緯は `log_13_画面定義書.md`）。ライセンス（OFL-1.1）は一覧に手で足してある。
  *
+ * **どの役割が引かれるかは Material の部品側が決める。** 新しい部品を使うときは、
+ * その部品が引く役割が下の丸ゴシック側にあるかを確かめること。**当て忘れても画面は
+ * Material の既定の書体で描かれて全件緑になる**ので、気づく手がかりが見た目しかない。
+ * ここに書いた役割が当たっていること自体は `ThemeIosTest` が押さえる。
+ *
  * `Font()` が `@Composable` なので、`Typography` も composable として組む。
  */
 @Composable
@@ -25,6 +30,14 @@ fun reBuyTypography(): Typography {
     val body = FontFamily.Default
 
     return Typography(
+        // ダイアログの見出し（`AlertDialog` が引くのはここ。`DialogTokens.HeadlineFont`）。
+        // **大きさは Material の既定のまま**——シートの見出しより大きいが、書体とは別の話
+        headlineSmall = TextStyle(
+            fontFamily = display,
+            fontWeight = FontWeight.Bold,
+            fontSize = 24.sp,
+            lineHeight = 32.sp
+        ),
         titleLarge = TextStyle(
             fontFamily = display,
             fontWeight = FontWeight.Bold,
