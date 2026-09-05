@@ -153,12 +153,12 @@ fun ShoppingScreen(
 
     if (isLeaveDialogOpen) {
         LeaveDialog(
-            onConfirm = {
+            onLeave = {
                 isLeaveDialogOpen = false
                 // 04 の上に積まれるのは 05（シート＝ルートではない）だけなので 1 段で足りる
                 navigator.goBack()
             },
-            onCancel = { isLeaveDialogOpen = false }
+            onStay = { isLeaveDialogOpen = false }
         )
     }
 }
@@ -206,26 +206,34 @@ private fun ShoppingRow(item: Item, onTap: () -> Unit) {
 /** 他の行き先へ足したことの通知。**同じ行き先が続いても別物として扱う**ための連番を持つ。 */
 private data class ElsewhereNotice(val serial: Int, val destinationName: String)
 
+/**
+ * 離脱の確認（画面 04）。**画面定義書 §2 の既定から外れる唯一の例外**——「続ける」を
+ * 右に置き、塗りで強調する（画面 04・FB-12）。**削除の確認（06・09b）は既定のまま**なので、
+ * ここを真似しないこと。
+ */
 @Composable
-private fun LeaveDialog(onConfirm: () -> Unit, onCancel: () -> Unit) {
+private fun LeaveDialog(onLeave: () -> Unit, onStay: () -> Unit) {
     AlertDialog(
-        onDismissRequest = onCancel,
+        onDismissRequest = onStay,
         title = { Text(stringResource(Res.string.shopping_leave_dialog_title)) },
         text = { Text(stringResource(Res.string.shopping_leave_dialog_message)) },
+        // **右に来るのは留まる側**——求める並びが Material の想定と逆なので、`confirmButton`
+        // に載るのはダイアログを畳むだけの [onStay] のほう。塗りは既定でアクセント色に乗る
+        // （`Theme.kt` の `primary = accent`）ので、色は指定しない
         confirmButton = {
-            TextButton(
-                onClick = onConfirm,
-                modifier = Modifier.testTag(TestTags.SHOPPING_LEAVE_CONFIRM)
+            Button(
+                onClick = onStay,
+                modifier = Modifier.testTag(TestTags.SHOPPING_LEAVE_CANCEL)
             ) {
-                Text(stringResource(Res.string.shopping_leave_dialog_confirm))
+                Text(stringResource(Res.string.shopping_leave_dialog_cancel))
             }
         },
         dismissButton = {
             TextButton(
-                onClick = onCancel,
-                modifier = Modifier.testTag(TestTags.SHOPPING_LEAVE_CANCEL)
+                onClick = onLeave,
+                modifier = Modifier.testTag(TestTags.SHOPPING_LEAVE_CONFIRM)
             ) {
-                Text(stringResource(Res.string.shopping_leave_dialog_cancel))
+                Text(stringResource(Res.string.shopping_leave_dialog_confirm))
             }
         }
     )

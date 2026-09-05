@@ -5,6 +5,9 @@ package io.github.obaya884.rebuy.ui
  *
  * プロダクト側とテスト側で同じ文字列を使うため、ここを唯一の定義とする。
  * `contentDescription` は読み上げの内容を変えてしまうので、テストのためだけに付けない。
+ *
+ * **名前は位置ではなく意図で付ける。** 並びは画面ごとに変わりうるので、名前から
+ * 「左」「右」を読まないこと。
  */
 object TestTags {
     const val TOP_APP_BAR_TITLE = "top_app_bar_title"
@@ -76,6 +79,10 @@ object TestTags {
     const val SHOPPING_PROGRESS = "shopping_progress"
     const val SHOPPING_ANYWHERE_SECTION = "shopping_anywhere_section"
     const val SHOPPING_FINISH_BUTTON = "shopping_finish_button"
+    /**
+     * 離脱確認の 2 つ。`CONFIRM` は問い「やめますか？」を肯定する側＝「やめる」で、
+     * `CANCEL` が「続ける」。
+     */
     const val SHOPPING_LEAVE_CONFIRM = "shopping_leave_confirm"
     const val SHOPPING_LEAVE_CANCEL = "shopping_leave_cancel"
 
