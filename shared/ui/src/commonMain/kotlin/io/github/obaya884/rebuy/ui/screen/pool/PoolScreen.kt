@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Badge
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
@@ -45,6 +44,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarCount
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.ReBuyBottomCta
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
 import io.github.obaya884.rebuy.ui.screen.ReBuySelectableChip
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditSheet
@@ -298,13 +298,10 @@ private fun EmptyMessage(title: String, message: String?, modifier: Modifier = M
 
 @Composable
 private fun StartShoppingButton(basketCount: Int, enabled: Boolean, onClick: () -> Unit) {
-    Button(
+    ReBuyBottomCta(
         onClick = onClick,
         enabled = enabled,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .testTag(TestTags.POOL_START_SHOPPING_BUTTON)
+        testTag = TestTags.POOL_START_SHOPPING_BUTTON
     ) {
         Text(stringResource(Res.string.pool_start_shopping))
         if (basketCount > 0) {
