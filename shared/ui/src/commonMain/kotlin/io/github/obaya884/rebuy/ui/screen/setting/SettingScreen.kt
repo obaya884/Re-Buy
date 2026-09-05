@@ -12,7 +12,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -30,6 +29,7 @@ import io.github.obaya884.rebuy.ui.VERSION_NAME
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.NameTarget
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
 import io.github.obaya884.rebuy.ui.theme.labelResource
@@ -59,12 +59,11 @@ fun SettingScreen(
     ReBuyAppScaffold(
         topBarTitle = stringResource(Res.string.setting_title),
         topBarNavigationIcon = {
-            IconButton(
-                modifier = Modifier.testTag(TestTags.BACK_BUTTON),
-                onClick = { navigator.goBack() }
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-            }
+            ReBuyAppBarIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                onClick = { navigator.goBack() },
+                modifier = Modifier.testTag(TestTags.BACK_BUTTON)
+            )
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->

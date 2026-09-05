@@ -115,7 +115,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 
 - `./gradlew build` — lint・unit test・debug/release の assemble
 - `./gradlew testAndroidHostTest` — 全モジュールのユニットテスト（JVM）。**`testDebugUnitTest` は使わない**——`:shared:*` が KMP になったので一致するモジュールが無くなり、**0 件のまま緑で終わる**。**単一クラスを指定するときはモジュールを修飾する**（`./gradlew :shared:data:testAndroidHostTest --tests "io.github.obaya884.rebuy.data.InstantConverterTest"`）。無修飾で `--tests` を渡すと、一致しない側のモジュールが `No tests found` でビルドを落とす
-- `./gradlew :androidApp:pixel6Api35DebugAndroidTest` — インストルメンテーションテスト（Gradle Managed Device。androidTest を持つのは `:androidApp` だけ。エミュレータの手動起動は不要。初回はイメージのダウンロードで数分）
+- `./gradlew :androidApp:pixel6Api35DebugAndroidTest` — インストルメンテーションテスト（Gradle Managed Device。androidTest を持つのは `:androidApp` だけ。エミュレータの手動起動は不要。初回はイメージのダウンロードで数分）。**`connectedAndroidTest` は使わない**——実機が繋がっているとそちらで走り、**テスト後にアプリをアンインストールしてオーナーのデータを消す**（2026-09-05 に実際に消した。[T-21](./docs/案件/23_技術改善バックログ.md#t-21)）
 - `./gradlew installDebug` — 端末・エミュレータへインストール
 - `./gradlew clean` — KSP（Room。`:shared:data` だけで回る）の生成コードが壊れたとき
 - `sh scripts/docs-check.sh` — docs・本書・README・`.claude/` の機械検査

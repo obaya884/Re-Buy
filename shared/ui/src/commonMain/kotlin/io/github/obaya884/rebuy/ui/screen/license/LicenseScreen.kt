@@ -4,8 +4,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -17,6 +15,7 @@ import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.Res
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
 @Composable
@@ -27,15 +26,11 @@ fun LicenseScreen(
     ReBuyAppScaffold(
         topBarTitle = "ライセンス",
         topBarNavigationIcon = {
-            IconButton(
-                modifier = Modifier.testTag(TestTags.BACK_BUTTON),
-                onClick = { navigator.goBack() }
-            ) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null
-                )
-            }
+            ReBuyAppBarIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                onClick = { navigator.goBack() },
+                modifier = Modifier.testTag(TestTags.BACK_BUTTON)
+            )
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
