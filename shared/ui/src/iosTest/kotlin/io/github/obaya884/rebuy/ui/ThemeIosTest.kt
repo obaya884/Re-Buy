@@ -41,16 +41,6 @@ class ThemeIosTest {
         get() = KoinPlatformTools.defaultContext().get().get()
 
     /**
-     * 同梱した丸ゴシックが**見出しと CTA に実際に当たっている**こと（画面定義書 §5）。
-     *
-     * `BundledFontTest`（instrumented）はフォントが APK に載っていることまでしか見ない。
-     * `Typography` から差し替えを外しても**画面は既定の書体で描かれて全件緑になる**ので
-     * （変異で実測）、当たっていること自体はここで押さえる。
-     *
-     * **本文が既定のままであること**も同時に見る。本文用のフォントは同梱しないと決めた
-     * （配布サイズが倍になる）ので、うっかり同じ書体を当てると約 3.8MB ぶんの判断が崩れる。
-     */
-    /**
      * 同梱した書体が **iOS の .app にも載っている**こと。バンドルの機構はプラットフォーム別で、
      * Android 側は instrumented の `BundledFontTest` が見る。`Font()` は遅延読み込みなので、
      * **載っていなくても既定の書体で描かれて緑になる**（宣言を見る下のテストでも捕まらない）。
@@ -62,14 +52,29 @@ class ThemeIosTest {
         assertTrue(bytes.size > 1_000_000, "フォントが空か載っていない（${bytes.size} バイト）")
     }
 
+    /**
+     * 同梱した丸ゴシックが**見出しと CTA に実際に当たっている**こと（画面定義書 §5）。
+     *
+     * `BundledFontTest`（instrumented）はフォントが APK に載っていることまでしか見ない。
+     * `Typography` から差し替えを外しても**画面は既定の書体で描かれて全件緑になる**ので
+     * （変異で実測）、当たっていること自体はここで押さえる。
+     *
+     * **本文が既定のままであること**も同時に見る。本文用のフォントは同梱しないと決めた
+     * （配布サイズが倍になる）ので、うっかり同じ書体を当てると約 3.8MB ぶんの判断が崩れる。
+     *
+     * **丸ゴシック側の役割を足したらここにも足す。** 列挙から漏れた役割は、当て忘れても
+     * 当て外しても緑のままになる（ダイアログの見出しが実際にそうだった。FB-15）。
+     */
     @Test
     fun 見出しは同梱した書体で本文は既定() = runComposeUiTest {
+        var dialogHeadline: FontFamily? = null
         var titleLarge: FontFamily? = null
         var titleMedium: FontFamily? = null
         var cta: FontFamily? = null
         var body: FontFamily? = null
         setContent {
             ReBuyTheme {
+                dialogHeadline = MaterialTheme.typography.headlineSmall.fontFamily
                 titleLarge = MaterialTheme.typography.titleLarge.fontFamily
                 titleMedium = MaterialTheme.typography.titleMedium.fontFamily
                 cta = MaterialTheme.typography.labelLarge.fontFamily
@@ -78,16 +83,17 @@ class ThemeIosTest {
         }
         waitForIdle()
 
-        // **null チェックを先に置く。** `fontFamily` の行ごと落とす変異は `null` になり、
-        // `assertNotEquals(FontFamily.Default, null)` はそれを通してしまう
+        // **`titleLarge` をアンカーにし、他の役割は「アンカーと同じ書体か」だけで見る。**
+        // アンカーには 3 本要る——`fontFamily` の行ごと落とす変異は `null`、`display` を
+        // 既定に差し替える変異は `Default`、**役割の代入ブロックごと落とす変異は
+        // `SansSerif`**（Material の既定は `Default` ではない）と、化ける先が 3 通りある
         assertNotNull(titleLarge)
-        assertNotNull(titleMedium)
-        assertNotNull(cta)
         assertNotEquals(FontFamily.Default, titleLarge)
-        assertNotEquals(FontFamily.Default, titleMedium)
-        assertNotEquals(FontFamily.Default, cta)
-        // 見出しと CTA は同じ書体
+        assertNotEquals(FontFamily.SansSerif, titleLarge)
+        // **役割ごとに 1 本ずつ。** ブロックごと落とすと `SansSerif` になってここで落ちる
+        assertEquals(titleLarge, titleMedium)
         assertEquals(titleLarge, cta)
+        assertEquals(titleLarge, dialogHeadline)
         assertEquals(FontFamily.Default, body)
     }
 
