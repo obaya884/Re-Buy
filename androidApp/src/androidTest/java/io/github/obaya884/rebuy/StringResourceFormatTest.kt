@@ -42,6 +42,12 @@ class StringResourceFormatTest {
             "全 12 件",
             string(Res.string.pool_total_count, "12")
         )
+        // **異体字セレクタが混ざっていないことも同時に見る**（FB-13）。付いても人の目には
+        // 一見同じなので、リテラルの一致でしか気づけない
+        assertEquals(
+            "🏷 カテゴリー",
+            string(Res.string.pool_category_prefix, "カテゴリー")
+        )
         assertEquals(
             "🏬 スーパー",
             string(Res.string.pool_destination_prefix, "スーパー")

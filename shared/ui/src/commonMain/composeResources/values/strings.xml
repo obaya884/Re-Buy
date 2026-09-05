@@ -9,6 +9,8 @@
     <string name="pool_total_count">全 %1$s 件</string>
     <string name="pool_filter_all">すべて</string>
     <string name="pool_filter_anywhere">🏬 どこでも</string>
+    <!-- 🏷 に異体字セレクタは付けない。付けなくても Android と iOS の両方が絵文字で描く（FB-13 で実機確認） -->
+    <string name="pool_category_prefix">🏷 %1$s</string>
     <string name="pool_destination_prefix">🏬 %1$s</string>
     <string name="pool_last_bought_at">前回 %1$s</string>
     <string name="pool_last_bought_at_never">前回 —</string>

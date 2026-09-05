@@ -5,7 +5,10 @@ import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.assertIsNotFocused
+import androidx.compose.ui.test.assertIsNotSelected
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -71,7 +74,7 @@ class PoolIosTest {
         val row = onNodeWithTag(TestTags.poolRow(itemId = 1))
 
         row.assertTextContains("アイテム1")
-        row.assertTextContains("カテゴリー1")
+        row.assertTextContains("🏷 カテゴリー1")
         row.assertTextContains("🏬 行き先1")
         row.assertTextContains("前回 8/29")
     }
@@ -200,7 +203,7 @@ class PoolIosTest {
         onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
 
         // 作ったカテゴリが選ばれたまま登録されるので、行にタグが出る
-        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("カテゴリA")
+        onNodeWithTag(TestTags.poolRow(itemId = 1)).assertTextContains("🏷 カテゴリA")
     }
 
     /** 行き先側の結線はカテゴリとは別のコピーなので、こちらも 1 件見る。 */
@@ -227,7 +230,7 @@ class PoolIosTest {
         onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
 
         val row = onNodeWithTag(TestTags.poolRow(itemId = 3))
-        row.assertTextContains("カテゴリー1")
+        row.assertTextContains("🏷 カテゴリー1")
         row.assertTextContains("🏬 行き先1")
     }
 
@@ -273,5 +276,48 @@ class PoolIosTest {
 
         onNodeWithText("この条件のものはありません").assertIsDisplayed()
         onNodeWithText("まだ何も登録されていません").assertDoesNotExist()
+    }
+
+    /**
+     * 選択が**チップの側にも出る**こと（画面定義書 §2 の ✓）。
+     *
+     * **押した結果ではなく `selected` の配線を見る唯一のテスト。** 一覧が絞られることは
+     * 上のテストが見ているが、`selected` は表示専用の引数なのでそこを一切通らない。
+     *
+     * **押す前と押した後の両方を見る**——初期状態だけだと `selected` を常に `true` に
+     * する変異が、押した後だけだと常に `false` にする変異がすり抜ける。
+     */
+    @Test
+    fun 選んだチップだけが選択状態になる() = pool(twoItems()) {
+        onNodeWithTag(TestTags.POOL_CHIP_ALL).assertIsSelected()
+        onNodeWithTag(TestTags.poolCategoryChip(categoryId = 1)).assertIsNotSelected()
+
+        onNodeWithTag(TestTags.poolCategoryChip(categoryId = 1)).performClick()
+
+        onNodeWithTag(TestTags.poolCategoryChip(categoryId = 1)).assertIsSelected()
+        // 各群 0〜1 個。カテゴリを選んでも行き先側と「すべて」は選ばれない
+        onNodeWithTag(TestTags.POOL_CHIP_ALL).assertIsNotSelected()
+        onNodeWithTag(TestTags.POOL_CHIP_ANYWHERE).assertIsNotSelected()
+    }
+
+    /** 絞り込みチップにも絵文字を前置する（画面 01）。行のタグ側は別のテストが見る。 */
+    @Test
+    fun 絞り込みチップにも絵文字が前置される() = pool(twoItems()) {
+        onNodeWithTag(TestTags.poolCategoryChip(categoryId = 1)).assertTextEquals("🏷 カテゴリー1")
+        onNodeWithTag(TestTags.poolDestinationChip(destinationId = 1)).assertTextEquals("🏬 行き先1")
+    }
+
+    /**
+     * 群の仕切りの出し分け（画面 01）。**カテゴリが 1 つも無いときは出さない**——
+     * 仕切る相手が無く、「すべて」が行き先群から切り離されて見えるだけになる。
+     */
+    @Test
+    fun カテゴリがあると群の仕切りが出る() = pool(twoItems()) {
+        onNodeWithTag(TestTags.POOL_CHIP_GROUP_DIVIDER).assertExists()
+    }
+
+    @Test
+    fun カテゴリが無ければ群の仕切りを出さない() = pool {
+        onNodeWithTag(TestTags.POOL_CHIP_GROUP_DIVIDER).assertDoesNotExist()
     }
 }
