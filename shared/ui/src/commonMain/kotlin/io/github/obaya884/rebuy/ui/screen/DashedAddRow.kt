@@ -1,12 +1,15 @@
 package io.github.obaya884.rebuy.ui.screen
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
@@ -37,6 +40,7 @@ fun DashedAddRow(label: String, testTag: String, onTap: () -> Unit) {
             // リップルと破線の角丸を 1 か所から引く。別々に書くと枠と波紋の形がずれる
             .clip(RoundedCornerShape(CORNER))
             .clickable(role = Role.Button, onClick = onTap)
+            // **最低高より先に置く**。後ろに置くと破線が伸びる前の大きさを囲う
             .drawBehind {
                 drawRoundRect(
                     color = outline,
@@ -49,7 +53,13 @@ fun DashedAddRow(label: String, testTag: String, onTap: () -> Unit) {
                     cornerRadius = CornerRadius(CORNER.toPx())
                 )
             }
-            .padding(vertical = 16.dp)
+            // 行と同じ高さにする（画面定義書 §5）。**`wrapContentHeight` が要る**——
+            // `Text` に縦の整列は無いので、最低高だけでは文字が上に寄る
+            .defaultMinSize(minHeight = ROW_MIN_HEIGHT)
+            .wrapContentHeight(Alignment.CenterVertically)
+            // **行と同じ値を引く**。ここだけ広いと、文字を大きくする設定で
+            // この行だけが先に最低高を抜けて段差が戻る
+            .padding(vertical = ROW_PADDING)
             .testTag(testTag)
     )
 }
