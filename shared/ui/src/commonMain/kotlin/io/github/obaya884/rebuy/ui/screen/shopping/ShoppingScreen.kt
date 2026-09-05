@@ -15,7 +15,6 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -37,6 +36,8 @@ import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarCount
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.add_noticed.AddNoticedSheet
 import io.github.obaya884.rebuy.ui.screen.DashedAddRow
@@ -44,7 +45,6 @@ import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
 import io.github.obaya884.rebuy.ui.screen.SectionLabel
 import io.github.obaya884.rebuy.ui.screen.SystemBackHandler
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
-import io.github.obaya884.rebuy.ui.theme.tabularNumbers
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -86,23 +86,20 @@ fun ShoppingScreen(
     ReBuyAppScaffold(
         topBarTitle = shoppingTitle(uiState),
         topBarNavigationIcon = {
-            IconButton(
+            ReBuyAppBarIconButton(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
                 onClick = { isLeaveDialogOpen = true },
                 modifier = Modifier.testTag(TestTags.BACK_BUTTON)
-            ) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-            }
+            )
         },
         topBarActions = {
-            Text(
+            ReBuyAppBarCount(
                 text = stringResource(
                     Res.string.shopping_progress,
                     uiState.checkedCount,
                     uiState.totalCount
                 ),
-                style = MaterialTheme.typography.labelMedium.tabularNumbers(),
-                color = ReBuyTheme.colors.muted,
-                modifier = Modifier.padding(end = 16.dp).testTag(TestTags.SHOPPING_PROGRESS)
+                modifier = Modifier.testTag(TestTags.SHOPPING_PROGRESS)
             )
         },
         snackbarHostState = snackbarHostState

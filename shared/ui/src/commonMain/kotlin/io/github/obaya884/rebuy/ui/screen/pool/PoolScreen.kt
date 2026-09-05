@@ -19,7 +19,6 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -42,6 +41,8 @@ import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.formatMonthDay
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarCount
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
 import io.github.obaya884.rebuy.ui.screen.item_edit.ItemEditSheet
@@ -74,23 +75,17 @@ fun PoolScreen(
     ReBuyAppScaffold(
         topBarTitle = stringResource(Res.string.pool_title),
         topBarActions = {
-            Text(
-                text = stringResource(Res.string.pool_total_count, uiState.totalCount),
-                style = MaterialTheme.typography.labelMedium.tabularNumbers(),
-                color = ReBuyTheme.colors.muted
+            ReBuyAppBarCount(stringResource(Res.string.pool_total_count, uiState.totalCount))
+            ReBuyAppBarIconButton(
+                icon = Icons.Default.Add,
+                onClick = { isRegisterSheetOpen = true },
+                modifier = Modifier.testTag(TestTags.POOL_ADD_BUTTON)
             )
-            IconButton(
-                modifier = Modifier.testTag(TestTags.POOL_ADD_BUTTON),
-                onClick = { isRegisterSheetOpen = true }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-            }
-            IconButton(
-                modifier = Modifier.testTag(TestTags.POOL_SETTINGS_BUTTON),
-                onClick = { navigator.navigate(Screen.Setting) }
-            ) {
-                Icon(Icons.Default.Settings, contentDescription = null)
-            }
+            ReBuyAppBarIconButton(
+                icon = Icons.Default.Settings,
+                onClick = { navigator.navigate(Screen.Setting) },
+                modifier = Modifier.testTag(TestTags.POOL_SETTINGS_BUTTON)
+            )
         },
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
