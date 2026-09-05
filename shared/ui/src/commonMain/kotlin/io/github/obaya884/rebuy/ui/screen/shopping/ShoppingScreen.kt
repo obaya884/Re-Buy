@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -39,6 +38,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarCount
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.ReBuyBottomCta
 import io.github.obaya884.rebuy.ui.screen.add_noticed.AddNoticedSheet
 import io.github.obaya884.rebuy.ui.screen.DashedAddRow
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
@@ -129,12 +129,9 @@ fun ShoppingScreen(
                 }
             }
 
-            Button(
+            ReBuyBottomCta(
                 onClick = { viewModel.finishShopping { navigator.popToRoot() } },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .testTag(TestTags.SHOPPING_FINISH_BUTTON)
+                testTag = TestTags.SHOPPING_FINISH_BUTTON
             ) {
                 Text(stringResource(Res.string.shopping_finish))
             }
