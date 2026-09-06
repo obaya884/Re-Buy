@@ -29,7 +29,10 @@ class ShoppingIosTest {
     private val inBasket = ItemStatus.IN_SHOPPING_LIST
     private val checked = ItemStatus.CHECKED_IN_SHOPPING_LIST
 
-    /** 03 の行き先の行を踏んで 04 へ入る。 */
+    /**
+     * 04 へ入る。**[destinationId] が null なら全件モード**で、このとき 03 は出ず
+     * CTA がそのまま買い物へ入る（画面 01・FB-04）ので、踏む行が 1 つ減る。
+     */
     private fun shopping(
         prepare: FakeDatabase.() -> Unit,
         destinationId: Int? = 1,
@@ -38,10 +41,12 @@ class ShoppingIosTest {
         startTestKoin(prepare)
         setContent { ReBuyApp() }
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        val row = destinationId
-            ?.let { TestTags.shoppingStartRow(it) }
-            ?: TestTags.SHOPPING_START_ALL_ROW
-        onNodeWithTag(row).performClick()
+        if (destinationId == null) {
+            // seed に行き先付きが混じっていると 03 が開いたまま block に入り、失敗の理由が読めない
+            onNodeWithText("今日はどこへ？").assertDoesNotExist()
+        } else {
+            onNodeWithTag(TestTags.shoppingStartRow(destinationId)).performClick()
+        }
         block()
     }
 

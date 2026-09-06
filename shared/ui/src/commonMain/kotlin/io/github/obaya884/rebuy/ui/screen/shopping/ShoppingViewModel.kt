@@ -16,7 +16,8 @@ import kotlinx.coroutines.launch
  * 買い物モード（画面 04）。店内でチェックを付け、終わりにチェック済みをプールへ戻す。
  *
  * **行き先は入場時に決まって以後変わらない**ので、状態ではなくコンストラクタで受ける
- * （03 の行タップごとに別の入場になる）。null は全件モード。
+ * （入場のたびに別の ViewModel になる）。null は全件モードで、**このときは 03 を通らず
+ * 01 の CTA から直接入る**（FB-04）。
  */
 class ShoppingViewModel(
     private val itemRepository: ItemRepository,

@@ -45,31 +45,35 @@ fun ShoppingStartSheet(onEnterShopping: (destinationId: Int?) -> Unit, onDismiss
             modifier = Modifier.padding(bottom = 8.dp)
         )
 
-        if (uiState.isAllMode) {
-            // 行き先付きが 1 件も無いときは、内訳の代わりにこの 1 行だけ
+        uiState.rows.forEach { row ->
             StartRow(
-                title = stringResource(Res.string.shopping_start_all, uiState.basketCount),
-                testTag = TestTags.SHOPPING_START_ALL_ROW,
-                onClick = { onEnterShopping(null) }
+                title = row.name,
+                preview = row.preview.joinToString(PREVIEW_SEPARATOR),
+                count = if (uiState.hasAnywhere) {
+                    stringResource(
+                        Res.string.shopping_start_count_with_anywhere,
+                        row.count,
+                        uiState.anywhereCount
+                    )
+                } else {
+                    stringResource(Res.string.shopping_start_count, row.count)
+                },
+                testTag = TestTags.shoppingStartRow(row.destinationId),
+                onClick = { onEnterShopping(row.destinationId) }
             )
-        } else {
-            uiState.rows.forEach { row ->
-                StartRow(
-                    title = row.name,
-                    preview = row.preview.joinToString(PREVIEW_SEPARATOR),
-                    count = if (uiState.anywhereCount > 0) {
-                        stringResource(
-                            Res.string.shopping_start_count_with_anywhere,
-                            row.count,
-                            uiState.anywhereCount
-                        )
-                    } else {
-                        stringResource(Res.string.shopping_start_count, row.count)
-                    },
-                    testTag = TestTags.shoppingStartRow(row.destinationId),
-                    onClick = { onEnterShopping(row.destinationId) }
-                )
-            }
+        }
+
+        if (uiState.hasAnywhere) {
+            // 「＋m」が何なのかは行の中では言えないので、内訳の下でまとめて言う（画面 03）
+            Text(
+                text = stringResource(
+                    Res.string.shopping_start_anywhere_note,
+                    uiState.anywhereCount
+                ),
+                style = MaterialTheme.typography.labelMedium.tabularNumbers(),
+                color = ReBuyTheme.colors.muted,
+                modifier = Modifier.padding(top = 8.dp)
+            )
         }
     }
 }
@@ -77,10 +81,10 @@ fun ShoppingStartSheet(onEnterShopping: (destinationId: Int?) -> Unit, onDismiss
 @Composable
 private fun StartRow(
     title: String,
+    preview: String,
+    count: String,
     testTag: String,
-    onClick: () -> Unit,
-    preview: String? = null,
-    count: String? = null
+    onClick: () -> Unit
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -93,25 +97,21 @@ private fun StartRow(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                // 全件モードは件数がタイトルに畳まれるので、こちらも等幅にする（画面定義書 §5）
-                style = MaterialTheme.typography.bodyLarge.tabularNumbers(),
+                style = MaterialTheme.typography.bodyLarge,
                 color = ReBuyTheme.colors.ink
             )
-            preview?.let {
-                Text(
-                    text = it,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = ReBuyTheme.colors.muted
-                )
-            }
-        }
-        count?.let {
             Text(
-                text = it,
-                style = MaterialTheme.typography.labelMedium.tabularNumbers(),
+                text = preview,
+                style = MaterialTheme.typography.labelMedium,
                 color = ReBuyTheme.colors.muted
             )
         }
+        // 件数は行をまたいで右端で縦に並ぶので等幅にする（画面定義書 §5）
+        Text(
+            text = count,
+            style = MaterialTheme.typography.labelMedium.tabularNumbers(),
+            color = ReBuyTheme.colors.muted
+        )
     }
 }
 

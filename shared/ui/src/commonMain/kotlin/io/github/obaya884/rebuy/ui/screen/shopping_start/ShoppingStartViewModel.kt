@@ -36,16 +36,16 @@ class ShoppingStartViewModel(
  *
  * **どこでも買えるものは独立した行にしない。** どの店へ行っても持っていくものなので、
  * 行き先ごとの見出しの下に重複させず、[anywhereCount] として各行の件数に足す（画面 03）。
+ * 件数の「＋m」だけでは一緒に入ることが伝わらないので、[hasAnywhere] のとき脚注で補う。
  *
- * **カゴが空のときは開かれない**——プールの CTA が押せないため（画面 01）。
+ * **[rows] が空のときは開かれない**——カゴが空なら CTA が押せず、カゴに行き先付きが
+ * 1 件も無ければ CTA が 04 へ直行するため（画面 01。全件モードの判定は `PoolScreenUiState`）。
  */
 data class ShoppingStartSheetUiState(
     val items: List<Item> = emptyList(),
     val destinations: List<Destination> = emptyList()
 ) {
     private val inBasket: List<Item> = items.filter { it.isInBasket }
-
-    val basketCount: Int = inBasket.size
 
     /** どこでも買えるもの（行き先なし）のカゴ内件数。**シート全体で 1 つの事実**。 */
     val anywhereCount: Int = inBasket.count { it.destinationId == null }
@@ -64,8 +64,11 @@ data class ShoppingStartSheetUiState(
         }
     }
 
-    /** カゴに行き先付きの品目が 1 件も無いとき。内訳の代わりに「n 件で開始」の 1 行だけ。 */
-    val isAllMode: Boolean = basketCount > 0 && rows.isEmpty()
+    /**
+     * どこでも買えるものが混じっているか。**件数を「n＋m」にするかと、脚注を出すかの両方がこれ**
+     * （画面 03）。脚注は「＋m」が何なのかを言うものなので、**別々の式で書くと片方だけ直せてしまう**。
+     */
+    val hasAnywhere: Boolean = anywhereCount > 0
 
     private companion object {
         const val PREVIEW_COUNT = 2

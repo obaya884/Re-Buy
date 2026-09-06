@@ -51,7 +51,6 @@ object TestTags {
 
     /** 買い物開始シート（画面 03）。 */
     fun shoppingStartRow(destinationId: Int): String = "shopping_start_row_$destinationId"
-    const val SHOPPING_START_ALL_ROW = "shopping_start_row_all"
 
     /** カテゴリの管理／行き先の管理（画面 09）と編集シート（09b）。 */
     fun manageRow(id: Int): String = "manage_row_$id"

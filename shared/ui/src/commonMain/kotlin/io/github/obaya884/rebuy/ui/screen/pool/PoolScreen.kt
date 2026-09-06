@@ -61,7 +61,9 @@ import org.koin.compose.viewmodel.koinViewModel
  * 行タップはカゴの出し入れで、**カゴに入れても行は動かない**（一覧の上に寄せない）。
  * 押した場所がそのまま結果になるほうが、連続して触るときに迷わないため。
  *
- * 行の長押しで編集シート（06）を、「買い物を始める」で開始シート（03）を開く。
+ * 行の長押しで編集シート（06）を開く。「買い物を始める」は**選ぶ行き先があれば開始シート
+ * （03）を開き、無ければ 03 を挟まず買い物モードへ直行する**（FB-04。判定は
+ * [PoolScreenUiState.startsInAllMode]）。
  */
 @Composable
 fun PoolScreen(
@@ -73,6 +75,11 @@ fun PoolScreen(
     var isRegisterSheetOpen by remember { mutableStateOf(false) }
     var editingItem by remember { mutableStateOf<Item?>(null) }
     var isShoppingStartSheetOpen by remember { mutableStateOf(false) }
+
+    // 買い物へ入る道は 1 本。CTA からの直行もシートの行タップもここを通る
+    val startShopping = { destinationId: Int? ->
+        navigator.navigate(Screen.Shopping(destinationId))
+    }
 
     ReBuyAppScaffold(
         topBarTitle = stringResource(Res.string.pool_title),
@@ -134,7 +141,13 @@ fun PoolScreen(
             StartShoppingButton(
                 basketCount = uiState.basketCount,
                 enabled = uiState.canStartShopping,
-                onClick = { isShoppingStartSheetOpen = true }
+                onClick = {
+                    if (uiState.startsInAllMode) {
+                        startShopping(null)
+                    } else {
+                        isShoppingStartSheetOpen = true
+                    }
+                }
             )
         }
     }
@@ -149,7 +162,7 @@ fun PoolScreen(
         ShoppingStartSheet(
             onEnterShopping = { destinationId ->
                 isShoppingStartSheetOpen = false
-                navigator.navigate(Screen.Shopping(destinationId))
+                startShopping(destinationId)
             },
             onDismiss = { isShoppingStartSheetOpen = false }
         )

@@ -207,11 +207,10 @@ class NavigationTest {
         composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
         composeRule.waitForIdle()
 
-        // 行タップでカゴへ入れてから CTA → 03 の全件モードの行 → 04
+        // 行タップでカゴへ入れてから CTA → 04（行き先なしの 1 件なので全件モードで直行）
         try {
             composeRule.onNodeWithText("離脱確認の確認用").performClick()
             composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-            composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
             assertCurrentScreenIs(shoppingTitleAll)
 
             // ダイアログを開いたままの戻るは、確認なく抜けずダイアログを閉じるだけ（§2）
@@ -249,7 +248,8 @@ class NavigationTest {
         try {
             composeRule.onNodeWithText("05 の確認用").performClick()
             composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-            composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
+            // 04 に着いたことを先に確かめる。**FB-04 で 03 の行タップが消え、ここが素通りになった**
+            assertCurrentScreenIs(shoppingTitleAll)
             composeRule.onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
             composeRule.onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertIsDisplayed()
 
