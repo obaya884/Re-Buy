@@ -54,7 +54,9 @@ ksp {
 
 dependencies {
     // ターゲットごとに書く必要がある。ksp(...) 一発では効かず、
-    // 書き忘れてもビルドは通ってそのターゲットだけリンク時に落ちる
+    // **書き忘れてもそのターゲットを建てない限りビルドは緑のまま**。落ちるのは
+    // そのターゲットのコンパイル時（`Expected ... has no actual declaration`）で、
+    // CI では `linkDebugFrameworkIosArm64` がそこまで連れて行く（T-50）
     add("kspAndroid", libs.androidx.room.compiler)
     add("kspIosArm64", libs.androidx.room.compiler)
     add("kspIosSimulatorArm64", libs.androidx.room.compiler)

@@ -132,6 +132,14 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             build
 
+      # 実機ターゲット iosArm64。**上の 2 ステップはどちらもシミュレータ向け**なので、
+      # ターゲットごとに書く設定を実機側だけ書き忘れても緑のまま通る。
+      # compile を無修飾で並べるのは link だけだと射程が :shared:ui の依存グラフに
+      # 限られるため（詳細は 17 §5・T-50）
+      - name: 実機ターゲットのビルド
+        if: ${{ !cancelled() }}
+        run: ./gradlew compileKotlinIosArm64 linkDebugFrameworkIosArm64
+
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v7
