@@ -79,36 +79,36 @@ fun reBuyColors(palette: ThemePalette, darkTheme: Boolean): ReBuyColors {
         ThemePalette.WAKABA -> if (darkTheme) {
             colors(
                 page = 0xFF171B15, card = 0xFF2A3127, line = 0xFF3A4234,
-                accent = 0xFF74BD93, onAccent = 0xFF14201A, accentSoft = 0xFF2D3E33
+                accent = 0xFF74BD93, onAccent = 0xFF14201A, accentSoft = 0xFF3F5E4B
             )
         } else {
             colors(
                 page = 0xFFECEFE9, card = 0xFFFFFFFF, line = 0xFFDCE2D5,
-                accent = 0xFF2E6B4A, onAccent = 0xFFF6FAF6, accentSoft = 0xFFE4EFE6
+                accent = 0xFF2E6B4A, onAccent = 0xFFF6FAF6, accentSoft = 0xFFB6CEBF
             )
         }
 
         ThemePalette.AI -> if (darkTheme) {
             colors(
                 page = 0xFF14171C, card = 0xFF262B33, line = 0xFF3A414C,
-                accent = 0xFF8FB0E3, onAccent = 0xFF111927, accentSoft = 0xFF2B3644
+                accent = 0xFF8FB0E3, onAccent = 0xFF111927, accentSoft = 0xFF44546C
             )
         } else {
             colors(
                 page = 0xFFEBEDF1, card = 0xFFFFFFFF, line = 0xFFDBDFE7,
-                accent = 0xFF34558B, onAccent = 0xFFF4F7FB, accentSoft = 0xFFE2E9F4
+                accent = 0xFF34558B, onAccent = 0xFFF4F7FB, accentSoft = 0xFFB6C4DA
             )
         }
 
         ThemePalette.KAKI -> if (darkTheme) {
             colors(
                 page = 0xFF1C1712, card = 0xFF302921, line = 0xFF463B2E,
-                accent = 0xFFDC9660, onAccent = 0xFF251507, accentSoft = 0xFF413228
+                accent = 0xFFDC9660, onAccent = 0xFF251507, accentSoft = 0xFF684B36
             )
         } else {
             colors(
                 page = 0xFFF1EDE6, card = 0xFFFFFFFF, line = 0xFFE5DCCE,
-                accent = 0xFFB5541F, onAccent = 0xFFFCF7F2, accentSoft = 0xFFF5E6D8
+                accent = 0xFFB5541F, onAccent = 0xFFFCF7F2, accentSoft = 0xFFE5C2AA
             )
         }
     }
