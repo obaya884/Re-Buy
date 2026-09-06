@@ -43,6 +43,24 @@ data class PoolScreenUiState(
 
     val canStartShopping: Boolean = basketCount > 0
 
+    /**
+     * **これから始まる買い物が全件モード**（行き先を選ばない買い物）になるか。真なら CTA は
+     * 開始シート（03）を開かず買い物モードへ直行する（画面 01・FB-04）。
+     *
+     * **他の画面の `isAllMode` と時制が違う**——あちらは「今いるモード」で、こちらは予測。
+     * カゴが空なら false になるが、それは「全件モードでない」ではなく「そもそも始まらない」。
+     *
+     * **数えるのは [visibleItems] ではなく [items]。** 絞り込みは見せ方の話なので、
+     * 「🏬 どこでも」を選んだだけで行き先付きが消えて直行するようになってはいけない。
+     *
+     * **行き先は id ではなく実体で見る。** DB 上は SET_NULL で孤児が出ないので同値だが、
+     * 品目と行き先は別々の Flow で届くので、**行き先を消した直後に「品目はまだ古い id を持ち、
+     * 行き先はもう無い」一瞬**がある。id で見るとそこで 03 が開き、内訳は行き先を突き合わせて
+     * 作るので**行が 1 つも無いシート**になる（14 §4）。
+     */
+    val startsInAllMode: Boolean = canStartShopping &&
+        items.none { it.isInBasket && it.destination != null }
+
     /** 「すべて」が選ばれている状態＝カテゴリーも行き先も絞っていない。 */
     val isNoFilter: Boolean =
         selectedCategoryId == null && destinationFilter == DestinationFilter.All

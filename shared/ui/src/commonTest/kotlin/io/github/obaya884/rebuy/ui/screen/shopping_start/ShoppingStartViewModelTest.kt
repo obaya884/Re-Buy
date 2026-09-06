@@ -17,9 +17,14 @@ import kotlin.test.assertTrue
 /**
  * 買い物開始シート（画面 03）の内訳（データモデル定義書 §4）。
  *
- * 見るのは 4 つ。**カゴに品目を持つ行き先だけが並び順で出ること**、
- * **プレビューは登録順の先頭 2 件**、**件数は「n＋m」で m はどこでも買えるもの**、
- * **行き先付きが 1 件も無ければ全件モード**。
+ * 見るのは 3 つ。**カゴに品目を持つ行き先だけが並び順で出ること**、
+ * **プレビューは登録順の先頭 2 件**、**件数は「n＋m」で m はどこでも買えるもの**。
+ *
+ * **脚注が出るかは `hasAnywhere` そのものなので、専用の fixture を置かない**——
+ * `anywhereCount` の網に相乗りさせている（17 §2.2）。脚注の文言と位置は `ShoppingStartSheetIosTest`。
+ *
+ * **全件モードの判定はここには無い**——このシートは全件モードでは開かれないので、
+ * 判定は 01 が持つ（`PoolViewModelTest`。画面 01・FB-04）。
  */
 class ShoppingStartViewModelTest : ViewModelTestBase() {
 
@@ -115,6 +120,8 @@ class ShoppingStartViewModelTest : ViewModelTestBase() {
         assertEquals(listOf(1, 1), uiState.rows.map { it.count })
         // 「＋m」はシート全体で 1 つの事実。行ごとには持たない
         assertEquals(2, uiState.anywhereCount)
+        // 件数を「n＋m」にするかと脚注を出すかは、この 1 つのフラグで揃える（FB-09）
+        assertTrue(uiState.hasAnywhere)
     }
 
     @Test
@@ -128,6 +135,7 @@ class ShoppingStartViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         assertEquals(0, viewModel.uiState.value.anywhereCount)
+        assertFalse(viewModel.uiState.value.hasAnywhere)
     }
 
     /** カゴに入っていない品目は数えない（状態 0）。 */
@@ -147,15 +155,15 @@ class ShoppingStartViewModelTest : ViewModelTestBase() {
 
         assertEquals(1, viewModel.uiState.value.rows.single().count)
         assertEquals(0, viewModel.uiState.value.anywhereCount)
-        assertEquals(1, viewModel.uiState.value.basketCount)
     }
 
-    /** チェック済み（状態 2）もカゴのうち。 */
+    /** チェック済み（状態 2）もカゴのうち。**n の側と m の側で別々に数えている**ので両方見る。 */
     @Test
     fun チェック済みもカゴとして数える() = runTest {
         db.seed(
             items = listOf(
-                item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST, destinationId = 1)
+                item(1, status = ItemStatus.CHECKED_IN_SHOPPING_LIST, destinationId = 1),
+                item(2, status = ItemStatus.CHECKED_IN_SHOPPING_LIST)
             ),
             destinations = listOf(destination(1))
         )
@@ -164,49 +172,7 @@ class ShoppingStartViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         assertEquals(1, viewModel.uiState.value.rows.single().count)
+        assertEquals(1, viewModel.uiState.value.anywhereCount)
     }
 
-    // ---- 全件モード ----
-
-    /** カゴに行き先付きが 1 件も無ければ全件モード（データモデル定義書 §4）。 */
-    @Test
-    fun 行き先付きが無ければ全件モード() = runTest {
-        db.seed(
-            items = listOf(item(1, status = inBasket), item(2, status = inBasket)),
-            destinations = listOf(destination(1))
-        )
-        val viewModel = viewModel()
-
-        advanceUntilIdle()
-
-        assertTrue(viewModel.uiState.value.isAllMode)
-        assertEquals(2, viewModel.uiState.value.basketCount)
-        assertEquals(emptyList(), viewModel.uiState.value.rows)
-    }
-
-    /** 行き先付きが 1 件でもあれば内訳を出す。 */
-    @Test
-    fun 行き先付きが1件でもあれば内訳() = runTest {
-        db.seed(
-            items = listOf(item(1, status = inBasket, destinationId = 1), item(2, status = inBasket)),
-            destinations = listOf(destination(1))
-        )
-        val viewModel = viewModel()
-
-        advanceUntilIdle()
-
-        assertFalse(viewModel.uiState.value.isAllMode)
-    }
-
-    /** **カゴが空なら全件モードにもしない**（そもそも CTA が押せない）。 */
-    @Test
-    fun カゴが空なら全件モードにもしない() = runTest {
-        db.seed(items = listOf(item(1)), destinations = listOf(destination(1)))
-        val viewModel = viewModel()
-
-        advanceUntilIdle()
-
-        assertFalse(viewModel.uiState.value.isAllMode)
-        assertEquals(0, viewModel.uiState.value.basketCount)
-    }
 }

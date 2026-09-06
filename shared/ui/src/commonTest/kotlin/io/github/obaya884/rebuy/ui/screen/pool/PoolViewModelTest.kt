@@ -20,8 +20,8 @@ import kotlin.test.assertTrue
 /**
  * プール画面（画面 01）の ViewModel。
  *
- * 見るのは 3 つ。**一覧が登録順で名前を結んで出ること**、**行タップのカゴ出し入れ**
- * （データモデル定義書 §3）、**絞り込みの AND 結合と解除**（画面 01）。
+ * 見るのは 4 つ。**一覧が登録順で名前を結んで出ること**、**行タップのカゴ出し入れ**
+ * （データモデル定義書 §3）、**絞り込みの AND 結合と解除**、**全件モードの判定**（画面 01）。
  */
 class PoolViewModelTest : ViewModelTestBase() {
 
@@ -231,6 +231,132 @@ class PoolViewModelTest : ViewModelTestBase() {
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.canStartShopping)
+    }
+
+    // ---- 全件モードの判定 ----
+    // CTA が開始シート（03）を開くか、買い物モードへ直行するかを決める（画面 01・FB-04）
+
+    /** カゴに行き先付きが 1 件も無ければ全件モード（データモデル定義書 §4）。 */
+    @Test
+    fun 行き先付きが無ければ全件モード() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = ItemStatus.IN_SHOPPING_LIST),
+                item(2, status = ItemStatus.IN_SHOPPING_LIST)
+            ),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel()
+
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.startsInAllMode)
+    }
+
+    /** 行き先付きが 1 件でもあれば選ぶ相手があるので、03 を開く。 */
+    @Test
+    fun 行き先付きが1件でもあれば全件モードにしない() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = ItemStatus.IN_SHOPPING_LIST, destinationId = 1),
+                item(2, status = ItemStatus.IN_SHOPPING_LIST)
+            ),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel()
+
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.startsInAllMode)
+    }
+
+    /** **カゴ外の行き先付きは数えない。** 常駐しているだけでは買い物の行き先にならない。 */
+    @Test
+    fun カゴ外の行き先付きでは全件モードのまま() = runTest {
+        db.seed(
+            items = listOf(item(1, status = ItemStatus.IN_SHOPPING_LIST), item(2, destinationId = 1)),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel()
+
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.startsInAllMode)
+    }
+
+    /**
+     * **行き先は id ではなく実体で見る**（データモデル定義書 §4）。品目と行き先は別々の Flow で
+     * 届くので、**行き先を消した直後に「品目はまだ古い id を持ち、行き先はもう無い」一瞬**がある。
+     * id で見ると 03 が開き、内訳は行き先を突き合わせて作るので**行が 1 つも無いシート**になる。
+     *
+     * `seed` は制約を通らないので、その一瞬をそのまま置ける（`FakeDatabase`）。
+     */
+    @Test
+    fun 宙に浮いた行き先付きは全件モードのまま() = runTest {
+        db.seed(
+            items = listOf(item(1, status = ItemStatus.IN_SHOPPING_LIST, destinationId = 1)),
+            destinations = emptyList()
+        )
+        val viewModel = viewModel()
+
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.startsInAllMode)
+    }
+
+    /**
+     * 行き先を消すと判定が反転する（外部キーの SET_NULL が UI に届く）。
+     * **FB-04 以降、これは「CTA の行き先が変わる」ことを意味する。**
+     */
+    @Test
+    fun 行き先を消すと全件モードに変わる() = runTest {
+        db.seed(
+            items = listOf(item(1, status = ItemStatus.IN_SHOPPING_LIST, destinationId = 1)),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel()
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.startsInAllMode)
+
+        db.destinationDao.delete(destination(1))
+        advanceUntilIdle()
+
+        assertTrue(viewModel.uiState.value.startsInAllMode)
+    }
+
+    /** **カゴが空なら全件モードにもしない**（そもそも CTA が押せない）。 */
+    @Test
+    fun カゴが空なら全件モードにもしない() = runTest {
+        db.seed(items = listOf(item(1, destinationId = 1)), destinations = listOf(destination(1)))
+        val viewModel = viewModel()
+
+        advanceUntilIdle()
+
+        assertFalse(viewModel.uiState.value.startsInAllMode)
+    }
+
+    /**
+     * **絞り込みで判定が動かない**（一覧ではなく全件を数える）。絞った結果から数えると、
+     * 「🏬 どこでも」を選んでいる間だけ CTA が 03 を飛ばして直行するようになる。
+     */
+    @Test
+    fun 全件モードの判定は絞り込んでも変わらない() = runTest {
+        db.seed(
+            items = listOf(
+                item(1, status = ItemStatus.IN_SHOPPING_LIST, destinationId = 1),
+                item(2, status = ItemStatus.IN_SHOPPING_LIST)
+            ),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel()
+        advanceUntilIdle()
+
+        // 行き先付きの品目 1 が一覧から落ちる
+        viewModel.selectDestination(DestinationFilter.Anywhere)
+        advanceUntilIdle()
+
+        assertEquals(listOf(2), viewModel.uiState.value.visibleItems.map { it.item.id })
+        assertFalse(viewModel.uiState.value.startsInAllMode)
     }
 
     /** **カゴに入れても行は動かない**（画面 01。一覧の上に寄せない）。 */

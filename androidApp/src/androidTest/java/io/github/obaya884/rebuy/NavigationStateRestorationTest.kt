@@ -97,8 +97,8 @@ class NavigationStateRestorationTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("復元の確認用").performClick()
+        // 登録したのは行き先なしの 1 件なので、全件モードで 03 を挟まず 04 へ入る（FB-04）
         composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        composeRule.onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
         try {
             assertCurrentScreenIs(shoppingTitleAll)
 

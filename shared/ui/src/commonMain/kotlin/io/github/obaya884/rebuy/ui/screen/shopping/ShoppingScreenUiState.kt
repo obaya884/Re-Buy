@@ -18,7 +18,7 @@ data class ShoppingScreenUiState(
     val items: List<Item> = emptyList(),
     val destinations: List<Destination> = emptyList()
 ) {
-    /** 03 の「n 件で開始」から入った状態。行き先で絞らず、区切りも出さない。 */
+    /** 行き先を選ばずに入った状態（01 の CTA からの直行）。行き先で絞らず、区切りも出さない。 */
     val isAllMode: Boolean = destinationId == null
 
     /**

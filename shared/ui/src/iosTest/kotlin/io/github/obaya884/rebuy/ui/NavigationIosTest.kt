@@ -145,15 +145,14 @@ class NavigationIosTest {
     }
 
     /**
-     * プールの CTA から開始シート（03）を経て買い物へ入り、← の離脱確認でプールへ戻る。
+     * プールの CTA から買い物へ入り、← の離脱確認でプールへ戻る。
      *
      * **CTA はカゴが空だと押せない**ので、カゴに 1 件置いてから踏む（画面 01）。
+     * 置いた 1 件は行き先なしなので**全件モードになり、03 を挟まず入る**（FB-04）。
      */
     @Test
     fun CTAから買い物へ入り離脱確認でプールに帰る() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        // 行き先付きが無いので全件モードの 1 行
-        onNodeWithTag(TestTags.SHOPPING_START_ALL_ROW).performClick()
         assertCurrentScreenIs(shoppingTitle)
 
         tapBackArrow()
