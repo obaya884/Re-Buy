@@ -30,6 +30,10 @@ class ColorSchemeTest {
         assertEquals(colors.accentSoft, scheme.primaryContainer)
         assertEquals(colors.accent, scheme.secondary)
         assertEquals(colors.accentSoft, scheme.secondaryContainer)
+        // **選択面の上に載る文字**。`ThemeTest` の上限（ink が AA を満たす）はここが ink である
+        // ことに乗っているので、外れると実物が崩れても上限テストは緑のまま（FB-16）
+        assertEquals(colors.ink, scheme.onPrimaryContainer)
+        assertEquals(colors.ink, scheme.onSecondaryContainer)
         assertEquals(colors.page, scheme.background)
         assertEquals(colors.ink, scheme.onBackground)
         // 地は 1 段。**アプリバーが拾う surface も地**（画面定義書 §5）
@@ -72,8 +76,10 @@ class ColorSchemeTest {
         "primary" to { it.primary },
         "onPrimary" to { it.onPrimary },
         "primaryContainer" to { it.primaryContainer },
+        "onPrimaryContainer" to { it.onPrimaryContainer },
         "secondary" to { it.secondary },
         "secondaryContainer" to { it.secondaryContainer },
+        "onSecondaryContainer" to { it.onSecondaryContainer },
         "background" to { it.background },
         "onBackground" to { it.onBackground },
         "surface" to { it.surface },
