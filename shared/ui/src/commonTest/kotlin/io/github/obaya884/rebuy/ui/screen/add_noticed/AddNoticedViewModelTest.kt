@@ -19,8 +19,9 @@ import kotlin.test.assertTrue
 /**
  * 気づいたものを足すシート（画面 05）の中身と、足したときの書き込み。
  *
- * 見るのは 4 つ。**初期表示は未追加だけ**、**検索は単純な部分一致で追加済みも当たりに含む**、
- * **「他の行き先から」は検索中だけ**、そして**どの経路も 1 件で閉じる**こと。
+ * 見るのは 5 つ。**初期表示は未追加だけ**、**検索は部分一致で追加済みも当たりに含む**、
+ * **打ち方の揺れを畳んでから比べる**、**「他の行き先から」は検索中だけ**、
+ * そして**どの経路も 1 件で閉じる**こと。
  */
 class AddNoticedViewModelTest : ViewModelTestBase() {
 
@@ -115,13 +116,14 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
 
     // ---- 検索 ----
 
+    /** **語中で当てる。** 先頭からしか当てないと、`contains` を `startsWith` に変えても緑になる。 */
     @Test
     fun 検索は部分一致で当たりを行き先ごとに仕分ける() = runTest {
         seedThreePlaces()
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
-        viewModel.changeQuery("アイテム")
+        viewModel.changeQuery("テム")
         advanceUntilIdle()
 
         val uiState = viewModel.uiState.value
@@ -161,20 +163,55 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
         assertEquals(listOf(1), viewModel.uiState.value.hereItems.map { it.id })
     }
 
-    /** 全角・半角やかな・カナの同一視はしない。**素の部分一致**（画面 05）。 */
+    /**
+     * **名前と入力の両方を検索キーへ畳んでから比べる**（画面 05・FB-10）。畳み込みそのものは
+     * `:shared:domain` の `SearchKeyTest` が見るので、ここでは**当たり判定に効いていること**だけ。
+     */
     @Test
-    fun 表記が違えば当たらない() = runTest {
-        db.seed(
-            items = listOf(item(1, destinationId = 1, name = "アイテムA")),
-            destinations = listOf(destination(1))
-        )
+    fun 全角で打っても半角の品目が当たる() = runTest {
+        seedThreePlaces()
         val viewModel = viewModel(destinationId = 1)
         advanceUntilIdle()
 
         viewModel.changeQuery("アイテムＡ")
         advanceUntilIdle()
 
-        assertFalse(viewModel.uiState.value.isUnaddedSectionVisible)
+        assertEquals(listOf(1), viewModel.uiState.value.hereItems.map { it.id })
+    }
+
+    /**
+     * 半角カナの経路も画面まで繋がっていること。**表そのものの網は `SearchKeyTest` 側**
+     * ——`SearchKey.of` の呼び出しは 1 か所なので、この層では表の壊れ方を区別できない。
+     */
+    @Test
+    fun 半角カナで打ってもカタカナの品目が当たる() = runTest {
+        seedThreePlaces()
+        val viewModel = viewModel(destinationId = 1)
+        advanceUntilIdle()
+
+        viewModel.changeQuery("ｱｲﾃﾑa")
+        advanceUntilIdle()
+
+        assertEquals(listOf(1), viewModel.uiState.value.hereItems.map { it.id })
+    }
+
+    /**
+     * **語中の全角スペースで見る。** 前後に置くとトリムで落ちてしまい、畳む側を通ったのか
+     * トリムで落ちたのかが分かれない（`String.trim()` は U+3000 も空白として落とす）。
+     */
+    @Test
+    fun 語中の全角スペースを半角と同一視する() = runTest {
+        db.seed(
+            items = listOf(item(1, destinationId = 1, name = "アイテム A")),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
+        advanceUntilIdle()
+
+        viewModel.changeQuery("アイテム　A")
+        advanceUntilIdle()
+
+        assertEquals(listOf(1), viewModel.uiState.value.hereItems.map { it.id })
     }
 
     @Test
@@ -365,6 +402,35 @@ class AddNoticedViewModelTest : ViewModelTestBase() {
     }
 
     // ---- この名前で登録する ----
+
+    /**
+     * **畳んで既存が当たっても、登録は弾かない**（画面 05・オーナー判断 2026-09-06）。
+     * 重複判定は畳まない（14 §5）ので、かな違いは別の名前として登録できる。**既存を
+     * カゴ入りで置く**——「追加済みとして当たりに出るから選ぶ側にも倒せる」という条項の
+     * 理屈が成り立つ状態を、ここで実際に作る。
+     */
+    @Test
+    fun かな違いの既存が当たっても同じ名前で登録できる() = runTest {
+        db.seed(
+            items = listOf(item(1, status = inBasket, destinationId = 1, name = "アイテム")),
+            destinations = listOf(destination(1))
+        )
+        val viewModel = viewModel(destinationId = 1)
+        advanceUntilIdle()
+
+        viewModel.changeQuery("あいてむ")
+        advanceUntilIdle()
+        assertEquals(listOf(1), viewModel.uiState.value.hereItems.map { it.id })
+        assertTrue(viewModel.uiState.value.canRegisterQuery)
+
+        viewModel.registerQuery()
+        advanceUntilIdle()
+
+        assertNull(viewModel.uiState.value.nameError)
+        assertEquals(listOf("アイテム", "あいてむ"), db.storedItems.map { it.name })
+        // 弾かれた側（`同じ名前があると弾かれて閉じない`）と対にするため、閉じる側まで見る
+        assertEquals(1, viewModel.closeRequest.value.count)
+    }
 
     @Test
     fun 検索語で登録すると今の行き先でカゴに入って閉じる() = runTest {

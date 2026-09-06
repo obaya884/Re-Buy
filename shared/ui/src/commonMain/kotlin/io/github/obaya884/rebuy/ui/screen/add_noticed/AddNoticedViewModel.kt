@@ -9,6 +9,7 @@ import io.github.obaya884.rebuy.data.item.isInBasket
 import io.github.obaya884.rebuy.domain.DestinationRepository
 import io.github.obaya884.rebuy.domain.ItemRepository
 import io.github.obaya884.rebuy.domain.NameError
+import io.github.obaya884.rebuy.domain.SearchKey
 import io.github.obaya884.rebuy.ui.applySaveResult
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -137,9 +138,14 @@ data class AddNoticedSheetUiState(
 
     private val isSearching: Boolean = trimmed.isNotEmpty()
 
-    /** ひらがな・カタカナの同一視はしない。**単純な部分一致**（画面 05）。 */
+    /** **名前と入力の両方を検索キーへ畳んでから部分一致**（画面 05）。畳む範囲は [SearchKey]。 */
     private val hits: List<Item> =
-        if (isSearching) items.filter { it.name.contains(trimmed) } else items.filterNot { it.isInBasket }
+        if (isSearching) {
+            val queryKey = SearchKey.of(trimmed)
+            items.filter { SearchKey.of(it.name).contains(queryKey) }
+        } else {
+            items.filterNot { it.isInBasket }
+        }
 
     /** 「未追加のものから選ぶ」の今の行き先ぶん。全件モードでは仕分けないので当たり全部。 */
     val hereItems: List<Item> =
