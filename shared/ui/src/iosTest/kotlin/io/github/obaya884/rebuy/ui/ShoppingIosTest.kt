@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.v2.runComposeUiTest
+import androidx.navigationevent.DirectNavigationEventInput
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -32,14 +33,21 @@ class ShoppingIosTest {
     /**
      * 04 へ入る。**[destinationId] が null なら全件モード**で、このとき 03 は出ず
      * CTA がそのまま買い物へ入る（画面 01・FB-04）ので、踏む行が 1 つ減る。
+     *
+     * [back] は端末の戻りを起こす口（[InstallSystemBack]）。使わないテストでも足しておく——
+     * **入れても何も起きない**（イベントを流したときだけ動く）ので、分岐を作るほうが読みにくい。
      */
     private fun shopping(
         prepare: FakeDatabase.() -> Unit,
         destinationId: Int? = 1,
-        block: ComposeUiTest.() -> Unit
+        block: ComposeUiTest.(back: DirectNavigationEventInput) -> Unit
     ) = runComposeUiTest {
         startTestKoin(prepare)
-        setContent { ReBuyApp() }
+        val back = DirectNavigationEventInput()
+        setContent {
+            InstallSystemBack(back)
+            ReBuyApp()
+        }
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
         if (destinationId == null) {
             // seed に行き先付きが混じっていると 03 が開いたまま block に入り、失敗の理由が読めない
@@ -47,7 +55,7 @@ class ShoppingIosTest {
         } else {
             onNodeWithTag(TestTags.shoppingStartRow(destinationId)).performClick()
         }
-        block()
+        block(back)
     }
 
     /** 画面上の縦位置。並びの assert に使う。 */
@@ -182,6 +190,42 @@ class ShoppingIosTest {
         onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("Re-Buy")
         // 何も戻していないので、カゴの 3 件はそのまま
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertTextContains("3")
+    }
+
+    /**
+     * **システムバックでも離脱確認を通る**（画面定義書 §2・§4 の 04。FB-18）。
+     *
+     * iOS の端末の戻りは端スワイプで、**ここが繋がっていないとチェックした内容が
+     * 確認なしで失われる**。実際、当初の iOS 実装は「iOS には端末の戻るが無い」として
+     * 何もしておらず、素通りしていた。
+     */
+    @Test
+    fun システムバックでも離脱確認が出る() = shopping(withAnywhere) { back ->
+        pressSystemBack(back)
+
+        onNodeWithText("買い物を途中でやめますか？").assertExists()
+    }
+
+    /**
+     * **05 を開いている間はシートだけが閉じる**（画面定義書 §2・§4 の 04）。
+     *
+     * **3 つを同時に見る。** 「離脱確認が出ない」だけだと、**戻りが 04 を飛び越えて 01 へ
+     * 抜けた場合も緑になる**——それは FB-18 そのもの。シートが閉じたことと 04 に留まったことを
+     * 添えて、初めて「シートだけが閉じた」と言える。
+     *
+     * **`enabled` の結線はここでは守れない**（`SystemBackHandlerIosTest` が持つ）。同じ優先度の
+     * ハンドラは後に登録されたものが先に取るので、シートが開いていればこちらが有効でも呼ばれない。
+     */
+    @Test
+    fun 気づいたものを足すシート表示中のシステムバックはシートだけ閉じる() = shopping(withAnywhere) { back ->
+        onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertExists()
+
+        pressSystemBack(back)
+
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
+        onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).assertDoesNotExist()
+        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先1で買い物中")
     }
 
     /** ← の離脱確認で「続ける」を選ぶと 04 に留まる（画面 04）。 */

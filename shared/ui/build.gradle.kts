@@ -190,6 +190,14 @@ kotlin {
             implementation(libs.androidx.activity.compose)
         }
 
+        iosMain.dependencies {
+            // SystemBackHandler の iOS 実装。端スワイプはここを通って画面へ届く。
+            // **推移で来るのは 1.1.1**（compose.ui → JetBrains のフォーク → androidx）だが、
+            // core のほうは navigation3-runtime が 1.1.2 を要求する。**揃えるために引き上げる**——
+            // 放っておくと core 1.1.2 / -compose 1.1.1 のねじれになる
+            implementation(libs.androidx.navigationevent.compose)
+        }
+
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.test)

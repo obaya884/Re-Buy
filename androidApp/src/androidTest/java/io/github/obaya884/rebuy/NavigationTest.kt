@@ -27,8 +27,8 @@ import org.junit.Test
  * 遷移規則そのもの（スタックの積み方・タブごとの履歴保持）は JVM 段の `NavigatorTest` が持つ。
  * ここが見るのは「UI の操作がその規則に正しく結線されているか」。
  *
- * 買い物モード（04）だけは DB に品目が要るが、**端末の戻るを離脱確認で受け止めるのは
- * Android 固有**（iOS にハードウェアの戻るが無い）なので、登録シートから 1 件用意して踏む。
+ * 買い物モード（04）だけは DB に品目が要るので、登録シートから 1 件用意して踏む。
+ * **端末の戻りは iOS にもある**（端スワイプ）——iOS 側の対は `ShoppingIosTest`（FB-18）。
  *
  * **iOS 側の対は `shared/ui/src/iosTest` の `NavigationIosTest`。** 共通化する手立てが無い
  * （モジュールも source set も別）ので、**遷移を足したら両方に足すこと**。
@@ -197,8 +197,8 @@ class NavigationTest {
     /**
      * 買い物モード（04）は端末の戻るを離脱確認で受け止める（画面 04）。
      *
-     * `ShoppingIosTest` は ← の矢印しか踏めないので、**`BackHandler` が
-     * `NavDisplay` の戻るより先に受けている**ことはここでしか見られない。
+     * **`BackHandler` が `NavDisplay` の戻るより先に受けている**ことを Android 側で見る。
+     * iOS 側は `ShoppingIosTest` が端スワイプで同じ経路を通す（FB-18）。
      */
     @Test
     fun 買い物モードの端末の戻るは離脱確認を挟む() {
@@ -234,9 +234,8 @@ class NavigationTest {
     /**
      * **05 表示中の戻るはシートを閉じるだけ**（画面 04）。離脱確認は出さない。
      *
-     * `AddNoticedSheetIosTest` は端末の戻るを踏めない（iOS に無い）ので、
-     * 04 の `SystemBackHandler` がシートに横取りされていないことはここでしか見られない。
-     * **`ModalBottomSheet` が Android と skiko で実装が分かれる**ことも同じ理由（§2.4）。
+     * **`ModalBottomSheet` は Android と skiko で実装が分かれる**ので、iOS 側の
+     * `ShoppingIosTest` と対で持つ（§2.4）。
      */
     @Test
     fun 気づいたものを足すシートの端末の戻るはシートだけ閉じる() {
