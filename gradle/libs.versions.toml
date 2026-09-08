@@ -20,6 +20,8 @@ androidx-navigation3 = "1.1.6"
 # NavDisplay を持つ navigation3-ui だけ androidx が iOS 向けを publish していないので
 # JetBrains のフォークを使う。android バリアントは androidx の実装へのリダイレクト
 jetbrains-navigation3 = "1.1.1"
+# SystemBackHandler の iOS 実装。理由は shared/ui/build.gradle.kts の iosMain
+androidx-navigationevent = "1.1.2"
 kotlinx-coroutines = "1.9.0"
 kotlinx-serialization = "1.9.0"
 androidx-activity = "1.13.0"
@@ -43,6 +45,7 @@ androidx-lifecycle-viewmodel = { group = "androidx.lifecycle", name = "lifecycle
 androidx-navigation3-runtime = { group = "androidx.navigation3", name = "navigation3-runtime", version.ref = "androidx-navigation3" }
 jetbrains-navigation3-ui = { group = "org.jetbrains.androidx.navigation3", name = "navigation3-ui", version.ref = "jetbrains-navigation3" }
 androidx-lifecycle-viewmodel-navigation3 = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-navigation3", version.ref = "androidx-lifecycle" }
+androidx-navigationevent-compose = { group = "androidx.navigationevent", name = "navigationevent-compose", version.ref = "androidx-navigationevent" }
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "androidx-activity" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "androidx-compose-bom" }
