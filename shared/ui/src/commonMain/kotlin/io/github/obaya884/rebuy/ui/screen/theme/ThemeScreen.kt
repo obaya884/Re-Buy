@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,15 +22,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import io.github.obaya884.rebuy.domain.ThemePalette
-import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.resources.theme_title
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import io.github.obaya884.rebuy.ui.theme.labelResource
@@ -53,14 +50,10 @@ fun ThemeScreen(
     val selected by viewModel.palette.collectAsState()
 
     ReBuyAppScaffold(
-        topBarTitle = stringResource(Res.string.theme_title),
-        topBarNavigationIcon = {
-            ReBuyAppBarIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                onClick = { navigator.goBack() },
-                modifier = Modifier.testTag(TestTags.BACK_BUTTON)
-            )
-        },
+        appBar = ReBuyAppBarState(
+            onBack = { navigator.goBack() },
+            title = stringResource(Res.string.theme_title)
+        ),
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxWidth().padding(innerPadding)) {

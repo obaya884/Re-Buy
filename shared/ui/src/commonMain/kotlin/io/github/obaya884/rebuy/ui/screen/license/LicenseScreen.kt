@@ -2,20 +2,16 @@ package io.github.obaya884.rebuy.ui.screen.license
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
-import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.Res
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 
 @Composable
@@ -24,14 +20,10 @@ fun LicenseScreen(
     snackbarHostState: SnackbarHostState
 ) {
     ReBuyAppScaffold(
-        topBarTitle = "ライセンス",
-        topBarNavigationIcon = {
-            ReBuyAppBarIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                onClick = { navigator.goBack() },
-                modifier = Modifier.testTag(TestTags.BACK_BUTTON)
-            )
-        },
+        appBar = ReBuyAppBarState(
+            onBack = { navigator.goBack() },
+            title = "ライセンス"
+        ),
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
         // 一覧の元データは AboutLibraries の Gradle プラグインが commonMain のリソースへ

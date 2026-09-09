@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,7 +40,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.DashedAddRow
 import io.github.obaya884.rebuy.ui.screen.NameTarget
 import io.github.obaya884.rebuy.ui.screen.NewNameDialog
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
@@ -73,19 +72,15 @@ fun ManageScreen(
     val rowPitchPx = rowHeightPx + with(LocalDensity.current) { ROW_SPACING.toPx() }
 
     ReBuyAppScaffold(
-        topBarTitle = stringResource(
-            when (route.target) {
-                NameTarget.CATEGORY -> Res.string.manage_category_title
-                NameTarget.DESTINATION -> Res.string.manage_destination_title
-            }
-        ),
-        topBarNavigationIcon = {
-            ReBuyAppBarIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                onClick = { navigator.goBack() },
-                modifier = Modifier.testTag(TestTags.BACK_BUTTON)
+        appBar = ReBuyAppBarState(
+            onBack = { navigator.goBack() },
+            title = stringResource(
+                when (route.target) {
+                    NameTarget.CATEGORY -> Res.string.manage_category_title
+                    NameTarget.DESTINATION -> Res.string.manage_destination_title
+                }
             )
-        },
+        ),
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
         Column(

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -29,7 +28,7 @@ import io.github.obaya884.rebuy.ui.VERSION_NAME
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.NameTarget
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
 import io.github.obaya884.rebuy.ui.theme.labelResource
@@ -57,14 +56,10 @@ fun SettingScreen(
     val palette by themeViewModel.palette.collectAsState()
 
     ReBuyAppScaffold(
-        topBarTitle = stringResource(Res.string.setting_title),
-        topBarNavigationIcon = {
-            ReBuyAppBarIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                onClick = { navigator.goBack() },
-                modifier = Modifier.testTag(TestTags.BACK_BUTTON)
-            )
-        },
+        appBar = ReBuyAppBarState(
+            onBack = { navigator.goBack() },
+            title = stringResource(Res.string.setting_title)
+        ),
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {

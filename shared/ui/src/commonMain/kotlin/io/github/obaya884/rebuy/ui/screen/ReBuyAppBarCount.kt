@@ -16,7 +16,7 @@ import io.github.obaya884.rebuy.ui.theme.tabularNumbers
  * 01 は右隣の ＋、04 はバーの右端。**呼ぶ側からは打ち消せない。**
  */
 @Composable
-fun ReBuyAppBarCount(text: String, modifier: Modifier = Modifier) {
+internal fun ReBuyAppBarCount(text: String, modifier: Modifier = Modifier) {
     Text(
         text = text,
         style = MaterialTheme.typography.labelMedium.tabularNumbers(),

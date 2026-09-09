@@ -13,9 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -41,8 +39,8 @@ import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.formatMonthDay
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarCount
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIcon
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.ReBuyBottomCta
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
@@ -82,20 +80,24 @@ fun PoolScreen(
     }
 
     ReBuyAppScaffold(
-        topBarTitle = stringResource(Res.string.pool_title),
-        topBarActions = {
-            ReBuyAppBarCount(stringResource(Res.string.pool_total_count, uiState.totalCount))
-            ReBuyAppBarIconButton(
-                icon = Icons.Default.Add,
-                onClick = { isRegisterSheetOpen = true },
-                modifier = Modifier.testTag(TestTags.POOL_ADD_BUTTON)
+        appBar = ReBuyAppBarState(
+            title = stringResource(Res.string.pool_title),
+            count = ReBuyAppBarState.Count(
+                text = stringResource(Res.string.pool_total_count, uiState.totalCount)
+            ),
+            actions = listOf(
+                ReBuyAppBarState.Action(
+                    icon = ReBuyAppBarIcon.ADD,
+                    testTag = TestTags.POOL_ADD_BUTTON,
+                    onClick = { isRegisterSheetOpen = true }
+                ),
+                ReBuyAppBarState.Action(
+                    icon = ReBuyAppBarIcon.SETTINGS,
+                    testTag = TestTags.POOL_SETTINGS_BUTTON,
+                    onClick = { navigator.navigate(Screen.Setting) }
+                )
             )
-            ReBuyAppBarIconButton(
-                icon = Icons.Default.Settings,
-                onClick = { navigator.navigate(Screen.Setting) },
-                modifier = Modifier.testTag(TestTags.POOL_SETTINGS_BUTTON)
-            )
-        },
+        ),
         snackbarHostState = snackbarHostState
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
