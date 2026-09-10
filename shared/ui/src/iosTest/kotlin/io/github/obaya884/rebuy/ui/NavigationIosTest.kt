@@ -11,18 +11,9 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.resources.Res
-import io.github.obaya884.rebuy.ui.resources.manage_category_title
 import io.github.obaya884.rebuy.ui.resources.setting_row_category_edit
-import io.github.obaya884.rebuy.ui.resources.setting_row_license
-import io.github.obaya884.rebuy.ui.resources.setting_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_message
-import io.github.obaya884.rebuy.ui.resources.pool_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_title
-import io.github.obaya884.rebuy.ui.resources.shopping_title_all
-import io.github.obaya884.rebuy.ui.resources.theme_title
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.getString
 import kotlin.test.Test
 
 /**
@@ -41,25 +32,17 @@ import kotlin.test.Test
 @OptIn(ExperimentalTestApi::class)
 class NavigationIosTest {
 
-    /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
-    private fun string(resource: StringResource): String = runBlocking { getString(resource) }
+    // 画面のタイトル・文字列の読み出し・1 件だけの種は [IosTestFixtures] が持つ（AppBarStateIosTest と共有）
+    private val poolTitle = ScreenTitle.pool
+    private val shoppingTitle = ScreenTitle.shoppingAll
+    private val settingTitle = ScreenTitle.setting
+    private val categoryManageTitle = ScreenTitle.categoryManage
 
-    private val poolTitle = string(Res.string.pool_title)
-    private val shoppingTitle = string(Res.string.shopping_title_all)
-    private val settingTitle = string(Res.string.setting_title)
-    private val categoryManageTitle = string(Res.string.manage_category_title)
     private val emptyTitle = string(Res.string.pool_empty_title)
     private val emptyMessage = string(Res.string.pool_empty_message)
-
-    /** ライセンス画面のタイトルは実装側がハードコードなので、ここでも文字列で持つ。 */
-    private val licenseTitle = "ライセンス"
-    private val licenseLabel = string(Res.string.setting_row_license)
+    private val licenseLabel = ScreenTitle.license
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
-    private val themeLabel = string(Res.string.theme_title)
-
-    /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
-    private fun oneItem(status: ItemStatus): FakeDatabase.() -> Unit =
-        { seed(items = listOf(item(id = 1, name = "アイテム1", status = status))) }
+    private val themeLabel = ScreenTitle.theme
 
     /** [ReBuyApp] を描いて [block] を実行する。Koin と DB の用意は [startTestKoin]。 */
     private fun app(
@@ -74,8 +57,7 @@ class NavigationIosTest {
     /**
      * 現在表示されている画面を TopAppBar のタイトルで判定する。
      *
-     * **5 つのタイトルが互いに異なることに依存している。** 同じ語になる画面が出たら、
-     * 遷移先を取り違えても全件緑になるので、そのときは画面ごとの `testTag` に切り替える。
+     * **タイトルが互いに異なることに依存している**（[ScreenTitle] を見よ）。
      */
     private fun ComposeUiTest.assertCurrentScreenIs(title: String) {
         onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals(title)
@@ -126,7 +108,7 @@ class NavigationIosTest {
     fun 設定からライセンスへ遷移して戻る矢印で1段ずつプールまで帰る() = app {
         onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         onNodeWithText(licenseLabel).performClick()
-        assertCurrentScreenIs(licenseTitle)
+        assertCurrentScreenIs(licenseLabel)
 
         tapBackArrow()
         assertCurrentScreenIs(settingTitle)

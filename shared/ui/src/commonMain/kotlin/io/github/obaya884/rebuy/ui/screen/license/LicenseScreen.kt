@@ -11,8 +11,10 @@ import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.Res
+import io.github.obaya884.rebuy.ui.resources.license_title
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LicenseScreen(
@@ -22,7 +24,7 @@ fun LicenseScreen(
     ReBuyAppScaffold(
         appBar = ReBuyAppBarState(
             onBack = { navigator.goBack() },
-            title = "ライセンス"
+            title = stringResource(Res.string.license_title)
         ),
         snackbarHostState = snackbarHostState
     ) { innerPadding ->

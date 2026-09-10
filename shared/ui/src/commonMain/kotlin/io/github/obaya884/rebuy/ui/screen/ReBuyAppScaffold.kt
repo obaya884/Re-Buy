@@ -11,7 +11,7 @@ fun ReBuyAppScaffold(
     content: @Composable (PaddingValues) -> Unit,
 ) {
     Scaffold(
-        topBar = { ReBuyTopAppBar(appBar) },
+        topBar = { LocalReBuyAppBarRenderer.current.Render(appBar) },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { innerPadding ->
         content(innerPadding)

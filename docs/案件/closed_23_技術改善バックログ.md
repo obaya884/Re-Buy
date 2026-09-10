@@ -44,6 +44,7 @@
 | T-55 | 署名設定を xcconfig に一本化し、機械で見る | ツール整備 | 高 | 完了 2026-09-02 | [詳細](#t-55) |
 | T-51 | MVP 投入前に破壊的マイグレーションを外す | 内部設計 | 高 | 完了 2026-09-03 | [詳細](#t-51) |
 | T-50 | 実機ターゲット iosArm64 を CI で検査する | ツール整備 | 中 | 完了 2026-09-07 | [詳細](#t-50) |
+| T-40 | 設定画面の文言 4 件を Compose Resources へ寄せる | 内部設計 | 低 | 完了 2026-09-10 | [詳細](#t-40) |
 
 ## 詳細
 
@@ -303,3 +304,15 @@
   - **§6 からは行を落とさず絞った**。この網が届くのは Kotlin 側までで、**Xcode の実機構成（device destination・`embedAndSign` の `iphoneos` 経路・署名）と Release framework は無防備のまま**。どちらも段 4 が実際に触る場所なので [T-44](./23_技術改善バックログ.md#t-44) に預けた
   - 2 案の比較・変異の実測・`rebuy.kmp.ios` のコメントを触らなかった理由は[決定ログ](./log_23_技術改善バックログ.md) 2026-09-07
 - 関連: [T-35](#t-35) のレビューで test-reviewer が指摘。[T-44](./23_技術改善バックログ.md#t-44)（この検査を前提に着手する）
+
+### T-40
+
+- 背景: `LicenseScreen` のタイトル「ライセンス」だけが `strings.xml` の外にある。**画面文言は Compose Resources に置く**という本書の規約から外れており、そのぶん同じ文字列がテスト 3 本にコピーされている
+- 対応方針: `license_title` を `strings.xml` へ移し、テスト側の `private val licenseTitle` を `Res.string` 経由に揃える。表示は 1 文字も変えない
+- 着手条件: いつでも。**残りは 1 件**——設定の行 4 件は F-011 で片付いた（3 行は条項どおり消し、ライセンスの行は `setting_row_license` になった）
+- 優先度の根拠: 表示は正しく、壊れてもいない。テスト側の重複は注記付きで意図が読める状態にある
+- 関連: T-31 のステップ 14 のレビューで code-quality-reviewer が指摘
+- 結果（2026-09-10）: `license_title` を `strings.xml` へ置き、`LicenseScreen` のタイトルとテスト 3 本（`NavigationTest`・`NavigationStateRestorationTest`・`LicenseLibrariesTest`）のハードコードを `Res.string` 経由に揃えた。**表示は 1 文字も変えていない。**
+  - **対応方針から 1 点変えた**——`setting_row_license` を残して `license_title` を足すのではなく、**2 つを `license_title` の 1 つに寄せた**。値が同じ文字列 2 つになるのを避けるためで、`theme_title` が 08 のタイトルと 07 の行ラベルを兼ねている先例に合わせた（[log_23](./log_23_技術改善バックログ.md) 2026-09-10）
+  - あわせて各テストの `licenseTitle` と `licenseLabel` も 1 つに畳んだ。キーが 1 つになった以上、2 つの名前で持つ意味が無い
+  - [T-44](./23_技術改善バックログ.md#t-44) の段 4 Step 2 でオーナーが気づいて着手した

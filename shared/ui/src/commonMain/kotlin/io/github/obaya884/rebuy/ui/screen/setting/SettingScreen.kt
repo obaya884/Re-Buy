@@ -81,7 +81,7 @@ fun SettingScreen(
                 currentValue = stringResource(palette.labelResource())
             )
             SettingRow(
-                label = stringResource(Res.string.setting_row_license),
+                label = stringResource(Res.string.license_title),
                 testTag = TestTags.SETTING_ROW_LICENSE,
                 onTap = { navigator.navigate(Screen.License) }
             )

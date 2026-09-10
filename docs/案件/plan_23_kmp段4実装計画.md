@@ -50,7 +50,7 @@ iOS の外枠（ナビゲーションバー）を SwiftUI に載せ替え、Comp
 | Step | 内容 | 触る場所 | 見た目 |
 |---|---|---|---|
 | 1 | `ReBuyAppScaffold` のバーを**スロットからデータへ**（`onBack` / `title` / `count` / `actions`）。既定のレンダラは今の `TopAppBar`。**使われていない `bottomBar` と FAB 2 引数を落とす** | `:shared:ui` | 不変 |
-| 2 | バーの描き手を差し替えられるようにし、**画面ごとの bar state を commonTest で見る** | `:shared:ui` | 不変 |
+| 2 | バーの描き手を差し替えられるようにし、**画面ごとの bar state を `iosTest` で見る** | `:shared:ui` | 不変 |
 | 3 | iOS の入口に「バーを描かない版」と、bar state の購読口を足す。**accent（ARGB）を state に足すのはここ**（[13](../仕様/13_画面定義書.md) §6） | `iosMain` | 不変 |
 | 4 | `ContentView` を `NavigationStack` ＋ `.toolbar` にして繋ぐ。あわせて `Config.xcconfig` の `IPHONEOS_DEPLOYMENT_TARGET` を **17.0 から 26.0 へ**（[11](../仕様/11_要求定義書.md) §9 が「最低 iOS 26」と定めているのに実装が追随していなかった。Liquid Glass も 26 前提） | `iosApp` | **変わる** |
 | 5 | 中身をバーの下へ流す。**Android では足す値が 0 になる形にする** | `:shared:ui` | iOS だけ変わる |
@@ -60,9 +60,11 @@ iOS の外枠（ナビゲーションバー）を SwiftUI に載せ替え、Comp
 ### 各 Step の勘所
 
 - **Step 1 の「データへ」**: アイコンの渡し方は [13](../仕様/13_画面定義書.md) §6 に条項がある。**既定のレンダラを今の `TopAppBar` にする**のが Android を変えない仕掛けで、ここを外すと 6 画面と instrumented がまとめて動く。**色（accent）は Step 1 では入れない**——同じ §6 の条項だが、読む側が現れるのは Step 3 で、それまで誰も参照しないフィールドになる
-- **Step 2 で網が 1 段降りる**: いま `TOP_APP_BAR_TITLE` を引いて見ている「画面の同定」が、**UI 段からロジック段（bar state）へ**降りる。Step 6 の書き換えに強くなる
+- **Step 2 で網が 1 段降りる**: いま `TOP_APP_BAR_TITLE` を引いて見ている「画面の同定」が、**UI 段からロジック段（bar state）へ**降りる。Step 6 の書き換えに強くなる。**置き場所は `commonTest` ではなく `iosTest`**——当初は commonTest と書いていたが、`:shared:ui` の画面を描くテストは commonTest に置けない（[17](../仕様/17_テスト戦略定義書.md) §1・[T-60](./23_技術改善バックログ.md#t-60)）。**降りるのは検証対象であって置き場所ではない**ので、得られるものは変わらない
+- **Step 3 で最初から入れる観点 3 つ**（Step 2 のテスト観点レビューで挙がった）: (a) **accent はテーマに追従すること**——3 パレットで値が異なることを見ないと、固定値を返す実装が全件緑で通る。(b) **同じ画面で購読口が無用に再発火しないこと**——`ReBuyAppBarState` は `onBack`・`actions` のラムダで `equals` が壊れるので、`snapshotFlow` を素直に繋ぐと**再コンポーズのたびに emit** し、SwiftUI のツールバーが毎フレーム作り直される。**比較できる部分だけで鍵を作る設計判断とセットで**網を置く。(c) **「描かない描き手」そのもの**——記録用の描き手は Material を描き続けるので、この経路は Step 2 の網を 1 度も通らない。「バーのノードが 1 つも出ないのに画面の中身は出る」を 1 件置くと、Step 4 で二重見出しを踏む前に塞げる
 - **Step 4 で 04 の戻るを繋ぐ**: バーの ← は「1 つ戻る」ではなく**画面が決めた動作**を呼ぶ。04 はそこに離脱確認を繋ぐ（[13](../仕様/13_画面定義書.md) §6）。**素通りさせると買い物の途中で黙って 01 へ戻る**（チェックは残る）
 - **Step 5 が「Android を変えない」の勘所**: `innerPadding` をそのまま解釈だけ変えて使うと、**Android でも行がバーの下へ潜り込む**。足す値が Android で 0 になる形にする
+- **Step 6 でいちばん重いのは「遷移したか」の同定手段**: Step 4 で `TOP_APP_BAR_TITLE` と `BACK_BUTTON` が Compose ツリーから消えると、`NavigationIosTest`・`SettingIosTest`・`ThemeIosTest`・`ManageIosTest`・`DestinationManageIosTest`・`ShoppingIosTest` の **6 ファイルが同時に画面の同定手段を失う**。Step 2 で入れた `AppBarStateIosTest` が引き継げるのは「バーに何を出すか」までで、**遷移そのものは引き継げない**（記録用の描き手は Material を描き続けるので、本番の「描かない描き手」の経路をここでは 1 度も通らない）。**受け皿を Step 6 の着手前に決める**——画面ごとの `testTag` を本文側に置くか、bar state の title で同定するか。前者は本番コードに印が増え、後者は Swift 側が描いた結果を見ないままになる
 - **Step 6 は変異で確かめる**（[17](../仕様/17_テスト戦略定義書.md) §2.2）: publish 側の title を壊して、狙ったファイルだけが落ちるか
 
 ## 5. 網について
