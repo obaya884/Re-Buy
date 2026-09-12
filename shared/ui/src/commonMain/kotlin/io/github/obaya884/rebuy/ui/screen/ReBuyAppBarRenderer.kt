@@ -6,8 +6,8 @@ import androidx.compose.runtime.staticCompositionLocalOf
 /**
  * [ReBuyAppBarState] を実際のバーとして描く役。
  *
- * **段 4 の Step 3 で、iOS に「描かない」実装を挿す**（`docs/仕様/13_画面定義書.md` §6）——外枠は
- * SwiftUI が持つので、Compose 側も描くと**見出しが縦に 2 つ並ぶ**（実物で確認済み）。
+ * 実装は [MaterialAppBarRenderer]（Android と、バーを押すテスト）と [NoAppBarRenderer]
+ * （iOS の本番。外枠は SwiftUI が持つ）の 2 つ。
  *
  * `fun interface` にしていないのは、SAM 変換で `@Composable` なラムダを推論させると
  * 呼ぶ側の書き方に制約が出るため。

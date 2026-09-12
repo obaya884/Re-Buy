@@ -46,3 +46,18 @@ internal object ScreenTitle {
 /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
 internal fun oneItem(status: ItemStatus): FakeDatabase.() -> Unit =
     { seed(items = listOf(item(id = 1, name = "アイテム1", status = status))) }
+
+/**
+ * カゴ入りを 2 件。**行き先を持たせないので全件モードで 04 へ入る**（03 を挟まない。FB-04）。
+ *
+ * **x と n が別の数になる**ので、進捗を見るテストで「第 1 引数を 0 に固定する」「分母を 1 に
+ * 固定する」のどちらの変異も素通りしない。
+ */
+internal val twoInBasket: FakeDatabase.() -> Unit = {
+    seed(
+        items = listOf(
+            item(id = 1, name = "アイテムA", status = ItemStatus.IN_SHOPPING_LIST),
+            item(id = 2, name = "アイテムB", status = ItemStatus.IN_SHOPPING_LIST)
+        )
+    )
+}

@@ -116,16 +116,6 @@ class AppBarStateIosTest {
         assertEquals(emptyList(), appBar.actions, "$title にアクションが出ている")
     }
 
-    /** カゴ入りを 2 件。**行き先を持たせないので全件モードで 04 へ入る**（03 を挟まない。FB-04）。 */
-    private val twoInBasket: FakeDatabase.() -> Unit = {
-        seed(
-            items = listOf(
-                item(1, name = "アイテムA", status = ItemStatus.IN_SHOPPING_LIST),
-                item(2, name = "アイテムB", status = ItemStatus.IN_SHOPPING_LIST)
-            )
-        )
-    }
-
     /** 01 は根なので戻るを持たず、総数と ＋ と ⚙ を出す（画面 01）。 */
     @Test
     fun プールのバーは総数と2つのアクションを出す() = app(oneItem(ItemStatus.NO_DEAL)) { recorder ->
