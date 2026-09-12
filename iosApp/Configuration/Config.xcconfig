@@ -30,7 +30,9 @@ CURRENT_PROJECT_VERSION = 1
 ALWAYS_SEARCH_USER_PATHS = NO
 
 SDKROOT = iphoneos
-IPHONEOS_DEPLOYMENT_TARGET = 17.0
+
+// 要求定義書 §9 が「最低 iOS 26」と定めている。外枠に付く Liquid Glass も 26 前提
+IPHONEOS_DEPLOYMENT_TARGET = 26.0
 
 // Kotlin 側は iosArm64 と iosSimulatorArm64 の 2 つしか作っていない（iosX64 は
 // Intel Mac のシミュレータ用で、開発機も GitHub の macOS ランナーも arm64）。

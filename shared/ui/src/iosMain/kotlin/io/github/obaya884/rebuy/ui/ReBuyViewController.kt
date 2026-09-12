@@ -15,14 +15,8 @@ import platform.UIKit.UIViewController
  * トップレベル関数の入れ物クラス名をファイル名から作るので、分けると
  * Swift 側に `...Kt` が 2 つ並ぶ。
  *
- * **段 4 の Step 4 で消す**。バーを Compose が描く版で、いまの `ContentView` はこちらを呼ぶ。
- */
-fun ReBuyViewController(): UIViewController = ComposeUIViewController {
-    ReBuyApp()
-}
-
-/**
- * バーを SwiftUI が描く版の入口（`docs/仕様/13_画面定義書.md` §6）。
+ * バーは Compose では描かず、内容を [onAppBar] へ渡して SwiftUI に描かせる
+ * （`docs/仕様/13_画面定義書.md` §6）。
  *
  * [onAppBar] は**バーに出すものが変わったときだけ**呼ばれる（[PublishingAppBarRenderer]）。
  * Compose のメインスレッドから同期で呼ばれるので、**中から Kotlin を呼び返さないこと**。
@@ -58,7 +52,7 @@ internal fun ReBuyIosApp(onAppBar: (ReBuyToolbar) -> Unit) {
  * Android の `androidContext()` にあたるものは渡さない。Context に触るのは DB の
  * パス解決だけで、iOS 側は `NSDocumentDirectory` から自力で引ける。
  *
- * Swift からは `ReBuyViewControllerKt.setupKoin()` で呼ぶ。**`ReBuyViewController()` より
+ * Swift からは `ReBuyViewControllerKt.setupKoin()` で呼ぶ。**`ReBuyViewController(onAppBar:)` より
  * 先に呼ぶこと**——画面が `koinViewModel()` を引くので、後だと最初の描画で落ちる。
  * 2 回呼ぶと `KoinApplicationAlreadyStartedException` で落ちるが、それでよい——
  * `allowOverride(false)` と同じで、黙って動き続けるより起動時に気づけるほうを採る。

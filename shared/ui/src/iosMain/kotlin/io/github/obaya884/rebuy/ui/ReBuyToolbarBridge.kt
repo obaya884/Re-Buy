@@ -47,7 +47,9 @@ internal data class ReBuyToolbarKey(
  * **publish は [SideEffect] から出す**——コンポジションが成立してから走るので、組み立ての途中の値を
  * 外へ出さない（`AppBarStateIosTest` の記録用の描き手と同じ作法）。ただし**この `Render` は
  * `Scaffold` の `topBar` スロット（subcompose）の中**なので、成立の時点がレイアウトの最中に
- * 来ることがある。**Step 4 で SwiftUI の状態を同期更新するときに実測すること**。
+ * 来ることがある。**起動時の publish では SwiftUI の「更新中に状態を変えた」警告は出なかった**
+ * （2026-09-12、シミュレータの unified log で 0 件）。**遷移時は未測**——手で操作しないと
+ * 起こせず、`iosTest` は SwiftUI を通らない。
  *
  * **Swift のコールバックの中から Kotlin を同期で呼び返さないこと**——publish は Compose の
  * メインスレッドから同期で呼ばれるので、その場で再コンポーズを起こすと composition に再入する。
