@@ -30,6 +30,7 @@ import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.resources.theme_title
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.belowBar
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import io.github.obaya884.rebuy.ui.theme.labelResource
 import io.github.obaya884.rebuy.ui.theme.reBuyColors
@@ -55,8 +56,9 @@ fun ThemeScreen(
             title = stringResource(Res.string.theme_title)
         ),
         snackbarHostState = snackbarHostState
-    ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxWidth().padding(innerPadding)) {
+    ) { contentPadding ->
+        // **スクロールしないので流す一覧が無い**（13 §6）
+        Column(modifier = Modifier.fillMaxWidth().belowBar(contentPadding)) {
             ThemePalette.entries.forEach { palette ->
                 PaletteRow(
                     palette = palette,

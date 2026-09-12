@@ -1,11 +1,15 @@
 package io.github.obaya884.rebuy.ui
 
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.window.ComposeUIViewController
 import io.github.obaya884.rebuy.ui.di.initKoin
+import io.github.obaya884.rebuy.ui.screen.LocalBarOverlapTop
 import io.github.obaya884.rebuy.ui.screen.LocalReBuyAppBarRenderer
 import io.github.obaya884.rebuy.ui.screen.NoAppBarRenderer
 import platform.UIKit.UIViewController
@@ -40,7 +44,13 @@ internal fun ReBuyIosApp(onAppBar: (ReBuyToolbar) -> Unit) {
     // **キーに `onAppBar` を使わない**のはそのため——ラムダの同一性で作り直す形になる
     val latestOnAppBar = rememberUpdatedState(onAppBar)
     val renderer = remember { PublishingAppBarRenderer(NoAppBarRenderer) { latestOnAppBar.value(it) } }
-    CompositionLocalProvider(LocalReBuyAppBarRenderer provides renderer) {
+    // 外枠が被さっている高さ。**Swift から渡す橋は要らない**——`safeDrawing` の top に
+    // SwiftUI のバー高が入る（実測）。**ここに分岐を置かない**（`LocalBarOverlapTop` の KDoc）
+    val barOverlapTop = WindowInsets.safeDrawing.asPaddingValues().calculateTopPadding()
+    CompositionLocalProvider(
+        LocalReBuyAppBarRenderer provides renderer,
+        LocalBarOverlapTop provides barOverlapTop,
+    ) {
         ReBuyApp()
     }
 }

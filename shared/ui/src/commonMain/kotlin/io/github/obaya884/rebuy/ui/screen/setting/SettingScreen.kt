@@ -30,6 +30,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.NameTarget
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.belowBar
 import io.github.obaya884.rebuy.ui.screen.theme.ThemeViewModel
 import io.github.obaya884.rebuy.ui.theme.labelResource
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
@@ -61,8 +62,9 @@ fun SettingScreen(
             title = stringResource(Res.string.setting_title)
         ),
         snackbarHostState = snackbarHostState
-    ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+    ) { contentPadding ->
+        // **スクロールしないので流す一覧が無い**（13 §6）
+        Column(modifier = Modifier.fillMaxSize().belowBar(contentPadding)) {
             SettingRow(
                 label = stringResource(Res.string.setting_row_category_edit),
                 testTag = TestTags.SETTING_ROW_CATEGORY_EDIT,

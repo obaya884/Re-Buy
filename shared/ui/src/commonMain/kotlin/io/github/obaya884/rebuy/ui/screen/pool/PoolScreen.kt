@@ -42,6 +42,7 @@ import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIcon
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import io.github.obaya884.rebuy.ui.screen.belowBar
 import io.github.obaya884.rebuy.ui.screen.ReBuyBottomCta
 import io.github.obaya884.rebuy.ui.screen.ReBuyRowCard
 import io.github.obaya884.rebuy.ui.screen.ReBuySelectableChip
@@ -99,8 +100,9 @@ fun PoolScreen(
             )
         ),
         snackbarHostState = snackbarHostState
-    ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+    ) { contentPadding ->
+        // **チップ列が一覧とバーの間にいるので、一覧はバーまで届かない**（13 §6）
+        Column(modifier = Modifier.fillMaxSize().belowBar(contentPadding)) {
             FilterChips(
                 categories = uiState.categories,
                 destinations = uiState.destinations,

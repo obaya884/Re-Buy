@@ -82,14 +82,15 @@ fun ManageScreen(
             )
         ),
         snackbarHostState = snackbarHostState
-    ) { innerPadding ->
+    ) { contentPadding ->
         Column(
             verticalArrangement = Arrangement.spacedBy(ROW_SPACING),
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(innerPadding)
-                .padding(16.dp)
+                .padding(contentPadding.scaffold)
+                // `verticalScroll` の内側なので、一覧の `contentPadding` と同じに効く
+                .padding(contentPadding.insideScroll(all = 16.dp))
         ) {
             uiState.rows.forEachIndexed { index, record ->
                 ManageRow(

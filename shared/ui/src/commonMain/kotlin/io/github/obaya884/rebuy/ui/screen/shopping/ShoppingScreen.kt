@@ -2,7 +2,6 @@ package io.github.obaya884.rebuy.ui.screen.shopping
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -99,12 +98,13 @@ fun ShoppingScreen(
             )
         ),
         snackbarHostState = snackbarHostState
-    ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+    ) { contentPadding ->
+        Column(modifier = Modifier.fillMaxSize().padding(contentPadding.scaffold)) {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(16.dp),
-                modifier = Modifier.weight(1f)
+                // 外枠が被さっているぶんは**内側**に持つ。行がバーの背後を通る（13 §6）
+                contentPadding = contentPadding.insideScroll(all = 16.dp),
+                modifier = Modifier.weight(1f).testTag(TestTags.SHOPPING_LIST)
             ) {
                 shoppingRows(uiState.destinationItems, viewModel::toggleCheck)
                 if (uiState.anywhereItems.isNotEmpty()) {
