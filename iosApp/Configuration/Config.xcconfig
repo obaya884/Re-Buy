@@ -30,7 +30,9 @@ CURRENT_PROJECT_VERSION = 1
 ALWAYS_SEARCH_USER_PATHS = NO
 
 SDKROOT = iphoneos
-IPHONEOS_DEPLOYMENT_TARGET = 17.0
+
+// 要求定義書 §9 が「最低 iOS 26」と定めている。外枠に付く Liquid Glass も 26 前提
+IPHONEOS_DEPLOYMENT_TARGET = 26.0
 
 // Kotlin 側は iosArm64 と iosSimulatorArm64 の 2 つしか作っていない（iosX64 は
 // Intel Mac のシミュレータ用で、開発機も GitHub の macOS ランナーも arm64）。
@@ -42,7 +44,8 @@ SWIFT_VERSION = 5.0
 
 // Kotlin の framework の受け渡し場所。Run Script が
 // :shared:ui:embedAndSignAppleFrameworkForXcode でここへ置く。
-// **framework は debug しか作っていないので、Release 構成は段 4 まで通らない**
+// **debug と release の両方を作っている**ので、どちらの構成でも解決する。
+// ただし **Xcode の Release 構成には自動の網が無い**（17 §6・T-66）
 FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/../shared/ui/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
 OTHER_LDFLAGS = $(inherited) -framework ReBuyUi
 

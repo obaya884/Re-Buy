@@ -3,24 +3,24 @@ package io.github.obaya884.rebuy.ui
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextContains
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.navigationevent.DirectNavigationEventInput
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
  * 買い物モード（画面 04）の**画面段**。
  *
- * `ShoppingViewModelTest` が見るのは一覧の中身と書き込みまでで、**アプリバーの組み立て
- * （タイトル・進捗）と、行タップ・終了・離脱が繋がっていること**はここでしか見られない。
+ * `ShoppingViewModelTest` が見るのは一覧の中身と書き込みまで、`AppBarStateIosTest` は
+ * バーの組み立てまで。**渡った内容と画面の操作（行タップ・終了・離脱）が繋がっていること**は
+ * ここでしか見られない。
  *
  * 文言はリテラルで持つ（テスト戦略定義書 §2.1）。
  */
@@ -40,14 +40,8 @@ class ShoppingIosTest {
     private fun shopping(
         prepare: FakeDatabase.() -> Unit,
         destinationId: Int? = 1,
-        block: ComposeUiTest.(back: DirectNavigationEventInput) -> Unit
-    ) = runComposeUiTest {
-        startTestKoin(prepare)
-        val back = DirectNavigationEventInput()
-        setContent {
-            InstallSystemBack(back)
-            ReBuyApp()
-        }
+        block: ComposeUiTest.(probe: IosAppProbe) -> Unit
+    ) = runIosApp(prepare) { probe ->
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
         if (destinationId == null) {
             // seed に行き先付きが混じっていると 03 が開いたまま block に入り、失敗の理由が読めない
@@ -55,7 +49,7 @@ class ShoppingIosTest {
         } else {
             onNodeWithTag(TestTags.shoppingStartRow(destinationId)).performClick()
         }
-        block(back)
+        block(probe)
     }
 
     /** 画面上の縦位置。並びの assert に使う。 */
@@ -75,10 +69,10 @@ class ShoppingIosTest {
     }
 
     @Test
-    fun アプリバーに行き先名と進捗が出る() = shopping(withAnywhere) {
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先1で買い物中")
+    fun アプリバーに行き先名と進捗が出る() = shopping(withAnywhere) { probe ->
+        probe.assertScreen("行き先1で買い物中")
         // どこでも買えるものも一覧の一部なので分母に入る
-        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("0 / 3")
+        probe.assertCount("0 / 3", TestTags.SHOPPING_PROGRESS)
     }
 
     /**
@@ -124,21 +118,21 @@ class ShoppingIosTest {
             )
         },
         destinationId = 2
-    ) {
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先2で買い物中")
+    ) { probe ->
+        probe.assertScreen("行き先2で買い物中")
         onNodeWithTag(TestTags.shoppingRow(itemId = 2)).assertExists()
         onNodeWithTag(TestTags.shoppingRow(itemId = 1)).assertDoesNotExist()
         // 行き先 2 の 1 件 ＋ どこでも 1 件
-        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("0 / 2")
+        probe.assertCount("0 / 2", TestTags.SHOPPING_PROGRESS)
     }
 
     /** 行の長押しは無効（画面 04）。01 と違って編集シートは開かない。 */
     @Test
-    fun 行の長押しでは何も開かない() = shopping(withAnywhere) {
+    fun 行の長押しでは何も開かない() = shopping(withAnywhere) { probe ->
         onNodeWithTag(TestTags.shoppingRow(itemId = 1)).performTouchInput { longClick() }
 
         onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先1で買い物中")
+        probe.assertScreen("行き先1で買い物中")
     }
 
     /** 全件モードには「どこでも買えるもの」の区切りが無い（群が 1 つしかない）。 */
@@ -146,20 +140,20 @@ class ShoppingIosTest {
     fun 全件モードは区切りなしで買い物中と出る() = shopping(
         prepare = { seed(items = listOf(item(1, status = inBasket))) },
         destinationId = null
-    ) {
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("買い物中")
+    ) { probe ->
+        probe.assertScreen("買い物中")
         onNodeWithTag(TestTags.SHOPPING_ANYWHERE_SECTION).assertDoesNotExist()
     }
 
     /** 行タップがチェックに繋がっていること。進捗の分子で見る。 */
     @Test
-    fun 行タップでチェックが付き進捗が進む() = shopping(withAnywhere) {
+    fun 行タップでチェックが付き進捗が進む() = shopping(withAnywhere) { probe ->
         onNodeWithTag(TestTags.shoppingRow(itemId = 1)).performClick()
-        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("1 / 3")
+        probe.assertCount("1 / 3", TestTags.SHOPPING_PROGRESS)
 
         // もう一度タップすると外れる
         onNodeWithTag(TestTags.shoppingRow(itemId = 1)).performClick()
-        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("0 / 3")
+        probe.assertCount("0 / 3", TestTags.SHOPPING_PROGRESS)
     }
 
     /** 終了でプールへ戻り、チェック済みだけがカゴから抜ける（画面 04）。 */
@@ -172,22 +166,22 @@ class ShoppingIosTest {
             ),
             destinations = listOf(destination(1))
         )
-    }) {
+    }) { probe ->
         onNodeWithTag(TestTags.SHOPPING_FINISH_BUTTON).performClick()
 
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("Re-Buy")
+        probe.assertScreen(ScreenTitle.pool)
         // 未チェックの 1 件がカゴに残るので、CTA のバッジは 1
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertTextContains("1")
     }
 
     /** チェックが 1 件も無くても終了できる（画面 04。何も買わずに帰る道）。 */
     @Test
-    fun チェックが無くても終了できる() = shopping(withAnywhere) {
+    fun チェックが無くても終了できる() = shopping(withAnywhere) { probe ->
         onNodeWithTag(TestTags.SHOPPING_FINISH_BUTTON).assertIsEnabled()
 
         onNodeWithTag(TestTags.SHOPPING_FINISH_BUTTON).performClick()
 
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("Re-Buy")
+        probe.assertScreen(ScreenTitle.pool)
         // 何も戻していないので、カゴの 3 件はそのまま
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertTextContains("3")
     }
@@ -195,13 +189,13 @@ class ShoppingIosTest {
     /**
      * **システムバックでも離脱確認を通る**（画面定義書 §2・§4 の 04。FB-18）。
      *
-     * iOS の端末の戻りは端スワイプで、**ここが繋がっていないとチェックした内容が
-     * 確認なしで失われる**。実際、当初の iOS 実装は「iOS には端末の戻るが無い」として
-     * 何もしておらず、素通りしていた。
+     * iOS の端末の戻りは端スワイプで、**ここが繋がっていないと店で手を動かしている最中に
+     * 黙って 01 へ戻る**（チェック自体は残る）。実際、当初の iOS 実装は「iOS には端末の
+     * 戻るが無い」として何もしておらず、素通りしていた。
      */
     @Test
-    fun システムバックでも離脱確認が出る() = shopping(withAnywhere) { back ->
-        pressSystemBack(back)
+    fun システムバックでも離脱確認が出る() = shopping(withAnywhere) { probe ->
+        pressSystemBack(probe.systemBack)
 
         onNodeWithText("買い物を途中でやめますか？").assertExists()
     }
@@ -217,26 +211,29 @@ class ShoppingIosTest {
      * ハンドラは後に登録されたものが先に取るので、シートが開いていればこちらが有効でも呼ばれない。
      */
     @Test
-    fun 気づいたものを足すシート表示中のシステムバックはシートだけ閉じる() = shopping(withAnywhere) { back ->
+    fun 気づいたものを足すシート表示中のシステムバックはシートだけ閉じる() = shopping(withAnywhere) { probe ->
         onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertExists()
 
-        pressSystemBack(back)
+        pressSystemBack(probe.systemBack)
 
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
         onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).assertDoesNotExist()
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先1で買い物中")
+        probe.assertScreen("行き先1で買い物中")
     }
 
     /** ← の離脱確認で「続ける」を選ぶと 04 に留まる（画面 04）。 */
     @Test
-    fun 離脱確認で続けると買い物に留まる() = shopping(withAnywhere) {
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+    fun 離脱確認で続けると買い物に留まる() = shopping(withAnywhere) { probe ->
+        probe.back()
         onNodeWithText("買い物を途中でやめますか？").assertExists()
 
         onNodeWithTag(TestTags.SHOPPING_LEAVE_CANCEL).performClick()
 
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先1で買い物中")
+        // **ツリー側も見る。** 渡るのは内容が変わったときだけなので、見出しだけでは
+        // 「別の画面が渡らなかった」しか言えない（`IosAppProbe.toolbar` の KDoc）
+        probe.assertScreen("行き先1で買い物中")
+        onNodeWithTag(TestTags.SHOPPING_FINISH_BUTTON).assertExists()
     }
 
     /** 「やめる」で 01 へ戻る。**チェックは残る**ので、03 から入り直せば続きから。 */
@@ -246,14 +243,14 @@ class ShoppingIosTest {
             items = listOf(item(1, status = checked, destinationId = 1)),
             destinations = listOf(destination(1))
         )
-    }) {
-        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("1 / 1")
+    }) { probe ->
+        probe.assertCount("1 / 1", TestTags.SHOPPING_PROGRESS)
 
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+        probe.back()
         onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
 
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
         onNodeWithTag(TestTags.shoppingStartRow(destinationId = 1)).performClick()
-        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("1 / 1")
+        probe.assertCount("1 / 1", TestTags.SHOPPING_PROGRESS)
     }
 }

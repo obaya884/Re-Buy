@@ -2,14 +2,12 @@ package io.github.obaya884.rebuy.ui.screen.shopping
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -35,8 +33,7 @@ import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarCount
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.ReBuyBottomCta
 import io.github.obaya884.rebuy.ui.screen.add_noticed.AddNoticedSheet
@@ -80,35 +77,34 @@ fun ShoppingScreen(
         noticeMessage?.let { snackbarHostState.showSnackbar(it) }
     }
 
+    // 片方だけ直すことがないよう 1 つに括る
+    val confirmLeave = { isLeaveDialogOpen = true }
+
     // **05 が開いている間は受けない。** バックはシートを閉じるだけ（画面 04）
-    SystemBackHandler(enabled = !isAddNoticedSheetOpen) { isLeaveDialogOpen = true }
+    SystemBackHandler(enabled = !isAddNoticedSheetOpen, onBack = confirmLeave)
 
     ReBuyAppScaffold(
-        topBarTitle = shoppingTitle(uiState),
-        topBarNavigationIcon = {
-            ReBuyAppBarIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                onClick = { isLeaveDialogOpen = true },
-                modifier = Modifier.testTag(TestTags.BACK_BUTTON)
-            )
-        },
-        topBarActions = {
-            ReBuyAppBarCount(
+        appBar = ReBuyAppBarState(
+            // **← は「1 つ戻る」ではない**（画面定義書 §6）
+            onBack = confirmLeave,
+            title = shoppingTitle(uiState),
+            count = ReBuyAppBarState.Count(
                 text = stringResource(
                     Res.string.shopping_progress,
                     uiState.checkedCount,
                     uiState.totalCount
                 ),
-                modifier = Modifier.testTag(TestTags.SHOPPING_PROGRESS)
+                testTag = TestTags.SHOPPING_PROGRESS
             )
-        },
+        ),
         snackbarHostState = snackbarHostState
-    ) { innerPadding ->
-        Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+    ) { contentPadding ->
+        Column(modifier = Modifier.fillMaxSize().padding(contentPadding.scaffold)) {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(16.dp),
-                modifier = Modifier.weight(1f)
+                // 外枠が被さっているぶんは**内側**に持つ。行がバーの背後を通る（13 §6）
+                contentPadding = contentPadding.insideScroll(all = 16.dp),
+                modifier = Modifier.weight(1f).testTag(TestTags.SHOPPING_LIST)
             ) {
                 shoppingRows(uiState.destinationItems, viewModel::toggleCheck)
                 if (uiState.anywhereItems.isNotEmpty()) {

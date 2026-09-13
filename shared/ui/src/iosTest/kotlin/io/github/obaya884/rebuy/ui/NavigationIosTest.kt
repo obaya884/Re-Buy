@@ -4,25 +4,15 @@ import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.data.item.ItemStatus
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIcon
 import io.github.obaya884.rebuy.ui.resources.Res
-import io.github.obaya884.rebuy.ui.resources.manage_category_title
 import io.github.obaya884.rebuy.ui.resources.setting_row_category_edit
-import io.github.obaya884.rebuy.ui.resources.setting_row_license
-import io.github.obaya884.rebuy.ui.resources.setting_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_message
-import io.github.obaya884.rebuy.ui.resources.pool_title
 import io.github.obaya884.rebuy.ui.resources.pool_empty_title
-import io.github.obaya884.rebuy.ui.resources.shopping_title_all
-import io.github.obaya884.rebuy.ui.resources.theme_title
-import kotlinx.coroutines.runBlocking
-import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.getString
 import kotlin.test.Test
 
 /**
@@ -41,53 +31,32 @@ import kotlin.test.Test
 @OptIn(ExperimentalTestApi::class)
 class NavigationIosTest {
 
-    /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
-    private fun string(resource: StringResource): String = runBlocking { getString(resource) }
+    // 画面のタイトル・文字列の読み出し・1 件だけの種は [IosTestFixtures] が持つ（AppBarStateIosTest と共有）
+    private val poolTitle = ScreenTitle.pool
+    private val shoppingTitle = ScreenTitle.shoppingAll
+    private val settingTitle = ScreenTitle.setting
+    private val categoryManageTitle = ScreenTitle.categoryManage
 
-    private val poolTitle = string(Res.string.pool_title)
-    private val shoppingTitle = string(Res.string.shopping_title_all)
-    private val settingTitle = string(Res.string.setting_title)
-    private val categoryManageTitle = string(Res.string.manage_category_title)
     private val emptyTitle = string(Res.string.pool_empty_title)
     private val emptyMessage = string(Res.string.pool_empty_message)
-
-    /** ライセンス画面のタイトルは実装側がハードコードなので、ここでも文字列で持つ。 */
-    private val licenseTitle = "ライセンス"
-    private val licenseLabel = string(Res.string.setting_row_license)
+    private val licenseLabel = ScreenTitle.license
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
-    private val themeLabel = string(Res.string.theme_title)
-
-    /** 品目を 1 件だけ置く。ステータスを変えると通る分岐が変わるので、各テストが明示する。 */
-    private fun oneItem(status: ItemStatus): FakeDatabase.() -> Unit =
-        { seed(items = listOf(item(id = 1, name = "アイテム1", status = status))) }
-
-    /** [ReBuyApp] を描いて [block] を実行する。Koin と DB の用意は [startTestKoin]。 */
-    private fun app(
-        prepare: FakeDatabase.() -> Unit = {},
-        block: ComposeUiTest.() -> Unit
-    ) = runComposeUiTest {
-        startTestKoin(prepare)
-        setContent { ReBuyApp() }
-        block()
-    }
+    private val themeLabel = ScreenTitle.theme
 
     /**
-     * 現在表示されている画面を TopAppBar のタイトルで判定する。
+     * **本番 iOS の構成**で [ReBuyApp] を描いて [block] を実行する（[runIosApp]）。
      *
-     * **5 つのタイトルが互いに異なることに依存している。** 同じ語になる画面が出たら、
-     * 遷移先を取り違えても全件緑になるので、そのときは画面ごとの `testTag` に切り替える。
+     * 外枠は SwiftUI が描くので ⚙ や ← のノードは無く、画面の同定と遷移は
+     * 渡ってきた内容（[IosAppProbe]）から起こす。
      */
-    private fun ComposeUiTest.assertCurrentScreenIs(title: String) {
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals(title)
-    }
-
-    private fun ComposeUiTest.tapBackArrow() {
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-    }
+    private fun app(
+        prepare: FakeDatabase.() -> Unit = {},
+        block: ComposeUiTest.(IosAppProbe) -> Unit
+    ) = runIosApp(prepare, block = block)
 
     @Test
-    fun 起動直後はプールが表示される() = app {
-        assertCurrentScreenIs(poolTitle)
+    fun 起動直後はプールが表示される() = app { probe ->
+        probe.assertScreen(poolTitle)
     }
 
     /** 品目があるときは空状態ではなく行が出る。 */
@@ -104,45 +73,45 @@ class NavigationIosTest {
     }
 
     @Test
-    fun 設定からテーマへ遷移して戻る矢印で設定に帰る() = app {
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+    fun 設定からテーマへ遷移して戻る矢印で設定に帰る() = app { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
         onNodeWithText(themeLabel).performClick()
-        assertCurrentScreenIs(themeLabel)
+        probe.assertScreen(themeLabel)
 
-        tapBackArrow()
-        assertCurrentScreenIs(settingTitle)
+        probe.back()
+        probe.assertScreen(settingTitle)
     }
 
     @Test
-    fun プールから設定へ遷移して戻る矢印でプールに帰る() = app {
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
-        assertCurrentScreenIs(settingTitle)
+    fun プールから設定へ遷移して戻る矢印でプールに帰る() = app { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
+        probe.assertScreen(settingTitle)
 
-        tapBackArrow()
-        assertCurrentScreenIs(poolTitle)
+        probe.back()
+        probe.assertScreen(poolTitle)
     }
 
     @Test
-    fun 設定からライセンスへ遷移して戻る矢印で1段ずつプールまで帰る() = app {
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+    fun 設定からライセンスへ遷移して戻る矢印で1段ずつプールまで帰る() = app { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
         onNodeWithText(licenseLabel).performClick()
-        assertCurrentScreenIs(licenseTitle)
+        probe.assertScreen(licenseLabel)
 
-        tapBackArrow()
-        assertCurrentScreenIs(settingTitle)
+        probe.back()
+        probe.assertScreen(settingTitle)
 
-        tapBackArrow()
-        assertCurrentScreenIs(poolTitle)
+        probe.back()
+        probe.assertScreen(poolTitle)
     }
 
     @Test
-    fun カテゴリの管理の戻る矢印で設定に帰る() = app {
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+    fun カテゴリの管理の戻る矢印で設定に帰る() = app { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
         onNodeWithText(categoryEditLabel).performClick()
-        assertCurrentScreenIs(categoryManageTitle)
+        probe.assertScreen(categoryManageTitle)
 
-        tapBackArrow()
-        assertCurrentScreenIs(settingTitle)
+        probe.back()
+        probe.assertScreen(settingTitle)
     }
 
     /**
@@ -152,14 +121,14 @@ class NavigationIosTest {
      * 置いた 1 件は行き先なしなので**全件モードになり、03 を挟まず入る**（FB-04）。
      */
     @Test
-    fun CTAから買い物へ入り離脱確認でプールに帰る() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
+    fun CTAから買い物へ入り離脱確認でプールに帰る() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) { probe ->
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        assertCurrentScreenIs(shoppingTitle)
+        probe.assertScreen(shoppingTitle)
 
-        tapBackArrow()
+        probe.back()
         onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
 
-        assertCurrentScreenIs(poolTitle)
+        probe.assertScreen(poolTitle)
     }
 
     /**
@@ -189,10 +158,10 @@ class NavigationIosTest {
 
     /** カゴが空のときは CTA が押せない（画面 01）。 */
     @Test
-    fun カゴが空なら買い物を始められない() = app(oneItem(ItemStatus.NO_DEAL)) {
+    fun カゴが空なら買い物を始められない() = app(oneItem(ItemStatus.NO_DEAL)) { probe ->
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).assertIsNotEnabled()
 
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        assertCurrentScreenIs(poolTitle)
+        probe.assertScreen(poolTitle)
     }
 }

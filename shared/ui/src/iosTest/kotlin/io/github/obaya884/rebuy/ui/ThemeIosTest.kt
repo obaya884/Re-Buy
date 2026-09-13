@@ -3,7 +3,6 @@ package io.github.obaya884.rebuy.ui
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsNotSelected
 import androidx.compose.ui.test.assertIsSelected
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
@@ -12,6 +11,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.text.font.FontFamily
 import io.github.obaya884.rebuy.domain.ThemePalette
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIcon
 import io.github.obaya884.rebuy.domain.ThemeRepository
 import io.github.obaya884.rebuy.ui.resources.Res
 import io.github.obaya884.rebuy.ui.theme.ReBuyColors
@@ -125,11 +125,8 @@ class ThemeIosTest {
      * `labelResource()` の若葉の枝を取り違えても捕まらない。
      */
     @Test
-    fun パレットの名前が3つとも並ぶ() = runComposeUiTest {
-        startTestKoin()
-        setContent { ReBuyApp() }
-
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+    fun パレットの名前が3つとも並ぶ() = runIosApp { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
         onNodeWithTag(TestTags.SETTING_ROW_THEME).performClick()
 
         onNodeWithText("若葉").assertExists()
@@ -138,14 +135,11 @@ class ThemeIosTest {
     }
 
     @Test
-    fun 設定からテーマを開いて選べる() = runComposeUiTest {
-        startTestKoin()
-        setContent { ReBuyApp() }
-
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+    fun 設定からテーマを開いて選べる() = runIosApp { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
         onNodeWithTag(TestTags.SETTING_ROW_THEME).performClick()
 
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("テーマ")
+        probe.assertScreen("テーマ")
 
         // 事前状態を明示する。**ここを置かないと、前のテストの選択が残ったまま
         // タップが no-op でも最後の assert が通る**（Repository は single で、

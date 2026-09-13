@@ -95,8 +95,10 @@
     <string name="setting_title">設定</string>
     <string name="setting_row_category_edit">カテゴリの管理</string>
     <string name="setting_row_destination_manage">行き先の管理</string>
-    <string name="setting_row_license">ライセンス</string>
     <string name="setting_version">Re-Buy %1$s</string>
+
+    <!-- ライセンス画面（07 の行ラベルと共用。theme_title と同じ形） -->
+    <string name="license_title">ライセンス</string>
 
     <string name="text_field_add_dialog_positive_button">追加</string>
     <string name="text_field_add_dialog_negative_button">キャンセル</string>

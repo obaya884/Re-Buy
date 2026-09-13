@@ -1,13 +1,19 @@
 name: CI
 
 # PR と main への push で docs の機械検査と、build（lint・unit test）と
-# instrumented（Gradle Managed Device）と ios（Kotlin/Native と Xcode）を
-# 別ジョブで並列に回す。マージは手動（docs/仕様/16_git運用定義書.md §1.3）。
+# instrumented（Gradle Managed Device）と ios（Kotlin/Native と Xcode）と
+# ios-device（実機ターゲットのリンク）を別ジョブで並列に回す。
+# マージは手動（docs/仕様/16_git運用定義書.md §1.3）。
+#
+# **週次だけ ios-device が Release framework まで伸びる**（射程と実測は 17 §5）。
 
 on:
   pull_request:
   push:
     branches: [main]
+  schedule:
+    # 日曜 18:00 UTC = 月曜 03:00 JST。週の頭に結果が出ている状態にする
+    - cron: "0 18 * * 0"
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -100,7 +106,8 @@ jobs:
 
   # Kotlin/Native のテストと iOS アプリのビルド。macOS でしか走らない。
   # Linux の build ジョブは iOS のタスクを落とすのではなく「このホストでは走らない」と
-  # 警告を出して素通りするので、ここが無いと iOS のコンパイルエラーが CI をすり抜ける
+  # 警告を出して素通りするので、iOS のジョブ（ここと ios-device）が無いと
+  # iOS のコンパイルエラーが CI をすり抜ける
   ios:
     runs-on: macos-latest
     steps:
@@ -122,7 +129,8 @@ jobs:
       # linkDebugFrameworkIosSimulatorArm64 はこれに含まれる
       # テストが落ちても走らせる。1 回の実行で「Kotlin 側」と「Swift 側」の両方の
       # 結果が要る。Kotlin/Native のコンパイルは上のステップで済んでいるので、
-      # ここは 1 分もかからない（ジョブを分けると逆に 5〜8 分のコンパイルが二重になる）
+      # ここは 1 分もかからない（ジョブを分けると逆に 5〜8 分のコンパイルが二重になる。
+      # 下の ios-device を分けたのとは基準が違う。分ける／分けないの根拠は 17 §5）
       - name: iOS アプリのビルド
         if: ${{ !cancelled() }}
         run: |
@@ -132,17 +140,50 @@ jobs:
             -destination 'generic/platform=iOS Simulator' \
             build
 
-      # 実機ターゲット iosArm64。**上の 2 ステップはどちらもシミュレータ向け**なので、
-      # ターゲットごとに書く設定を実機側だけ書き忘れても緑のまま通る。
-      # compile を無修飾で並べるのは link だけだと射程が :shared:ui の依存グラフに
-      # 限られるため（詳細は 17 §5・T-50）
-      - name: 実機ターゲットのビルド
-        if: ${{ !cancelled() }}
-        run: ./gradlew compileKotlinIosArm64 linkDebugFrameworkIosArm64
-
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v7
         with:
           name: ios-reports
           path: shared/*/build/reports/
+
+  # 実機ターゲット iosArm64 の Debug と Release。**ios ジョブはどちらのステップも
+  # シミュレータ向け**なので、ターゲットごとに書く設定を実機側だけ書き忘れても緑のまま通る。
+  # シミュレータ側は ios が見る。**分けた根拠と Release の射程は 17 §5**
+  ios-device:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - uses: gradle/actions/setup-gradle@v6
+
+      # compile を無修飾で並べるのは、link だけだと射程が :shared:ui の依存グラフに
+      # 限られるため（17 §5・T-50）
+      - name: 実機ターゲットのビルド
+        run: ./gradlew compileKotlinIosArm64 linkDebugFrameworkIosArm64
+
+      # **Release は週次だけ。** opt モードのリンクは CI で 15 分かかり（手元の 3.2 倍。17 §5）、
+      # 毎 PR に載せると待ち時間が 10 分から 20 分になる。壊れる原因は opt モードのコンパイラか
+      # ツールチェーンの更新で、PR ごとに見る種類ではない。
+      # !cancelled() は、上の Debug が落ちても Release の結果を出すため
+      - name: Release framework のリンク（週次）
+        if: ${{ !cancelled() && github.event_name == 'schedule' }}
+        run: ./gradlew linkReleaseFrameworkIosArm64
+
+      # **このジョブが「何もせず緑」になるのを止める。** 実機の網はここ 1 本しか無いので、
+      # runs-on を取り違えた日に Kotlin/Native のタスクが「このホストでは走らない」と警告を
+      # 出して素通りし、網が丸ごと黙って消える（17 §4 の 0 件検査と同じ発想）。
+      # レポートを出すタスクが無いので、このジョブは失敗時のアップロードを持たない
+      - name: 成果物の実在
+        env:
+          EVENT: ${{ github.event_name }}
+        run: |
+          test -f shared/ui/build/bin/iosArm64/debugFramework/ReBuyUi.framework/ReBuyUi
+          if [ "$EVENT" = "schedule" ]; then
+            test -f shared/ui/build/bin/iosArm64/releaseFramework/ReBuyUi.framework/ReBuyUi
+          fi

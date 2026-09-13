@@ -48,9 +48,7 @@ class NavigationTest {
     private val categoryEditLabel = string(Res.string.setting_row_category_edit)
     private val shoppingTitleAll = string(Res.string.shopping_title_all)
 
-    /** ライセンス画面のタイトルは実装側がハードコードなので、ここでも文字列で持つ。 */
-    private val licenseTitle = "ライセンス"
-    private val licenseLabel = string(Res.string.setting_row_license)
+    private val licenseLabel = string(Res.string.license_title)
 
     /** シートが開くまでの待ち。GMD では既定の 1 秒に収まらないことがある。 */
     private val SHEET_TIMEOUT_MS = 5_000L
@@ -130,7 +128,7 @@ class NavigationTest {
     fun 設定からライセンスへ遷移して端末の戻るで1段ずつプールまで帰る() {
         composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
-        assertCurrentScreenIs(licenseTitle)
+        assertCurrentScreenIs(licenseLabel)
 
         pressBack()
         assertCurrentScreenIs(settingTitle)
@@ -143,7 +141,7 @@ class NavigationTest {
     fun ライセンスの戻る矢印で設定に帰る() {
         composeRule.onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
         composeRule.onNodeWithText(licenseLabel).performClick()
-        assertCurrentScreenIs(licenseTitle)
+        assertCurrentScreenIs(licenseLabel)
 
         tapBackArrow()
         assertCurrentScreenIs(settingTitle)
