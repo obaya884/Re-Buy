@@ -44,7 +44,8 @@ SWIFT_VERSION = 5.0
 
 // Kotlin の framework の受け渡し場所。Run Script が
 // :shared:ui:embedAndSignAppleFrameworkForXcode でここへ置く。
-// **framework は debug しか作っていないので、Release 構成は段 4 まで通らない**
+// **debug と release の両方を作っている**ので、どちらの構成でも解決する。
+// ただし **Xcode の Release 構成には自動の網が無い**（17 §6・T-66）
 FRAMEWORK_SEARCH_PATHS = $(inherited) $(SRCROOT)/../shared/ui/build/xcode-frameworks/$(CONFIGURATION)/$(SDK_NAME)
 OTHER_LDFLAGS = $(inherited) -framework ReBuyUi
 

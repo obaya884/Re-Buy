@@ -100,9 +100,15 @@ val generateVersionKt = tasks.register("generateVersionKt") {
 kotlin {
     // iOS 側へ出す framework。baseName が Swift から見える名前になる。
     // ターゲットの宣言は rebuy.kmp.ios にある。
-    // debug のみ。release は実機配布が要る段 4 で足す（そのとき Gradle のヒープを上げる。経緯は log_23）
+    //
+    // **debug と release の両方を作る。** どちらを作るかは Xcode の CONFIGURATION が決め、
+    // embedAndSignAppleFrameworkForXcode がそれを読んで対応するものを置く——release を
+    // 宣言していないと、Xcode の Release 構成がそもそも通らない。
+    //
+    // **宣言したものは assemble にぶら下がる**ので、macOS の `./gradlew build` は
+    // ここで挙げたぶんを毎回リンクする。射程は 17 §5 が持つ
     targets.withType<KotlinNativeTarget>().configureEach {
-        binaries.framework(listOf(NativeBuildType.DEBUG)) {
+        binaries.framework(listOf(NativeBuildType.DEBUG, NativeBuildType.RELEASE)) {
             baseName = "ReBuyUi"
             // static。Xcode 側は framework の埋め込みコピーが要らなくなる
             isStatic = true
