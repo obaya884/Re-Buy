@@ -39,8 +39,8 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalTestApi::class)
 class ContentUnderBarIosTest {
 
-    /** 外枠が被さっている高さとして注入する値。実機のバー高に近いが、**値そのものに意味は無い**。 */
-    private val overlap = 44.dp
+    /** 外枠が被さっている高さ。共有の入口と同じ値を使う（`IosTestApp.kt`）。 */
+    private val overlap = BAR_OVERLAP_TOP
 
     /** 一覧の件数。**走査の範囲とスクロール先がこれで決まる**ので 1 か所に置く。 */
     private val rowCount = 20
@@ -53,42 +53,9 @@ class ContentUnderBarIosTest {
         seed(categories = (1..5).map { category(id = it) })
     }
 
-    /**
-     * 本番 iOS と同じ構成（バーを描かず、上端が被さっている）で [ReBuyApp] を描く。
-     *
-     * **バーを描かないと ⚙ が無い**ので、遷移は本番と同じ橋（渡ってきたアクション）から起こす。
-     * [delegate] を Material に、[barOverlapTop] を 0 にすると **Android と同じ構成**になる。
-     */
-    private fun app(
-        prepare: FakeDatabase.() -> Unit = {},
-        barOverlapTop: Dp = overlap,
-        delegate: ReBuyAppBarRenderer = NoAppBarRenderer,
-        block: ComposeUiTest.(List<ReBuyToolbar>) -> Unit
-    ) = runComposeUiTest {
-        val published = mutableListOf<ReBuyToolbar>()
-        startTestKoin(prepare)
-        setContent {
-            CompositionLocalProvider(
-                LocalReBuyAppBarRenderer provides
-                    PublishingAppBarRenderer(delegate) { published += it },
-                LocalBarOverlapTop provides barOverlapTop,
-            ) {
-                ReBuyApp()
-            }
-        }
-        waitForIdle()
-        block(published)
-    }
-
     /** 04 へ入る（カゴに行き先付きが無いので 03 を挟まない）。 */
     private fun ComposeUiTest.startShopping() {
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        waitForIdle()
-    }
-
-    /** 07 へ入る。**バーを描かないので ⚙ のノードは無く、渡ってきたアクションから起こす**。 */
-    private fun ComposeUiTest.openSetting(published: List<ReBuyToolbar>) {
-        published.last().actions.first { it.icon == ReBuyAppBarIcon.SETTINGS }.onClick()
         waitForIdle()
     }
 
@@ -101,13 +68,13 @@ class ContentUnderBarIosTest {
     private fun assertMovesDownByOverlap(
         what: String,
         prepare: FakeDatabase.() -> Unit = {},
-        open: ComposeUiTest.(List<ReBuyToolbar>) -> Unit = {},
+        open: ComposeUiTest.(IosAppProbe) -> Unit = {},
         node: ComposeUiTest.() -> SemanticsNodeInteraction,
     ) {
         fun top(barOverlapTop: Dp): Dp {
             var top: Dp? = null
-            app(prepare, barOverlapTop = barOverlapTop) { published ->
-                open(published)
+            runIosApp(prepare, barOverlapTop = barOverlapTop) { probe ->
+                open(probe)
                 top = node().getUnclippedBoundsInRoot().top
             }
             return requireNotNull(top) { "$what の位置を測れていない" }
@@ -148,7 +115,7 @@ class ContentUnderBarIosTest {
      * ここが 16 のままなら、被さっているぶんを一覧が持てていない。
      */
     @Test
-    fun 一覧の先頭は被さるぶんだけ下から始まる() = app(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
+    fun 一覧の先頭は被さるぶんだけ下から始まる() = runIosApp(oneItem(ItemStatus.IN_SHOPPING_LIST)) {
         startShopping()
 
         val top = onNodeWithTag(TestTags.shoppingRow(itemId = 1)).getUnclippedBoundsInRoot().top
@@ -164,7 +131,7 @@ class ContentUnderBarIosTest {
      * 切られた行の座標は帯に入りうる。**切られていないこと**（クリップ前後で高さが同じ）まで見る。
      */
     @Test
-    fun スクロールすると行がバーの帯の中に描かれる() = app(manyInBasket) {
+    fun スクロールすると行がバーの帯の中に描かれる() = runIosApp(manyInBasket) {
         startShopping()
         onNodeWithTag(TestTags.SHOPPING_LIST).performScrollToIndex(rowCount - 1)
         waitForIdle()
@@ -190,7 +157,7 @@ class ContentUnderBarIosTest {
      */
     @Test
     fun 足す値が0なら行はアプリバーへ潜らない() =
-        app(manyInBasket, barOverlapTop = 0.dp, delegate = MaterialAppBarRenderer) {
+        runIosApp(manyInBasket, barOverlapTop = 0.dp, delegate = MaterialAppBarRenderer) {
             startShopping()
             onNodeWithTag(TestTags.SHOPPING_LIST).performScrollToIndex(rowCount - 1)
             waitForIdle()
@@ -212,7 +179,7 @@ class ContentUnderBarIosTest {
         // **既定値を置かない。** 置くと、ブロックが assert に届かなかったときに両辺 0 で成立する
         fun ctaBottomGap(barOverlapTop: Dp): Float {
             var gap: Float? = null
-            app(oneItem(ItemStatus.NO_DEAL), barOverlapTop = barOverlapTop) {
+            runIosApp(oneItem(ItemStatus.NO_DEAL), barOverlapTop = barOverlapTop) {
                 val cta = onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON)
                     .getUnclippedBoundsInRoot()
                 gap = onRoot().getUnclippedBoundsInRoot().bottom.value - cta.bottom.value
@@ -231,15 +198,15 @@ class ContentUnderBarIosTest {
     @Test
     fun 設定の先頭行は被さるぶんだけ下がる() = assertMovesDownByOverlap(
         what = "07 の先頭行",
-        open = { published -> openSetting(published) },
+        open = { probe -> probe.tap(ReBuyAppBarIcon.SETTINGS) },
         node = { onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT) },
     )
 
     @Test
     fun テーマの先頭行は被さるぶんだけ下がる() = assertMovesDownByOverlap(
         what = "08 の先頭行",
-        open = { published ->
-            openSetting(published)
+        open = { probe ->
+            probe.tap(ReBuyAppBarIcon.SETTINGS)
             onNodeWithTag(TestTags.SETTING_ROW_THEME).performClick()
             waitForIdle()
         },
@@ -254,8 +221,8 @@ class ContentUnderBarIosTest {
     fun 管理の先頭行は被さるぶんだけ下がる() = assertMovesDownByOverlap(
         what = "09 の先頭行",
         prepare = someCategories,
-        open = { published ->
-            openSetting(published)
+        open = { probe ->
+            probe.tap(ReBuyAppBarIcon.SETTINGS)
             onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT).performClick()
             waitForIdle()
         },
@@ -282,7 +249,7 @@ class ContentUnderBarIosTest {
     fun プールの一覧はチップ列の直下から始まる() {
         fun gap(barOverlapTop: Dp): Float {
             var gap: Float? = null
-            app(oneItem(ItemStatus.NO_DEAL), barOverlapTop = barOverlapTop) {
+            runIosApp(oneItem(ItemStatus.NO_DEAL), barOverlapTop = barOverlapTop) {
                 val chips = onNodeWithTag(TestTags.POOL_CHIP_ALL).getUnclippedBoundsInRoot()
                 val row = onNodeWithTag(TestTags.poolRow(itemId = 1)).getUnclippedBoundsInRoot()
                 gap = row.top.value - chips.bottom.value
@@ -291,6 +258,26 @@ class ContentUnderBarIosTest {
         }
 
         assertEquals(gap(0.dp), gap(overlap), "一覧が二重に下がっている")
+    }
+
+    /**
+     * **シートは被さるぶんに動かされない。**
+     *
+     * シートは下端に貼り付いて外枠まで覆う（段 4 の着手前のスパイクで実測）。上端が被さっても
+     * 位置は変わらないのが意図で、**ここが動くなら中身の配り方を間違えている**。
+     */
+    @Test
+    fun シートは被さるぶんに動かされない() {
+        fun sheetTop(barOverlapTop: Dp): Dp {
+            var top: Dp? = null
+            runIosApp(oneItem(ItemStatus.NO_DEAL), barOverlapTop = barOverlapTop) { probe ->
+                probe.tap(ReBuyAppBarIcon.ADD)
+                top = onNodeWithTag(TestTags.REGISTER_NAME_FIELD).getUnclippedBoundsInRoot().top
+            }
+            return requireNotNull(top) { "登録シートの位置を測れていない" }
+        }
+
+        assertEquals(sheetTop(0.dp), sheetTop(overlap), "シートが被さるぶんに動かされている")
     }
 
     /**

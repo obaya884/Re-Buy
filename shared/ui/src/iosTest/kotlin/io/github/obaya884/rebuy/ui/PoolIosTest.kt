@@ -19,7 +19,7 @@ import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.SemanticsMatcher
-import androidx.compose.ui.test.v2.runComposeUiTest
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIcon
 import kotlin.test.Test
 import kotlin.time.Instant
 
@@ -56,11 +56,9 @@ class PoolIosTest {
 
     private fun pool(
         prepare: FakeDatabase.() -> Unit = {},
-        block: ComposeUiTest.() -> Unit
-    ) = runComposeUiTest {
-        startTestKoin(prepare)
-        setContent { ReBuyApp() }
-        block()
+        block: ComposeUiTest.(IosAppProbe) -> Unit
+    ) = runIosApp(prepare) { probe ->
+        block(probe)
     }
 
     // ---- 行の中身（画面 01） ----
@@ -99,8 +97,8 @@ class PoolIosTest {
      * 「登録」が結線されていない**といった抜けはここでしか捕まらない。
      */
     @Test
-    fun 登録シートから登録すると一覧の末尾に現れる() = pool(twoItems()) {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 登録シートから登録すると一覧の末尾に現れる() = pool(twoItems()) { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムC")
         onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
 
@@ -117,16 +115,16 @@ class PoolIosTest {
      * 持ち上がる——**画面が 2 回動いて見える**（実機で確認）。
      */
     @Test
-    fun 開いた時点では名前欄にフォーカスが入らない() = pool {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 開いた時点では名前欄にフォーカスが入らない() = pool { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
 
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsNotFocused()
     }
 
     /** タップすれば打ち始められる。 */
     @Test
-    fun 名前欄をタップするとフォーカスが入る() = pool {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 名前欄をタップするとフォーカスが入る() = pool { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
 
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performClick()
 
@@ -140,12 +138,12 @@ class PoolIosTest {
      * 閉じる合図や入力が残ると、2 回目に開いた瞬間に閉じる／前回の入力が残る。
      */
     @Test
-    fun 登録した後にもう一度シートを開ける() = pool {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 登録した後にもう一度シートを開ける() = pool { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
         onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
 
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        probe.tap(ReBuyAppBarIcon.ADD)
 
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsDisplayed()
     }
@@ -157,13 +155,13 @@ class PoolIosTest {
      * グリップが持っているので、ピクセルを動かさずに同じ道を通れる。
      */
     @Test
-    fun 保存せずに閉じると入力は残らない() = pool {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 保存せずに閉じると入力は残らない() = pool { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("書きかけ")
 
         onNode(SemanticsMatcher.keyIsDefined(SemanticsActions.Dismiss))
             .performSemanticsAction(SemanticsActions.Dismiss)
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        probe.tap(ReBuyAppBarIcon.ADD)
 
         onNodeWithText("書きかけ").assertDoesNotExist()
         // 品目としても残っていない
@@ -172,8 +170,8 @@ class PoolIosTest {
 
     /** 「続けて登録」はシートを開いたままにする（画面 02）。 */
     @Test
-    fun 続けて登録ではシートが開いたまま() = pool {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 続けて登録ではシートが開いたまま() = pool { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムA")
         onNodeWithTag(TestTags.REGISTER_SUBMIT_AND_CONTINUE).performClick()
 
@@ -182,8 +180,8 @@ class PoolIosTest {
 
     /** 弾かれたらシートは開いたまま、入力欄の下に理由が出る（画面定義書 §2）。 */
     @Test
-    fun 同じ名前で登録すると理由が出てシートは開いたまま() = pool(twoItems()) {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 同じ名前で登録すると理由が出てシートは開いたまま() = pool(twoItems()) { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテム1")
         onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
 
@@ -193,8 +191,8 @@ class PoolIosTest {
 
     /** 02b で作ったカテゴリは、呼び出し元のチップ列に**選択済み**で現れる。 */
     @Test
-    fun 新しいカテゴリを作るとその品目に付く() = pool {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 新しいカテゴリを作るとその品目に付く() = pool { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
         onNodeWithTag(TestTags.ITEM_FORM_NEW_CATEGORY_CHIP).performClick()
         onNodeWithTag(TestTags.ITEM_FORM_DIALOG_NAME_FIELD).performTextInput("カテゴリA")
         onNodeWithTag(TestTags.ITEM_FORM_DIALOG_CREATE).performClick()
@@ -208,8 +206,8 @@ class PoolIosTest {
 
     /** 行き先側の結線はカテゴリとは別のコピーなので、こちらも 1 件見る。 */
     @Test
-    fun 新しい行き先を作るとその品目に付く() = pool {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 新しい行き先を作るとその品目に付く() = pool { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
         onNodeWithTag(TestTags.ITEM_FORM_NEW_DESTINATION_CHIP).performClick()
         onNodeWithTag(TestTags.ITEM_FORM_DIALOG_NAME_FIELD).performTextInput("行き先A")
         onNodeWithTag(TestTags.ITEM_FORM_DIALOG_CREATE).performClick()
@@ -222,8 +220,8 @@ class PoolIosTest {
 
     /** すでにあるチップを選ぶ経路。**作る経路とは別の結線**。 */
     @Test
-    fun 既存のチップを選ぶとその品目に付く() = pool(twoItems()) {
-        onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+    fun 既存のチップを選ぶとその品目に付く() = pool(twoItems()) { probe ->
+        probe.tap(ReBuyAppBarIcon.ADD)
         onNodeWithTag(TestTags.itemFormCategoryChip(categoryId = 1)).performClick()
         onNodeWithTag(TestTags.itemFormDestinationChip(destinationId = 1)).performClick()
         onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("アイテムC")

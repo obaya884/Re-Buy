@@ -7,7 +7,7 @@ import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.v2.runComposeUiTest
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIcon
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -24,14 +24,13 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalTestApi::class)
 class SettingIosTest {
 
-    private fun setting(block: ComposeUiTest.() -> Unit) = runComposeUiTest {
-        startTestKoin()
-        setContent { ReBuyApp() }
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+    /** **本番 iOS の構成**で 07 を開く（[runIosApp]）。⚙ は外枠にあるので [IosAppProbe] から押す。 */
+    private fun setting(block: ComposeUiTest.(IosAppProbe) -> Unit) = runIosApp { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
         // 設定に着いたことを先に確かめる。ここが無いと、以下の「出さない行」の
         // 非存在は「そもそも設定を開けていない」でも通ってしまう
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("設定")
-        block()
+        probe.assertScreen("設定")
+        block(probe)
     }
 
     /** 条項の 4 行が**この順で**並ぶ（画面 07）。存在だけ見ると入れ替えても緑になる。 */
@@ -77,12 +76,12 @@ class SettingIosTest {
 
     /** 08 で選び直すと、戻った 07 の行にも追随する。 */
     @Test
-    fun テーマを変えると行の表示も変わる() = setting {
+    fun テーマを変えると行の表示も変わる() = setting { probe ->
         onNodeWithTag(TestTags.SETTING_ROW_THEME).assertTextEquals("テーマ", "藍")
 
         onNodeWithTag(TestTags.SETTING_ROW_THEME).performClick()
         onNodeWithText("柿").performClick()
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+        probe.back()
 
         onNodeWithTag(TestTags.SETTING_ROW_THEME).assertTextEquals("テーマ", "柿")
     }
@@ -103,12 +102,12 @@ class SettingIosTest {
         val versionNode = onNodeWithTag(TestTags.SETTING_VERSION).fetchSemanticsNode()
         val gap = versionNode.positionInRoot.y - (licenseNode.positionInRoot.y + licenseNode.size.height)
 
-        // **最後の行の直下ではない。** 行の直下に置く実装だと隙間はほぼ 0 になる
-        assertTrue(gap > MIN_BOTTOM_GAP, "バージョンは画面の下端に固定される（隙間 $gap）")
-    }
-
-    private companion object {
-        /** 「下端に固定」と「行の直下」を見分けるための隙間（px）。 */
-        const val MIN_BOTTOM_GAP = 100f
+        // **最後の行の直下ではない。** 行の直下に置く実装だと隙間はほぼ 0 になる。
+        // **行の高さを基準にする**——絶対値だと、外枠が被さって本文が下がったときに
+        // 余裕が黙って目減りする（段 4 の Step 5 で実際に 44dp 縮んだ）
+        assertTrue(
+            gap > licenseNode.size.height,
+            "バージョンは画面の下端に固定される（隙間 $gap・行の高さ ${licenseNode.size.height}）"
+        )
     }
 }
