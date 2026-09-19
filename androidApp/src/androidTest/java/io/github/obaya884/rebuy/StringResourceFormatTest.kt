@@ -27,10 +27,8 @@ import org.junit.Test
  */
 class StringResourceFormatTest {
 
-    private fun string(resource: StringResource): String = runBlocking { getString(resource) }
-
-    private fun string(resource: StringResource, arg: String): String =
-        runBlocking { getString(resource, arg) }
+    private fun string(resource: StringResource, vararg args: Any): String =
+        runBlocking { getString(resource, *args) }
 
     @Test
     fun 位置指定の引数が差し込まれる() {
@@ -41,6 +39,11 @@ class StringResourceFormatTest {
         assertEquals(
             "全 12 件",
             string(Res.string.pool_total_count, "12")
+        )
+        // **2 つの位置指定が入れ替わらないこと**も見る。x と n を別の数にしないと素通りする
+        assertEquals(
+            "1 / 3",
+            string(Res.string.shopping_progress, 1, 3)
         )
         // **異体字セレクタが混ざっていないことも同時に見る**（FB-13）。付いても人の目には
         // 一見同じなので、リテラルの一致でしか気づけない

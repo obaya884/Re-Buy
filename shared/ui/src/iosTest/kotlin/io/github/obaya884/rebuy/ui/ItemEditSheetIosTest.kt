@@ -14,7 +14,6 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextClearance
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.v2.runComposeUiTest
 import kotlin.test.Test
 import kotlin.time.Instant
 
@@ -51,9 +50,7 @@ class ItemEditSheetIosTest {
         )
     }
 
-    private fun sheet(block: ComposeUiTest.() -> Unit) = runComposeUiTest {
-        startTestKoin(twoItems())
-        setContent { ReBuyApp() }
+    private fun sheet(block: ComposeUiTest.() -> Unit) = runIosApp(twoItems()) {
         block()
     }
 

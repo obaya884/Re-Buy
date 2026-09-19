@@ -7,7 +7,6 @@ import androidx.compose.ui.test.assertTextContains
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -32,12 +31,10 @@ class ShoppingStartSheetIosTest {
      */
     private fun startShopping(
         prepare: FakeDatabase.() -> Unit,
-        block: ComposeUiTest.() -> Unit
-    ) = runComposeUiTest {
-        startTestKoin(prepare)
-        setContent { ReBuyApp() }
+        block: ComposeUiTest.(IosAppProbe) -> Unit
+    ) = runIosApp(prepare) { probe ->
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        block()
+        block(probe)
     }
 
     /**
@@ -121,9 +118,9 @@ class ShoppingStartSheetIosTest {
     @Test
     fun 行き先付きが無ければシートを出さず買い物へ直行する() = startShopping({
         seed(items = listOf(item(1, status = inBasket), item(2, status = inBasket)))
-    }) {
+    }) { probe ->
         onNodeWithText("今日はどこへ？").assertDoesNotExist()
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("買い物中")
+        probe.assertScreen(ScreenTitle.shoppingAll)
     }
 
     /** **行き先付きが 1 件でもあればシートは出す。** 選択肢 1 つでも「どこへ？」の答えになる。 */
@@ -135,10 +132,10 @@ class ShoppingStartSheetIosTest {
 
     /** 行タップで買い物へ入り、シートは閉じる（画面 03）。 */
     @Test
-    fun 行タップで買い物に入りシートは閉じる() = startShopping(withDestinations()) {
+    fun 行タップで買い物に入りシートは閉じる() = startShopping(withDestinations()) { probe ->
         onNodeWithTag(TestTags.shoppingStartRow(destinationId = 1)).performClick()
 
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextContains("行き先1で買い物中")
+        probe.assertScreen(ScreenTitle.shopping("行き先1"))
         onNodeWithTag(TestTags.shoppingStartRow(destinationId = 1)).assertDoesNotExist()
     }
 

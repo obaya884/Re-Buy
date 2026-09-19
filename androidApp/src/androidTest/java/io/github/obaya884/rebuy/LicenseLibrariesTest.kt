@@ -14,9 +14,11 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.entity.Library
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.Res
+import io.github.obaya884.rebuy.ui.resources.license_title
 import io.github.obaya884.rebuy.ui.screen.license.ABOUT_LIBRARIES_PATH
 import io.github.obaya884.rebuy.ui.screen.license.forCurrentPlatform
 import kotlinx.coroutines.runBlocking
+import org.jetbrains.compose.resources.getString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
@@ -44,8 +46,8 @@ class LicenseLibrariesTest {
     @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 
-    /** 設定画面のライセンス行とライセンス画面のタイトルは実装側もハードコード（T-40）。 */
-    private val licenseLabel = "ライセンス"
+    /** 07 の行ラベルとライセンス画面のタイトルは同じキー（`license_title`）。 */
+    private val licenseLabel = runBlocking { getString(Res.string.license_title) }
 
     /**
      * 画面と同じパス・同じパーサでリソースを読む。パスは実装側の定数をそのまま使うので、

@@ -79,6 +79,12 @@ object TestTags {
     /** 買い物モード（画面 04）。 */
     fun shoppingRow(itemId: Int): String = "shopping_row_$itemId"
     const val SHOPPING_PROGRESS = "shopping_progress"
+
+    /**
+     * 買い物モードの一覧そのもの。**行ではなく一覧に印が要るのは、画面外の行を掴めないため**
+     * ——`LazyColumn` は見えていない行を作らないので、添字でスクロールする口がここにしか無い。
+     */
+    const val SHOPPING_LIST = "shopping_list"
     const val SHOPPING_ANYWHERE_SECTION = "shopping_anywhere_section"
     const val SHOPPING_FINISH_BUTTON = "shopping_finish_button"
     /**

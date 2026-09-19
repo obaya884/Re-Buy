@@ -11,8 +11,8 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.v2.runComposeUiTest
 import androidx.compose.ui.semantics.SemanticsProperties
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIcon
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -47,13 +47,11 @@ class DestinationManageIosTest {
     /** 設定から「行き先の管理」を開く。 */
     private fun manage(
         prepare: FakeDatabase.() -> Unit = twoOfEach,
-        block: ComposeUiTest.() -> Unit
-    ) = runComposeUiTest {
-        startTestKoin(prepare)
-        setContent { ReBuyApp() }
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+        block: ComposeUiTest.(IosAppProbe) -> Unit
+    ) = runIosApp(prepare) { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
         onNodeWithTag(TestTags.SETTING_ROW_DESTINATION_MANAGE).performClick()
-        block()
+        block(probe)
     }
 
     private fun ComposeUiTest.rowNames(): List<String> =
@@ -64,8 +62,8 @@ class DestinationManageIosTest {
 
     /** **カテゴリではなく行き先が出る。** 向きを取り違えるとここで落ちる。 */
     @Test
-    fun 設定から開くと行き先が並ぶ() = manage {
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("行き先の管理")
+    fun 設定から開くと行き先が並ぶ() = manage { probe ->
+        probe.assertScreen("行き先の管理")
         assertEquals(listOf("行き先A", "行き先B"), rowNames())
     }
 
@@ -86,14 +84,14 @@ class DestinationManageIosTest {
 
     /** 名前を変えても**カテゴリは動かない**（向きの取り違えはここで出る）。 */
     @Test
-    fun 名前を変えても他方は動かない() = manage {
+    fun 名前を変えても他方は動かない() = manage { probe ->
         onNodeWithText("行き先A").performTouchInput { longClick() }
         onNodeWithTag(TestTags.MANAGE_SHEET_NAME_FIELD).performTextReplacement("行き先A改")
         onNodeWithTag(TestTags.MANAGE_SHEET_SAVE).performClick()
 
         assertEquals(listOf("行き先A改", "行き先B"), rowNames())
         // 設定へ戻ってカテゴリ側を見る。名前も並びも無傷
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+        probe.back()
         onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT).performClick()
         assertEquals(listOf("カテゴリA", "カテゴリB"), rowNames())
     }
@@ -119,15 +117,15 @@ class DestinationManageIosTest {
             items = listOf(item(id = 1, destinationId = 1, name = "アイテムA")),
             destinations = listOf(destination(id = 1, name = "行き先A"))
         )
-    }) {
+    }) { probe ->
         onNodeWithText("行き先A").performTouchInput { longClick() }
         onNodeWithTag(TestTags.MANAGE_SHEET_DELETE).performClick()
         onNodeWithTag(TestTags.MANAGE_SHEET_DELETE_CONFIRM).performClick()
 
         assertEquals(emptyList(), rowNames())
         // プールへ戻ると、品目は残って**「どこでも買えるもの」の側**に入っている
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+        probe.back()
+        probe.back()
         onNodeWithTag(TestTags.POOL_CHIP_ANYWHERE).performClick()
         onNodeWithText("アイテムA").assertExists()
     }

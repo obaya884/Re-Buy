@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
  * 状態レイヤ＝押した跡（既定 40dp）のほう。**判定だけを広げることはできない。**
  */
 @Composable
-fun ReBuyAppBarIconButton(
+internal fun ReBuyAppBarIconButton(
     icon: ImageVector,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,

@@ -2,21 +2,20 @@ package io.github.obaya884.rebuy.ui.screen.license
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
 import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
-import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.Res
-import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIconButton
+import io.github.obaya884.rebuy.ui.resources.license_title
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 fun LicenseScreen(
@@ -24,16 +23,12 @@ fun LicenseScreen(
     snackbarHostState: SnackbarHostState
 ) {
     ReBuyAppScaffold(
-        topBarTitle = "ライセンス",
-        topBarNavigationIcon = {
-            ReBuyAppBarIconButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                onClick = { navigator.goBack() },
-                modifier = Modifier.testTag(TestTags.BACK_BUTTON)
-            )
-        },
+        appBar = ReBuyAppBarState(
+            onBack = { navigator.goBack() },
+            title = stringResource(Res.string.license_title)
+        ),
         snackbarHostState = snackbarHostState
-    ) { innerPadding ->
+    ) { contentPadding ->
         // 一覧の元データは AboutLibraries の Gradle プラグインが commonMain のリソースへ
         // 直接書き出している（配線は shared/ui/build.gradle.kts）。
         // 読み終わるまで libraries は null で、その間 LibrariesContainer は空を描く
@@ -45,9 +40,12 @@ fun LicenseScreen(
 
         LibrariesContainer(
             libraries = platformLibraries,
+            // 外枠が被さっているぶんは一覧の内側に持つ（13 §6）。中身の一覧は
+            // このライブラリが持っているので、`contentPadding` 引数から渡す
+            contentPadding = contentPadding.insideScroll(all = 0.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(contentPadding.scaffold)
         )
     }
 }

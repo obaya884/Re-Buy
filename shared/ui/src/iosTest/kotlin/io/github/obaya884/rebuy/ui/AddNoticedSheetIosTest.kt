@@ -7,9 +7,9 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.v2.runComposeUiTest
 import io.github.obaya884.rebuy.data.item.ItemStatus
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 /**
  * 気づいたものを足すシート（画面 05）の**画面段**。
@@ -41,14 +41,12 @@ class AddNoticedSheetIosTest {
     /** 04 まで入って、破線行から 05 を開く。 */
     private fun sheet(
         prepare: FakeDatabase.() -> Unit = seedShopping,
-        block: ComposeUiTest.() -> Unit
-    ) = runComposeUiTest {
-        startTestKoin(prepare)
-        setContent { ReBuyApp() }
+        block: ComposeUiTest.(IosAppProbe) -> Unit
+    ) = runIosApp(prepare) { probe ->
         onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
         onNodeWithTag(TestTags.shoppingStartRow(destinationId = 1)).performClick()
         onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
-        block()
+        block(probe)
     }
 
     @Test
@@ -74,12 +72,12 @@ class AddNoticedSheetIosTest {
 
     /** 今の行き先のものを足すと閉じて、**04 の一覧に現れる**（画面 05）。 */
     @Test
-    fun 今の行き先のものを足すと一覧に現れる() = sheet {
+    fun 今の行き先のものを足すと一覧に現れる() = sheet { probe ->
         onNodeWithTag(TestTags.addNoticedRow(itemId = 2)).performClick()
 
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
         onNodeWithTag(TestTags.shoppingRow(itemId = 2)).assertExists()
-        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("0 / 2")
+        probe.assertCount("0 / 2", TestTags.SHOPPING_PROGRESS)
     }
 
     /**
@@ -109,13 +107,13 @@ class AddNoticedSheetIosTest {
 
     /** 「＋ この名前で登録する」で登録し、即カゴ入りして閉じる（画面 05）。 */
     @Test
-    fun この名前で登録するとカゴに入って閉じる() = sheet {
+    fun この名前で登録するとカゴに入って閉じる() = sheet { probe ->
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("あたらしい品")
         onNodeWithTag(TestTags.ADD_NOTICED_REGISTER).performClick()
 
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
         onNodeWithText("あたらしい品").assertExists()
-        onNodeWithTag(TestTags.SHOPPING_PROGRESS).assertTextEquals("0 / 2")
+        probe.assertCount("0 / 2", TestTags.SHOPPING_PROGRESS)
     }
 
     /** 弾かれたらシートは閉じず、理由が検索欄の下に出る（画面定義書 §2）。 */

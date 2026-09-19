@@ -4,7 +4,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
@@ -13,7 +12,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.performTouchInput
-import androidx.compose.ui.test.v2.runComposeUiTest
+import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarIcon
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -42,14 +41,12 @@ class ManageIosTest {
     /** 設定から「カテゴリの管理」を開く。 */
     private fun manage(
         prepare: FakeDatabase.() -> Unit = threeCategories,
-        block: ComposeUiTest.() -> Unit
-    ) = runComposeUiTest {
-        startTestKoin(prepare)
-        setContent { ReBuyApp() }
-        onNodeWithTag(TestTags.POOL_SETTINGS_BUTTON).performClick()
+        block: ComposeUiTest.(IosAppProbe) -> Unit
+    ) = runIosApp(prepare) { probe ->
+        probe.tap(ReBuyAppBarIcon.SETTINGS)
         onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT).performClick()
-        onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals("カテゴリの管理")
-        block()
+        probe.assertScreen("カテゴリの管理")
+        block(probe)
     }
 
     /** 1 つ隣へ落ちるのに指が進む距離（行の高さ＋行間 8dp）。 */
@@ -139,7 +136,7 @@ class ManageIosTest {
             items = listOf(item(id = 1, categoryId = 1, name = "アイテムA")),
             categories = listOf(category(id = 1, name = "カテゴリA"))
         )
-    }) {
+    }) { probe ->
         // 面ではなく**名前**が長押しを受ける（ハンドルはドラッグに使うため）
         onNodeWithText("カテゴリA").performTouchInput { longClick() }
         onNodeWithTag(TestTags.MANAGE_SHEET_DELETE).performClick()
@@ -147,8 +144,8 @@ class ManageIosTest {
 
         onNodeWithTag(TestTags.manageRow(1)).assertDoesNotExist()
         // 品目は消えない。戻ってプールで確かめる
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+        probe.back()
+        probe.back()
         onNodeWithText("アイテムA").assertExists()
     }
 
@@ -271,7 +268,7 @@ class ManageIosTest {
 
     /** 離した並びは残る。**開き直しても戻らない**なら保存されている（画面 09）。 */
     @Test
-    fun 並び替えは開き直しても残る() = manage {
+    fun 並び替えは開き直しても残る() = manage { probe ->
         val rowHeight = onNodeWithTag(TestTags.manageRow(1)).fetchSemanticsNode().size.height
         onNodeWithTag(TestTags.manageHandle(1), useUnmergedTree = true).performTouchInput {
             down(center)
@@ -282,7 +279,7 @@ class ManageIosTest {
             up()
         }
 
-        onNodeWithTag(TestTags.BACK_BUTTON).performClick()
+        probe.back()
         onNodeWithTag(TestTags.SETTING_ROW_CATEGORY_EDIT).performClick()
 
         assertEquals(listOf("カテゴリB", "カテゴリA", "カテゴリC"), rowNames())

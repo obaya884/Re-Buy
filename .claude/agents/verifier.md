@@ -11,7 +11,7 @@ model: sonnet
 
 呼び出し時に対象範囲の指定があればそれに絞る。指定がなければ以下を順に実行:
 
-1. `./gradlew build`（lint・unit test・debug/release の assemble を含む。`androidApp/build/reports/lint-results-debug.html` に Lint の結果が出る。ユニットテストのレポートはモジュールごとに `shared/*/build/reports/tests/testAndroidHostTest/` に出る。**件数も報告する**——0 件で緑になる事故を段 3 で 2 回踏んでいる）
+1. `./gradlew build -x linkReleaseFrameworkIosArm64 -x linkReleaseFrameworkIosSimulatorArm64`（lint・unit test・debug/release の assemble を含む。**`-x` を落とさないこと**——Release のリンクで 9 分近く伸びる。射程は [17](../../docs/仕様/17_テスト戦略定義書.md) §5。`androidApp/build/reports/lint-results-debug.html` に Lint の結果が出る。ユニットテストのレポートはモジュールごとに `shared/*/build/reports/tests/testAndroidHostTest/` に出る。**件数も報告する**——0 件で緑になる事故を段 3 で 2 回踏んでいる）
 2. `git diff --exit-code -- shared/ui/src/commonMain/composeResources/files/aboutlibraries.json shared/data/schemas`（`./gradlew build` の直後。再生成される生成物をコミットしているので、差分が出たらコミット漏れ。**パスを限定するのは、実装中は他のファイルに未コミット差分があるのが普通だから**——CI 側はツリーがクリーンなので限定していない）
 3. `./gradlew pixel6Api35DebugAndroidTest`（Gradle Managed Device でインストルメンテーションテスト。エミュレータの手動起動は不要。初回はシステムイメージのダウンロードで数分かかる。結果は `androidApp/build/outputs/androidTest-results/managedDevice/` の XML）
 4. `./gradlew iosSimulatorArm64Test` と `xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration Debug -destination 'generic/platform=iOS Simulator' build`（**macOS のときだけ**。Linux では iOS のタスクが「このホストでは走らない」と警告を出して素通りするので、緑でも通ったことにならない。`xcodebuild` は Swift 側とフレームワークのリンクを兼ねる）
