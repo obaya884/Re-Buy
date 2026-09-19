@@ -125,8 +125,8 @@
   },
   "sandbox": {
     "excludedCommands": [
-      "./gradlew :androidApp:pixel6Api35DebugAndroidTest:*",
-      "./gradlew pixel6Api35DebugAndroidTest:*"
+      "./gradlew :androidApp:pixel6Api35DebugAndroidTest --no-daemon",
+      "./gradlew pixel6Api35DebugAndroidTest --no-daemon"
     ],
     "filesystem": {
       "allowWrite": [
