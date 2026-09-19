@@ -52,6 +52,5 @@ __pycache__/
 # 手元だけのビルド設定
 Local.xcconfig
 
-# 手元だけの Claude Code 設定。**マシン固有のパスが入る**ので追跡しない
-# （macOS のユーザー専用一時ディレクトリなど。共有する設定は settings.json 側へ）
+# 手元だけの Claude Code 設定
 .claude/settings.local.json
