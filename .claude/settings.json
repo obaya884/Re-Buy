@@ -132,6 +132,15 @@
         "~/Library/Developer/Xcode/DerivedData",
         "~/Library/Developer/CoreSimulator",
         "~/Library/Logs/CoreSimulator"
+      ],
+      "denyWrite": [
+        "~/.android/adbkey",
+        "~/.android/adbkey.pub",
+        "~/.android/debug.keystore",
+        "~/.android/maps.key",
+        "~/Library/Android/sdk/platform-tools",
+        "~/Library/Android/sdk/build-tools",
+        "~/.gradle/init.d"
       ]
     },
     "network": {
