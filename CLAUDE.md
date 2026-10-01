@@ -124,7 +124,9 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - `sh scripts/docs-check.sh` — docs・本書・README・`.claude/` の機械検査
 - `python3 scripts/check-ios-signing.py [--staged]` — 署名の設定と実体が追跡ファイルに入っていないか（`--staged` は index を見る。pre-commit が使う）。検査自身のテストは `python3 scripts/test/check-ios-signing_test.py`
 - `sh scripts/ledger-move.sh <FB-XX|T-XX> [--status '完了 YYYY-MM-DD']` — 台帳 21・23 のエントリを完了記録へ移す
-- `android emulator list` / `android emulator start <name>` — エミュレータ（`android` CLI）
+- `android emulator list` / `android emulator start <name>` — エミュレータ（`android` CLI）。**起動は Hypervisor が要るのでサンドボックスの外でしか動かず、`excludedCommands` には `Pixel_9_API_35` と `Pixel_10_API_37.1` の 2 つだけを完全一致で入れてある**。AVD を足したらそこにも 1 行足す
+- `xcodebuild -project iosApp/iosApp.xcodeproj -scheme iosApp -configuration <Debug|Release> -destination 'generic/platform=iOS Simulator' build` — Swift 側のビルド。**サンドボックスの中では `@Observable` を展開する `swift-plugin-server` が自前の `sandbox-exec` を掛けられず落ちる**（`sandbox_apply: Operation not permitted`。Swift の再コンパイルが起きない差分ビルドでは表に出ない）ので、この 2 形だけ `excludedCommands` で外に出している。**ビルドフェーズが Gradle を呼ぶので、外で走るのはリポジトリのコード全体**——GMD と同じ理由でプレフィックス一致にしない。`-derivedDataPath` などを足すと外に出ない
+- **Gradle の依存を新しく取るビルドはサンドボックスの中では通らない**（プロキシが 407 で認証を求め、Gradle の JVM が答えられない。症状は「プラグインが見つからない」）。依存が変わるとき（Dependabot の PR など）だけ、オーナーに `--no-daemon` を付けて外で 1 回叩いてもらう。キャッシュに入れば以後は中で通る
 
 ## このリポジトリは public
 
