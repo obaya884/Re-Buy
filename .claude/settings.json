@@ -150,7 +150,13 @@
         "~/.android/maps.key",
         "~/Library/Android/sdk/platform-tools",
         "~/Library/Android/sdk/build-tools",
-        "~/.gradle/init.d"
+        "~/Library/Android/sdk/emulator",
+        "~/Library/Android/sdk/cmdline-tools",
+        "~/.gradle/init.d",
+        "~/.gradle/init.gradle",
+        "~/.gradle/init.gradle.kts",
+        "~/.gradle/gradle.properties",
+        "~/.gradle/wrapper/dists"
       ]
     },
     "network": {
