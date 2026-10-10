@@ -3,7 +3,6 @@ package io.github.obaya884.rebuy
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.longClick
@@ -11,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.test.espresso.Espresso
+import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
 import kotlinx.coroutines.runBlocking
@@ -27,7 +27,8 @@ import org.junit.Test
  * 遷移規則そのもの（スタックの積み方・タブごとの履歴保持）は JVM 段の `NavigatorTest` が持つ。
  * ここが見るのは「UI の操作がその規則に正しく結線されているか」。
  *
- * 買い物モード（04）だけは DB に品目が要るので、登録シートから 1 件用意して踏む。
+ * 品目や行き先が要るテストは [TestAppStateRule] で DB に直接入れてから踏む（T-21）。
+ * DB はメモリ上にあり、テストごとに空へ戻るので、後片付けは要らない。
  * **端末の戻りは iOS にもある**（端スワイプ）——iOS 側の対は `ShoppingIosTest`（FB-18）。
  *
  * **iOS 側の対は `shared/ui/src/iosTest` の `NavigationIosTest`。** 共通化する手立てが無い
@@ -36,11 +37,25 @@ import org.junit.Test
  */
 class NavigationTest {
 
-    @get:Rule
+    /** 品目が要るテストの 1 件。行タップでカゴへ入れる前の状態 */
+    private val itemName = "アイテム1"
+
+    /** シードで振られた行き先の id。**DB を空にしても採番は戻らない**ので、固定値で書かない */
+    private var destinationId = 0
+
+    @get:Rule(order = 0)
+    val appState = TestAppStateRule {
+        destinationId = destination(DESTINATION_NAME)
+        item(Item(name = itemName))
+        item(Item(name = DESTINATION_ITEM_NAME, destinationId = destinationId))
+    }
+
+    @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
-    private fun string(resource: StringResource): String = runBlocking { getString(resource) }
+    private fun string(resource: StringResource, vararg args: Any): String =
+        runBlocking { getString(resource, *args) }
 
     private val poolTitle = string(Res.string.pool_title)
     private val settingTitle = string(Res.string.setting_title)
@@ -49,9 +64,6 @@ class NavigationTest {
     private val shoppingTitleAll = string(Res.string.shopping_title_all)
 
     private val licenseLabel = string(Res.string.license_title)
-
-    /** シートが開くまでの待ち。GMD では既定の 1 秒に収まらないことがある。 */
-    private val SHEET_TIMEOUT_MS = 5_000L
 
     /** 現在表示されている画面を TopAppBar のタイトルで判定する。 */
     private fun assertCurrentScreenIs(title: String) {
@@ -67,32 +79,11 @@ class NavigationTest {
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
     }
 
-    /**
-     * 品目を消す。**実機の DB に残すと、次の実行が重複名で弾かれて別の理由で落ち続ける**ので、
-     * 品目を作るテストは finally からここを通す。
-     *
-     * **編集シートが開いているかを先に見る。** 開いたまま長押ししようとすると、同じ文言が
-     * 行・シートの見出し・入力欄の 3 か所に出ていて `onNodeWithText` が一意に解けない（実測）。
-     */
-    private fun deleteItem(name: String) {
-        // 直前の遷移が終わってから触る。動いている最中は長押しが行に届かない
-        composeRule.waitForIdle()
-        val isSheetOpen = composeRule.onAllNodesWithTag(TestTags.ITEM_SHEET_DELETE)
-            .fetchSemanticsNodes()
-            .isNotEmpty()
-        if (!isSheetOpen) {
-            composeRule.onNodeWithText(name).performTouchInput { longClick() }
-            // シートが出るまで待つ。**waitForIdle では間に合わないことがある**（GMD で実測）。
-            // 既定の 1 秒では GMD の負荷でシートの開くアニメーションに間に合わない
-            composeRule.waitUntil(timeoutMillis = SHEET_TIMEOUT_MS) {
-                composeRule.onAllNodesWithTag(TestTags.ITEM_SHEET_DELETE)
-                    .fetchSemanticsNodes()
-                    .isNotEmpty()
-            }
-        }
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
-        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
-        composeRule.waitForIdle()
+    /** 行き先なしの品目をカゴへ入れて CTA を踏む。行き先付きが無いので 03 を挟まず全件モードの 04 へ入る（FB-04） */
+    private fun startShoppingWithoutDestination() {
+        composeRule.onNodeWithText(itemName).performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
+        assertCurrentScreenIs(shoppingTitleAll)
     }
 
     /** 設定の下にあるカテゴリの管理を開く。 */
@@ -152,7 +143,6 @@ class NavigationTest {
      *
      * **`ModalBottomSheet` は Android と skiko で実装が分かれる**ので、iOS の
      * `PoolIosTest` だけでは Android 固有の壊れ方を止められない（テスト戦略定義書 §2.4）。
-     * 登録まで踏むと本物の DB に品目が残るので、開いて閉じるところまで。
      */
     @Test
     fun プールの追加ボタンで登録シートが開いて端末の戻るで閉じる() {
@@ -160,7 +150,6 @@ class NavigationTest {
         composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertIsDisplayed()
 
         pressBack()
-        composeRule.waitForIdle()
 
         composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertDoesNotExist()
         assertCurrentScreenIs(poolTitle)
@@ -171,25 +160,48 @@ class NavigationTest {
      *
      * **`ModalBottomSheet` も長押しのジェスチャも Android と skiko で実装が分かれる**ので、
      * iOS の `ItemEditSheetIosTest` だけでは Android 固有の壊れ方を止められない（§2.4）。
-     * 品目が要るので、登録シートから 1 件入れてから踏む。
      */
     @Test
     fun 行の長押しで編集シートが開いて端末の戻るで閉じる() {
-        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD)
-            .performTextInput("長押しの確認用")
-        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
-        composeRule.waitForIdle()
+        composeRule.onNodeWithText(itemName).performTouchInput { longClick() }
+        composeRule.waitUntilTagExists(TestTags.ITEM_SHEET_NAME_FIELD)
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertIsDisplayed()
 
-        try {
-            composeRule.onNodeWithText("長押しの確認用").performTouchInput { longClick() }
-            composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertIsDisplayed()
-        } finally {
-            deleteItem("長押しの確認用")
-        }
+        pressBack()
 
         composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
         assertCurrentScreenIs(poolTitle)
+    }
+
+    /**
+     * 登録シートから入れた品目がプールに出て、シートが閉じる（画面 02）。
+     *
+     * シードでは通らない経路——`ModalBottomSheet` の閉じ方と、Android の driver での書き込みが
+     * `Flow` で画面へ戻ってくるところ（§2.4）。
+     */
+    @Test
+    fun 登録シートから入れた品目がプールに出てシートが閉じる() {
+        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("登録した品目")
+        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).assertDoesNotExist()
+        composeRule.onNodeWithText("登録した品目").assertIsDisplayed()
+    }
+
+    /** 編集シートから削除すると、確認を挟んでプールから行が消える（画面 06）。 */
+    @Test
+    fun 編集シートから削除すると確認を挟んで行が消える() {
+        composeRule.onNodeWithText(itemName).performTouchInput { longClick() }
+        composeRule.waitUntilTagExists(TestTags.ITEM_SHEET_DELETE)
+
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
+        composeRule.waitForIdle()
+
+        composeRule.onNodeWithTag(TestTags.ITEM_SHEET_NAME_FIELD).assertDoesNotExist()
+        composeRule.onNodeWithText(itemName).assertDoesNotExist()
     }
 
     /**
@@ -200,33 +212,21 @@ class NavigationTest {
      */
     @Test
     fun 買い物モードの端末の戻るは離脱確認を挟む() {
-        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("離脱確認の確認用")
-        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
-        composeRule.waitForIdle()
+        startShoppingWithoutDestination()
 
-        // 行タップでカゴへ入れてから CTA → 04（行き先なしの 1 件なので全件モードで直行）
-        try {
-            composeRule.onNodeWithText("離脱確認の確認用").performClick()
-            composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-            assertCurrentScreenIs(shoppingTitleAll)
+        // ダイアログを開いたままの戻るは、確認なく抜けずダイアログを閉じるだけ（§2）
+        pressBack()
+        pressBack()
+        assertCurrentScreenIs(shoppingTitleAll)
 
-            // ダイアログを開いたままの戻るは、確認なく抜けずダイアログを閉じるだけ（§2）
-            pressBack()
-            pressBack()
-            assertCurrentScreenIs(shoppingTitleAll)
+        // 「続ける」なら 04 に留まる
+        pressBack()
+        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CANCEL).performClick()
+        assertCurrentScreenIs(shoppingTitleAll)
 
-            // 「続ける」なら 04 に留まる
-            pressBack()
-            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CANCEL).performClick()
-            assertCurrentScreenIs(shoppingTitleAll)
-
-            pressBack()
-            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
-            assertCurrentScreenIs(poolTitle)
-        } finally {
-            deleteItem("離脱確認の確認用")
-        }
+        pressBack()
+        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
+        assertCurrentScreenIs(poolTitle)
     }
 
     /**
@@ -237,30 +237,34 @@ class NavigationTest {
      */
     @Test
     fun 気づいたものを足すシートの端末の戻るはシートだけ閉じる() {
-        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("05 の確認用")
-        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
-        composeRule.waitForIdle()
+        startShoppingWithoutDestination()
+        composeRule.onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
+        composeRule.onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertIsDisplayed()
 
-        try {
-            composeRule.onNodeWithText("05 の確認用").performClick()
-            composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-            // 04 に着いたことを先に確かめる。**FB-04 で 03 の行タップが消え、ここが素通りになった**
-            assertCurrentScreenIs(shoppingTitleAll)
-            composeRule.onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
-            composeRule.onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertIsDisplayed()
+        pressBack()
 
-            pressBack()
+        composeRule.onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
+        // 離脱確認は出さない。04 に留まる
+        composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).assertDoesNotExist()
+        assertCurrentScreenIs(shoppingTitleAll)
+    }
 
-            composeRule.onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
-            // 離脱確認は出さない。04 に留まる
-            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).assertDoesNotExist()
-            assertCurrentScreenIs(shoppingTitleAll)
-        } finally {
-            pressBack()
-            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
-            deleteItem("05 の確認用")
-        }
+    /**
+     * 行き先付きの品目がカゴにあると 03 が開き、行のタップでその行き先の 04 へ入る（画面 03）。
+     *
+     * **Android で 03 を開くのはここだけ**——FB-04 以降、全件モードは 03 を通らない。
+     * 03 も `ModalBottomSheet` なので、iOS の `ShoppingStartSheetIosTest` と対で持つ（§2.4）。
+     */
+    @Test
+    fun 行き先付きの品目で03の行から行き先の買い物へ入る() {
+        composeRule.onNodeWithText(DESTINATION_ITEM_NAME).performClick()
+        composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
+        val rowTag = TestTags.shoppingStartRow(destinationId)
+        composeRule.waitUntilTagExists(rowTag)
+
+        composeRule.onNodeWithTag(rowTag).performClick()
+
+        assertCurrentScreenIs(string(Res.string.shopping_title, DESTINATION_NAME))
     }
 
     @Test
@@ -294,5 +298,10 @@ class NavigationTest {
         Espresso.onIdle()
 
         assertTrue(activity.isFinishing || activity.isDestroyed)
+    }
+
+    private companion object {
+        const val DESTINATION_NAME = "行き先1"
+        const val DESTINATION_ITEM_NAME = "アイテム2"
     }
 }

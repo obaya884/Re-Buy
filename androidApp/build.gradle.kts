@@ -13,20 +13,12 @@ android {
         versionCode = 1
         versionName = providers.gradleProperty("rebuy.versionName").get()
 
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        // DB と設定値をメモリ上に差し替えた Application で走らせる（T-21）
+        testInstrumentationRunner = "io.github.obaya884.rebuy.ReBuyTestRunner"
         vectorDrawables {
             useSupportLibrary = true
         }
 
-    }
-
-    sourceSets {
-        // Adds exported schema location as test app assets.
-        named("androidTest") {
-            // :shared:data が出力するスキーマを RoomMigrationTest の assets として渡す。
-            // config cache が有効なので project(":shared:data").projectDir とは書かない
-            assets.directories.add("$rootDir/shared/data/schemas")
-        }
     }
 
     buildTypes {
@@ -48,6 +40,8 @@ android {
         }
     }
     testOptions {
+        // :shared:data の withDeviceTest に同じ端末の定義がある。変えるときは両方を揃える
+        // （名前がずれると pixel6Api35Check が片方を拾わなくなる）
         managedDevices {
             localDevices {
                 create("pixel6Api35") {
@@ -72,13 +66,16 @@ dependencies {
     implementation(libs.androidx.activity.compose)
 
     // Test
+    // TestReBuyApplication が in-memory の AppDatabase を組み立てる
+    androidTestImplementation(libs.androidx.room.runtime)
+    // ReBuyTestRunner の親
+    androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
     androidTestImplementation(composeBom)
     androidTestImplementation(libs.androidx.compose.ui.test.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
-    androidTestImplementation(libs.androidx.room.testing)
     // LicenseLibrariesTest が画面と同じ Libs で JSON を読む。:shared:ui では
     // implementation なので推移的には来ない
     androidTestImplementation(libs.aboutlibraries.core)
