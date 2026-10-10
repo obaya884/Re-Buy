@@ -91,9 +91,12 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
-      # ランナーには GPU が無いのでソフトウェアレンダリングを指定する
+      # ランナーには GPU が無いのでソフトウェアレンダリングを指定する。
+      # pixel6Api35Check は :androidApp（pixel6Api35DebugAndroidTest）と
+      # :shared:data（pixel6Api35AndroidDeviceTest）の両方に一致する。タスク名が
+      # モジュールの種類で違うので、片方の名前で書くともう片方が黙って外れる（T-47）
       - name: Instrumented tests (Gradle Managed Device)
-        run: ./gradlew pixel6Api35DebugAndroidTest -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
+        run: ./gradlew pixel6Api35Check -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 
       - name: Upload test reports on failure
         if: failure()
@@ -103,6 +106,8 @@ jobs:
           path: |
             androidApp/build/outputs/androidTest-results/
             androidApp/build/reports/androidTests/
+            shared/data/build/outputs/androidTest-results/
+            shared/data/build/reports/androidTests/
 
   # Kotlin/Native のテストと iOS アプリのビルド。macOS でしか走らない。
   # Linux の build ジョブは iOS のタスクを落とすのではなく「このホストでは走らない」と

@@ -12,6 +12,27 @@ plugins {
 kotlin {
     android {
         namespace = "io.github.obaya884.rebuy.data"
+
+        // 本体はリソースを持たない。device test の assets（下の androidComponents）が
+        // これを開かないと null になる
+        androidResources { enable = true }
+
+        // このモジュールの instrumented は、検証対象と同じモジュールに置く（T-47）。
+        // 端末の定義は :androidApp と対で、同じものを繰り返す。タスク名は
+        // pixel6Api35AndroidDeviceTest で、:androidApp の pixel6Api35DebugAndroidTest とは
+        // 名前が違う——両方を 1 回で回すのは両者に共通の pixel6Api35Check
+        withDeviceTest {
+            instrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+            managedDevices {
+                localDevices {
+                    create("pixel6Api35") {
+                        device = "Pixel 6"
+                        apiLevel = 35
+                        systemImageSource = "aosp-atd"
+                    }
+                }
+            }
+        }
     }
 
     sourceSets {
@@ -40,12 +61,34 @@ kotlin {
             implementation(kotlin("test"))
         }
 
+        named("androidDeviceTest").dependencies {
+            implementation(libs.androidx.test.runner)
+            implementation(libs.androidx.junit)
+            // RoomMigrationTest の MigrationTestHelper
+            implementation(libs.androidx.room.testing)
+            // DataModuleTest の androidContext()
+            implementation(libs.koin.android)
+        }
     }
 }
 
+// Room の出力先と、RoomMigrationTest が assets として読む場所は同じでなければならない
+val schemasDir = "$projectDir/schemas"
+
 // ksp arg の room.schemaLocation は KMP では効かない
 room {
-    schemaDirectory("$projectDir/schemas")
+    schemaDirectory(schemasDir)
+}
+
+// RoomMigrationTest の MigrationTestHelper はスキーマをテスト APK の assets から読む。
+// Room の Gradle プラグインは KMP の device test には入れてくれない（APK を開いて実測）
+androidComponents {
+    onVariants { variant ->
+        variant.deviceTests.values.forEach { deviceTest ->
+            checkNotNull(deviceTest.sources.assets) { "device test に assets の置き場が無い" }
+                .addStaticSourceDirectory(schemasDir)
+        }
+    }
 }
 
 ksp {

@@ -20,7 +20,7 @@ JDK 17 以上と Android SDK（compileSdk 37）が必要。
 ```sh
 ./gradlew assembleDebug                 # デバッグビルド
 ./gradlew build                         # lint・unit test 込み
-./gradlew pixel6Api35DebugAndroidTest   # インストルメンテーションテスト（Gradle Managed Device）
+./gradlew pixel6Api35Check              # インストルメンテーションテスト（Gradle Managed Device）
 ```
 
 ## 開発体制
