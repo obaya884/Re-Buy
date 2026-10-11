@@ -1,10 +1,12 @@
 package io.github.obaya884.rebuy
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
 import kotlinx.coroutines.runBlocking
@@ -21,15 +23,27 @@ import org.junit.Test
  * 戻ってきたときにダイアログが開いたままになる。
  *
  * ダイアログの開閉フラグは UiState が持つ（CLAUDE.md「アーキテクチャ / UI 層」）ので、
- * それを外から観測できる唯一の一時状態として使う。踏むのは 09 の破線行から開く 02b。
+ * それを外から観測できる一時状態として使う。踏むのは 09 の破線行から開く 02b。
  *
- * 逆向き（entry が backstack に残っている間は ViewModel が保持されること）は、
- * 買い物画面の終了確認ダイアログを開くのにチェック済みの品目が要るため、
- * DB を差し替えられるようになってから書く（技術改善バックログ T-21）。
+ * 逆向き（entry が backstack に残っている間は ViewModel が保持されること）は、プール（01）の
+ * カテゴリの絞り込みで見る。選択は `PoolViewModel` が持ち、プールの上に設定を積むと 01 は
+ * composition から外れるが backstack には残る。entry の `ViewModelStore` が composition と
+ * 一緒に捨てられると、戻ったときに選択が「すべて」へ戻る。**こちらは Activity スコープへの
+ * 昇格では落ちない**（昇格しても保持はされる）ので、昇格は 1 本目が見る。
  */
 class ViewModelScopeTest {
 
-    @get:Rule
+    /** シードで振られたカテゴリの id。DB を空にしても採番は戻らない */
+    private var categoryId = 0
+
+    /** 絞り込みのチップは、品目が付いているカテゴリにだけ出る */
+    @get:Rule(order = 0)
+    val appState = TestAppStateRule {
+        categoryId = category("カテゴリ1")
+        item(Item(name = "アイテム1", categoryId = categoryId))
+    }
+
+    @get:Rule(order = 1)
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     /** Compose Resources の読み出しは suspend なので、テスト側で待ち合わせる。 */
@@ -55,13 +69,17 @@ class ViewModelScopeTest {
         composeRule.waitForIdle()
     }
 
+    private fun openAddDialog() {
+        composeRule.onNodeWithTag(TestTags.MANAGE_ADD_ROW).performClick()
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(addDialogTitle).assertIsDisplayed()
+    }
+
     @Test
     fun 画面を離れて戻るとダイアログは閉じている() {
         openSetting()
         openCategoryManage()
-        composeRule.onNodeWithTag(TestTags.MANAGE_ADD_ROW).performClick()
-        composeRule.waitForIdle()
-        composeRule.onNodeWithText(addDialogTitle).assertIsDisplayed()
+        openAddDialog()
 
         tapBackArrow()
         openCategoryManage()
@@ -69,5 +87,17 @@ class ViewModelScopeTest {
         // 画面が出ていないことを「ダイアログが無い」と読み違えないための錨
         composeRule.onNodeWithTag(TestTags.MANAGE_ADD_ROW).assertIsDisplayed()
         composeRule.onNodeWithText(addDialogTitle).assertDoesNotExist()
+    }
+
+    @Test
+    fun 上に画面を積んで戻っても下の画面の絞り込みは残っている() {
+        val chip = TestTags.poolCategoryChip(categoryId)
+        composeRule.onNodeWithTag(chip).performClick()
+        composeRule.onNodeWithTag(chip).assertIsSelected()
+
+        openSetting()
+        tapBackArrow()
+
+        composeRule.onNodeWithTag(chip).assertIsSelected()
     }
 }

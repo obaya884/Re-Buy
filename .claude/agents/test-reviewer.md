@@ -9,7 +9,7 @@ model: opus
 
 ## 手順
 
-1. レビュー対象を特定する。呼び出し時にスコープが指定されていればそれを優先し、なければ `git diff --name-only` でテストファイル（`shared/*/src/{commonTest,androidHostTest,iosTest}/**`・`androidApp/src/androidTest/**`）と対応する本番コードを把握する
+1. レビュー対象を特定する。呼び出し時にスコープが指定されていればそれを優先し、なければ `git diff --name-only` でテストファイル（`shared/*/src/{commonTest,androidHostTest,androidDeviceTest,iosTest}/**`・`androidApp/src/androidTest/**`）と対応する本番コードを把握する
 2. 対象に関係する仕様条項を洗い出す（テストが網羅すべき観点の母集団になる）: `docs/仕様/11_要求定義書.md`、`12_要件定義書`・`13_画面定義書`・`14_データモデル定義書`、CLAUDE.md「アーキテクチャ」節
 3. テストファイルと本番コードを読み、突き合わせる
 4. 下記チェックリストで観点の穴を洗い出す
@@ -20,7 +20,8 @@ model: opus
 |---|---|---|---|
 | ホスト（共通） | `shared/*/src/commonTest` | プラットフォームに依らない純粋ロジック（コンバータ・UiState の派生値・Repository の遷移規則・`Navigator`）。**Android と iOS の両方で走る** | `./gradlew testAndroidHostTest` ／ `iosSimulatorArm64Test` |
 | ホスト（プラットフォーム別） | `shared/*/src/androidHostTest` ／ `src/iosTest` | 片方でしか書けないもの（`kotlin-reflect` を要するもの・日付書式の実測値） | 同上 |
-| インストルメンテーション | `androidApp/src/androidTest` | Room（マイグレーション・DAO）・Compose UI・リソースが APK に載っているか・プロセス death からの復元 | `./gradlew pixel6Api35DebugAndroidTest`（GMD） |
+| インストルメンテーション（アプリ） | `androidApp/src/androidTest` | 実物の `MainActivity` を起動する Compose UI・リソースが APK に載っているか・プロセス death からの復元。DB と設定値はメモリ上（`TestReBuyApplication`） | `./gradlew pixel6Api35Check`（GMD） |
+| インストルメンテーション（データ層） | `shared/data/src/androidDeviceTest` | Room のマイグレーション・本番の `dataModule` の単一性と DB ファイルの作成 | 同上 |
 
 ## チェックリスト（毎回確認）
 

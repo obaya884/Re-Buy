@@ -92,7 +92,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - **着手前** — 影響範囲が読み切れないとき: `Explore`
 - **実装方式で迷うとき** — トレードオフのある設計判断: `Plan`
 - **実装が一区切りしたら（コミット前）** — `verifier` と `code-quality-reviewer` を並列でバックグラウンド起動。軽微な変更では起動しない
-- **差分にテストファイル（`shared/*/src/{commonTest,androidHostTest,iosTest}/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
+- **差分にテストファイル（`shared/*/src/{commonTest,androidHostTest,androidDeviceTest,iosTest}/**`・`androidApp/src/androidTest/**`）が含まれるとき** — `test-reviewer`
 - **差分が docs の条項に触れる／条項で定まる挙動を実装したとき** — `spec-reviewer`
 - **差分に `build-logic/**`・`.github/workflows/**`・`scripts/**` が含まれるとき** — `code-quality-reviewer` と、検査そのものを足したなら `test-reviewer`。**「本番コードではないから軽微」と自分で判断しない**——T-32 はこの判断でレビューを飛ばした結果、動機とした 2 つの事故のどちらも塞げていない実装がマージされた（log_23 2026-08-30）。**ここには自動テストの網が無い**ので、レビューが唯一の網になる
 
@@ -118,8 +118,8 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 - `./gradlew build` — lint・unit test・debug/release の assemble。**macOS では `-x linkReleaseFrameworkIosArm64 -x linkReleaseFrameworkIosSimulatorArm64` を付ける**（付けないと Release のリンクで 9 分近く伸びる。射程は[テスト戦略定義書](./docs/仕様/17_テスト戦略定義書.md) §5）
 - `./gradlew linkReleaseFrameworkIosArm64` — CI が Release で赤いときの手元での再現
 - `./gradlew testAndroidHostTest` — 全モジュールのユニットテスト（JVM）。**`testDebugUnitTest` は使わない**——`:shared:*` が KMP になったので一致するモジュールが無くなり、**0 件のまま緑で終わる**。**単一クラスを指定するときはモジュールを修飾する**（`./gradlew :shared:data:testAndroidHostTest --tests "io.github.obaya884.rebuy.data.InstantConverterTest"`）。無修飾で `--tests` を渡すと、一致しない側のモジュールが `No tests found` でビルドを落とす
-- `./gradlew :androidApp:pixel6Api35DebugAndroidTest --no-daemon` — インストルメンテーションテスト（Gradle Managed Device。androidTest を持つのは `:androidApp` だけ。エミュレータの手動起動は不要。初回はイメージのダウンロードで数分）。**`--no-daemon` を落とさない**——エミュレータは Bash サンドボックスの中では起動できず（Hypervisor を開ける設定が存在しない）、このコマンドだけ `.claude/settings.json` の `excludedCommands` で外に出している。デーモンを残すと**以後のビルドがそれを再利用してすべてサンドボックス外で走る**（デーモンの互換判定は JVM と jvmargs だけで、サンドボックスの有無を見ていない。**表示されないまま網が外れる**）。**パイプやリダイレクトを付けると除外が効かない**ので単体で叩く。**`connectedAndroidTest` は使わない**——実機が繋がっているとそちらで走り、**テスト後にアプリをアンインストールしてオーナーのデータを消す**（2026-09-05 に実際に消した。[T-21](./docs/案件/23_技術改善バックログ.md#t-21)）
-  - **テストする端末を変えるときは `grep -rn pixel6Api35` で 9 ファイル 15 箇所をそろえる**（端末名がそのままタスク名になる）。**`.claude/settings.json` の `excludedCommands` を漏らすといちばん分かりにくい形で落ちる**——サンドボックス内で走ってエミュレータが起動できず、**中身の空のエラー**（`Error message from emulator process = []`）になる。名前をコマンドから切り離す案は [T-68](./docs/案件/23_技術改善バックログ.md#t-68)
+- `./gradlew pixel6Api35Check --no-daemon` — インストルメンテーションテスト（Gradle Managed Device。`:androidApp` の androidTest と `:shared:data` の androidDeviceTest を 1 回で回す——**タスク名がモジュールの種類で違う**（`pixel6Api35DebugAndroidTest` ／ `pixel6Api35AndroidDeviceTest`）ので、片方の名前で叩くともう片方が黙って外れる。エミュレータの手動起動は不要。初回はイメージのダウンロードで数分）。**`--no-daemon` を落とさない**——エミュレータは Bash サンドボックスの中では起動できず（Hypervisor を開ける設定が存在しない）、このコマンドだけ `.claude/settings.json` の `excludedCommands` で外に出している。デーモンを残すと**以後のビルドがそれを再利用してすべてサンドボックス外で走る**（デーモンの互換判定は JVM と jvmargs だけで、サンドボックスの有無を見ていない。**表示されないまま網が外れる**）。**パイプやリダイレクトを付けると除外が効かない**ので単体で叩く。**`connectedAndroidTest` は使わない**——実機が繋がっているとそちらで走り、**テスト後にアプリをアンインストールしてオーナーのデータを消す**（2026-09-05 に実際に消した。[T-21](./docs/案件/closed_23_技術改善バックログ.md#t-21)）。**テストの DB がメモリ上になっても、アンインストールは防げない**
+  - **テストする端末を変えるときは `grep -rn pixel6Api35` で全箇所をそろえる**（端末名がそのままタスク名になる。**GMD の定義は `:androidApp` と `:shared:data` の 2 か所にある**）。**`.claude/settings.json` の `excludedCommands` を漏らすといちばん分かりにくい形で落ちる**——サンドボックス内で走ってエミュレータが起動できず、**中身の空のエラー**（`Error message from emulator process = []`）になる。名前をコマンドから切り離す案は [T-68](./docs/案件/23_技術改善バックログ.md#t-68)
   - **除外は完全一致なので、フラグを足した呼び方は外に出ない**（`--rerun-tasks` を足したいときなど）。**プレフィックス一致にしない**のは、`--init-script` を足せば**任意の Gradle コードをサンドボックス外で実行できてしまう**ため。足す必要が出たら `excludedCommands` にその形を 1 行加える
 - `./gradlew installDebug` — 端末・エミュレータへインストール
 - `./gradlew clean` — KSP（Room。`:shared:data` だけで回る）の生成コードが壊れたとき

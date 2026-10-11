@@ -1,4 +1,4 @@
-package io.github.obaya884.rebuy
+package io.github.obaya884.rebuy.data
 
 import android.database.sqlite.SQLiteDatabase
 import androidx.room.Room
@@ -6,9 +6,6 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import io.github.obaya884.rebuy.data.APP_DATABASE_VERSION
-import io.github.obaya884.rebuy.data.AppDatabase
-import io.github.obaya884.rebuy.data.applyAppDatabaseOptions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -18,6 +15,10 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
+/**
+ * **ライブラリのテスト APK は自分自身を計測する**ので、`targetContext` はアプリではなく
+ * テスト APK を指す。実機で回しても、アプリの `databases/` には触れない。
+ */
 @RunWith(AndroidJUnit4::class)
 class RoomMigrationTest {
     private val context = InstrumentationRegistry.getInstrumentation().targetContext

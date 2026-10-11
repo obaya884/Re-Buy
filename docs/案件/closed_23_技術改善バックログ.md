@@ -46,6 +46,8 @@
 | T-50 | 実機ターゲット iosArm64 を CI で検査する | ツール整備 | 中 | 完了 2026-09-07 | [詳細](#t-50) |
 | T-40 | 設定画面の文言 4 件を Compose Resources へ寄せる | 内部設計 | 低 | 完了 2026-09-10 | [詳細](#t-40) |
 | T-44 | ③ 段 4 iOS の外枠をネイティブに置き換える | 内部設計 | 高 | 完了 2026-09-13 | [詳細](#t-44) |
+| T-21 | インストルメンテーションテストの DB を in-memory にする | テスト | 中 | 完了 2026-10-10 | [詳細](#t-21) |
+| T-47 | 対象と置き場所がずれている instrumented 2 件を移す | テスト | 低 | 完了 2026-10-10 | [詳細](#t-47) |
 
 ## 詳細
 
@@ -235,9 +237,9 @@
 
 ### T-48
 
-- 背景: [T-42](#t-42) で置いた `NavigationIosTest` は Koin をテスト自身が起動するため、`AppDatabase` が `NSDocumentDirectory` の**実ファイル**になっていた。**1 本の DB をテスト間でも実行と実行の間でも共有する**ので、品目が要る経路を書けず、書き込むテストを足した瞬間に状態が漏れる。**[T-21](./23_技術改善バックログ.md#t-21) では代わりにならない**——あちらは本物の `ReBuyApplication` が起動した Koin を差し替える Android 限定の手で、テスト自身が `startKoin` する iOS には当てはまらない。**着手より先に CI で露見した**——新品のシミュレータには `data/Documents` が無く、T-42 の PR で 8 件すべてが `Unable to open database` で落ちた
+- 背景: [T-42](#t-42) で置いた `NavigationIosTest` は Koin をテスト自身が起動するため、`AppDatabase` が `NSDocumentDirectory` の**実ファイル**になっていた。**1 本の DB をテスト間でも実行と実行の間でも共有する**ので、品目が要る経路を書けず、書き込むテストを足した瞬間に状態が漏れる。**[T-21](#t-21) では代わりにならない**——あちらは本物の `ReBuyApplication` が起動した Koin を差し替える Android 限定の手で、テスト自身が `startKoin` する iOS には当てはまらない。**着手より先に CI で露見した**——新品のシミュレータには `data/Documents` が無く、T-42 の PR で 8 件すべてが `Unable to open database` で落ちた
 - **結果（2026-08-31）: T-42 と同じ PR で入れた。** `startTestKoin()` が Koin 起動の直後に `ItemDao` / `CategoryDao` を `FakeDatabase` のものへ差し替え、テストごとに空へ戻す。Room に触らないのでファイルを作らない。**iOS で本物の Room が動くことは見ていない**（[T-35](#t-35)）。作りの理由と実測は log_23 と `IosTestKoin.kt` の KDoc
-- 関連: [T-21](./23_技術改善バックログ.md#t-21)（Android 側の同じ問題。手は違う）／ [T-35](#t-35) ／ [T-41](./23_技術改善バックログ.md#t-41)
+- 関連: [T-21](#t-21)（Android 側の同じ問題。手は違う）／ [T-35](#t-35) ／ [T-41](./23_技術改善バックログ.md#t-41)
 
 ### T-35
 
@@ -335,3 +337,42 @@
   - **`iosTest` 10 ファイルを橋の向こう側へ向けた**。共有の入口 `runIosApp` を作り、その構成自体を守る網も置いた
   - **Release framework を足し、CI に `ios-device` を置いた**（上の「段 4 で足す Release framework に検査を追随させる」の答え）。射程は [17](../仕様/17_テスト戦略定義書.md) §5、残る空白は [T-66](./23_技術改善バックログ.md#t-66)
   - **ブランチ末の動作確認は 1 回**（この案件だけの特例。[log_16](../仕様/log_16_git運用定義書.md) 2026-09-12）。**iOS 実機は無料アカウントの制限で入れられない**ので、iOS はシミュレータで見た（Debug で未決 2 件、Release で起動）。決着は[画面定義書の決定ログ](../仕様/log_13_画面定義書.md) 2026-09-13
+
+### T-21
+
+- 背景: instrumented テストは本物の `ReBuyApplication`（Koin を起動する）の上で走り、DB を差し替えていないため、端末の本番 DB を読み書きする。使い捨てのエミュレータ（GMD）では実害が薄いが、実機で `connectedAndroidTest` を回すとオーナーの実データに依存し、要求定義書 §11 の姿勢とも噛み合わない。DB を用意できないことが理由で「買い物を終わるとホームへ戻る」「空状態のボタンからアイテム一覧へ遷移する」の 2 経路が自動化できず手動確認に残っている
+- 対応方針: `loadKoinModules` で `AppDatabase` の定義を in-memory のものに差し替え、DAO へ直接シードしてから画面を操作する形にする。テスト側で `startKoin` を呼ぶと本物の `Application` と衝突するので、差し替えは `loadKoinModules` / `unloadKoinModules` で行う。そのうえで上記 2 経路を自動化する。あわせて `ViewModelScopeTest` の逆向き（entry が backstack に残っている間は ViewModel が保持されること）も書く——買い物画面の終了確認ダイアログを開くのにチェック済みの品目が要るため、シードできるようになって初めて書ける
+- **追記（2026-08-31、T-48 の実測から）: 差し替えの機構は確かめたが、Android では順序が問題になる。**
+  - **機構は使える。** `startKoin { allowOverride(false) }` は**起動時の `modules()` にしか効かず**、起動後の `loadModules` は既定で `allowOverride = true`（Koin 4.1.0 のソースで確認）。本番の方針を緩めずに差し替えられる
+  - **ただし上書きは「これから作るもの」にしか効かない。** `AppDatabase` → DAO → Repository はすべて `single` なので、1 度でも解決された後に差し替えても Repository は古い DAO を掴んだままになる（iOS で実測）
+  - **Android は iOS より条件が厳しい。** iOS はテスト自身が Koin を起動するので解決前に差し込めたが、Android は本番の `ReBuyApplication` が**プロセス起動時**に Koin を立て、`createAndroidComposeRule<MainActivity>()` が `ActivityScenarioRule` で **Activity を起動してから**テスト本体へ入る。**テスト本体で `loadKoinModules` を呼ぶ頃には鎖が実体化している可能性が高い**
+  - **ここは未実測。** ルールが `ActivityScenarioRule` を使うことはソースで確認したが、composition がどこまで進むかは測っていない。**着手時に最初にこれを測る**
+  - 回避策の候補は 2 つで、どちらも代償がある。(a) `createComposeRule()` にして自分で `setContent { ReBuyApp() }` する——差し替えは効くが「**実物の `MainActivity` を起動している**」という価値が消える（[T-47](#t-47) が「移さない理由」に挙げたのと同じもの）。(b) テスト用の `Application` を用意する——起動前に差し込めるが `testInstrumentationRunner` まわりの仕掛けが増える
+- **実際に起きた（2026-09-05、FB-03 の作業中）。** アプリバーの当たり判定を測るために、実機を繋いだまま `connectedDebugAndroidTest` を回した。**`connectedAndroidTest` はテスト後にアプリをアンインストールする**ので、直前の T-51 の動作確認でオーナーが入れた品目・カテゴリ・行き先が消えた。**DB の差し替えが無いことだけが原因ではない**——タスクの選択（GMD ではなく実機）でも防げたが、実機が繋がっているだけで踏める形になっている。日常利用が本格化した後に同じことをすると、**戻す手が無い**（バックアップが無い）
+- 優先度の根拠: 実機でテストを回した瞬間に実データを触る。**一度起きている**（上記）。手動確認に残っている経路も減らせる
+- 補足: `RoomMigrationTest` と `KoinGraphTest` は検証対象が `:shared:data` なのに `:androidApp` の androidTest にある（GMD を 1 本に保つための判断。段 2 の計画を参照）。そのため schemas の assets 指定がモジュール境界をまたぐ。**置き場所を動かすかは [T-47](#t-47) が持つ**——この案件と同時に決める
+- **結果（2026-10-10）: (b) を採った（オーナー判断）。** `androidTest` に `ReBuyTestRunner` と `TestReBuyApplication` を置き、`initKoin` の直後に `AppDatabase` を in-memory へ、`SettingsStore` をメモリ上のものへ差し替える（設定値も同じ理由で差し替えた。オーナー判断）。テストごとの初期化とシードは `TestAppStateRule`（`order = 0`）が持ち、差し替えが外れていないことは `TestReBuyApplicationTest` が見る。**順序の問題は着手時の実測を待たずに消えた**——`Application` はプロセス起動時に作られるので、Activity より必ず先に差し込める
+  - **自動化した経路**: 行き先付きの買い物（03 の行 → 04。`NavigationTest`）と、引数を持つルートの復元を行き先付きの 04 で（`NavigationStateRestorationTest`。全件モードだと値の取り違えが見分けられない）。後片付けの `finally` はすべて消えた
+  - **背景に挙げた 2 経路は、その後の画面の変化で形が変わっていた**——「空状態のボタンからアイテム一覧へ」は空状態のボタンが無くなり、「買い物を終わるとホームへ」は終了確認ダイアログが無くなった（`ShoppingScreen` は直接終える）
+  - **`ViewModelScopeTest` の逆向きはプールの絞り込みで見る形にした**。前提にしていた「終了確認ダイアログ」が無くなり、離脱確認ダイアログは ViewModel ではなく `remember` が持つので観測点にならない。カテゴリのチップを選び、設定を上に積んで戻っても選ばれたままであることを見る（シードでカテゴリ付きの品目が要る）
+  - **あわせて足した網**: 登録シートからの登録と編集シートからの削除（シードに置き換えたことで Android で踏まなくなった経路）、マニフェストが本番の `ReBuyApplication` を指していること（Runner が差し替えるので、本番の `Application` はどのテストも通らない）
+  - **防げないもの**: `connectedAndroidTest` のアンインストール。DB がメモリ上でも、アプリごと消えれば実データも消える。CLAUDE.md の運用ルールと [T-67](./23_技術改善バックログ.md#t-67) の領域
+- 関連: T-18 のレビューで test-reviewer が指摘
+
+### T-47
+
+- 背景: `RoomMigrationTest` と `KoinGraphTest` は検証対象が `:shared:data` なのに `androidApp/src/androidTest` にある。段 2 で GMD を 1 か所に保つために置いた妥協で、そのぶん schemas の assets 指定がモジュール境界をまたいでいる。KMP ライブラリプラグインには `withDeviceTest {}`（`androidDeviceTest` source set）があるので、いまなら対象と同じモジュールに置ける
+- 対応方針: `:shared:data` で `withDeviceTest {}` を開け、2 件を `shared/data/src/androidDeviceTest` へ移す。詰めることが 3 つある。(a) **GMD の定義は `:androidApp` の `testOptions` に 1 つしか無い**ので `rebuy.android.base` へ移すか `:shared:data` にも置く、(b) **エミュレータの起動がモジュールの数だけ増える**ので CI の `instrumented` ジョブの所要時間を測ってから決める、(c) Koin はいま実物の `ReBuyApplication` が起動しているので、移した先ではテストが自分で `initKoin()` する
+- **この案件は `:shared:data` に行くべきものだけを扱う。** 動機が「ずれの解消」なので、モジュール単位で区切ると案件が閉じる
+  - **`:androidApp` に残すもの**: `NavigationTest` と `ViewModelScopeTest` は `createAndroidComposeRule<MainActivity>()` で**実物のアプリを起動している**ことが価値で、`:shared:ui` へ移すと `createComposeRule()` ＋ 自前の `setContent` になってその性質が消える。`LicenseLibrariesTest` は**アプリの APK に資産が載っているか**を見ており（③ 段 3 で踏んだ「Compose Resources が assets ごと消える」事故の網）、ライブラリのテスト APK を見る形に変わると同じ事故を止められない
+  - **この案件では扱わないもの**: `NavigationStateRestorationTest` と `StringResourceFormatTest` は検証対象が `:shared:ui` なので、移すなら `:shared:ui` にも `withDeviceTest {}` を開けることになり、上の懸念 (b)（エミュレータの起動がモジュール数だけ増える）が 2 モジュール分になる。**移すか残すかは未判断**——とくに `StringResourceFormatTest` は「APK に載った文言が `\n` と `%1$s` を含めて期待どおり解釈されるか」を見ており、性質としては `LicenseLibrariesTest` の親戚で `:androidApp` に残す側かもしれない（**未確認の仮説**）
+- 着手条件: [T-21](#t-21) と同時。あちらで in-memory DB への差し替えを入れるときに足場が同じになる
+- 優先度の根拠: いま困っていない。**名前の一貫性を目的にしない**——動機は「検証対象と置き場所がずれている」ことだけで、`androidTest` を `androidDeviceTest` へ寄せること自体には価値を置かない
+- **結果（2026-10-10）: T-21 と同じブランチで移した（オーナー判断）。** 詰めることの 3 つはこうなった
+  - (a) GMD の定義は `:shared:data` の `withDeviceTest {}` に同じものを繰り返した。**タスク名がモジュールの種類で違う**（`pixel6Api35DebugAndroidTest` ／ `pixel6Api35AndroidDeviceTest`）ので、**CI と手元のコマンドを両方に一致する `pixel6Api35Check` に替えた**——旧名のままだと `:shared:data` 側が黙って外れる
+  - (b) エミュレータの起動回数と CI の所要時間は、CI の実測で記録する（[17](../仕様/17_テスト戦略定義書.md) §5）
+  - (c) Koin は自分で起動せず、`koinApplication` のローカルコンテナで解く（iOS の `DataModuleIosTest` と同じ）
+  - **`KoinGraphTest` は割った。** Repository は `:shared:domain` の定義で `:shared:data` から引けないので、DB・DAO を見る分だけ `DataModuleTest` として移し、Repository の分は `:androidApp` に残した
+  - **スキーマを assets に載せるのに `androidResources { enable = true }` が要った。** Room の Gradle プラグインは KMP の device test の assets を設定しないので、`androidComponents.onVariants` で足している。assets の置き場はリソースを有効にしないと null（実測）
+  - `NavigationStateRestorationTest` と `StringResourceFormatTest` の去就（上の未判断）は扱っていない
+- 関連: [T-21](#t-21)（補足でこの判断を保留していた）／ [T-46](./23_技術改善バックログ.md#t-46)（逆に、実物を起動する層は増やす方向）

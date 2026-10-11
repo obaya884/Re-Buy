@@ -5,10 +5,9 @@ import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTouchInput
+import io.github.obaya884.rebuy.data.item.Item
+import io.github.obaya884.rebuy.data.item.ItemStatus
 import io.github.obaya884.rebuy.ui.ReBuyApp
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
@@ -32,18 +31,35 @@ import org.junit.Test
  */
 class NavigationStateRestorationTest {
 
-    @get:Rule
+    /** シードで振られた行き先の id。DB を空にしても採番は戻らない */
+    private var destinationId = 0
+
+    /** 行き先付きの 1 件をカゴに入れておく。CTA で 03 が開く */
+    @get:Rule(order = 0)
+    val appState = TestAppStateRule {
+        destinationId = destination(DESTINATION_NAME)
+        item(
+            Item(
+                name = "アイテム1",
+                status = ItemStatus.IN_SHOPPING_LIST,
+                destinationId = destinationId
+            )
+        )
+    }
+
+    @get:Rule(order = 1)
     val composeRule = createComposeRule()
 
     private val restorationTester = StateRestorationTester(composeRule)
 
-    private fun string(resource: StringResource): String = runBlocking { getString(resource) }
+    private fun string(resource: StringResource, vararg args: Any): String =
+        runBlocking { getString(resource, *args) }
 
     private val poolTitle = string(Res.string.pool_title)
     private val settingTitle = string(Res.string.setting_title)
 
     private val licenseLabel = string(Res.string.license_title)
-    private val shoppingTitleAll = string(Res.string.shopping_title_all)
+    private val shoppingTitle = string(Res.string.shopping_title, DESTINATION_NAME)
 
     private fun assertCurrentScreenIs(title: String) {
         composeRule.onNodeWithTag(TestTags.TOP_APP_BAR_TITLE).assertTextEquals(title)
@@ -78,40 +94,27 @@ class NavigationStateRestorationTest {
     }
 
     /**
-     * **`data object` ではないルートも保存・復元できること**（`Screen.Shopping(destinationId)`）。
+     * **`data object` ではないルートも、引数の値ごと保存・復元できること**
+     * （`Screen.Shopping(destinationId)`）。
      *
-     * 上の 3 件はすべて `data object` のルートしか踏まないので、引数付きのルートで
-     * 保存が落ちても全件緑になる。**引数の値まで見ているのは
-     * `ScreenSerializationTest`（androidHostTest）**。行き先付きの 04 の復元は、
-     * 実機の DB に行き先を作って消す手数が要るので置いていない（テスト戦略定義書 §6）。
+     * 上の 2 件は `data object` のルートしか踏まないので、引数付きのルートで保存が落ちても
+     * 全件緑になる。**行き先付きで入るのは、引数の値がタイトルに出るから**——全件モード
+     * （`destinationId = null`）だと、値を取り違えて復元しても見分けがつかない。
+     * 値の符号化そのものは `ScreenSerializationTest`（androidHostTest）も見ている。
      */
     @Test
     fun 引数を持つルートも保存復元できる() {
         restorationTester.setContent { ReBuyApp() }
 
-        composeRule.onNodeWithTag(TestTags.POOL_ADD_BUTTON).performClick()
-        composeRule.onNodeWithTag(TestTags.REGISTER_NAME_FIELD).performTextInput("復元の確認用")
-        composeRule.onNodeWithTag(TestTags.REGISTER_SUBMIT).performClick()
-        composeRule.waitForIdle()
-
-        composeRule.onNodeWithText("復元の確認用").performClick()
-        // 登録したのは行き先なしの 1 件なので、全件モードで 03 を挟まず 04 へ入る（FB-04）
         composeRule.onNodeWithTag(TestTags.POOL_START_SHOPPING_BUTTON).performClick()
-        try {
-            assertCurrentScreenIs(shoppingTitleAll)
+        val rowTag = TestTags.shoppingStartRow(destinationId)
+        composeRule.waitUntilTagExists(rowTag)
+        composeRule.onNodeWithTag(rowTag).performClick()
+        assertCurrentScreenIs(shoppingTitle)
 
-            restorationTester.emulateSavedInstanceStateRestore()
+        restorationTester.emulateSavedInstanceStateRestore()
 
-            assertCurrentScreenIs(shoppingTitleAll)
-        } finally {
-            // 実機の DB に残すと、次の実行が重複名で弾かれて別の理由で落ち続ける
-            composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
-            composeRule.onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).performClick()
-            composeRule.onNodeWithText("復元の確認用").performTouchInput { longClick() }
-            composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE).performClick()
-            composeRule.onNodeWithTag(TestTags.ITEM_SHEET_DELETE_CONFIRM).performClick()
-            composeRule.waitForIdle()
-        }
+        assertCurrentScreenIs(shoppingTitle)
     }
 
     @Test
@@ -130,5 +133,9 @@ class NavigationStateRestorationTest {
         assertCurrentScreenIs(settingTitle)
         composeRule.onNodeWithTag(TestTags.BACK_BUTTON).performClick()
         assertCurrentScreenIs(poolTitle)
+    }
+
+    private companion object {
+        const val DESTINATION_NAME = "行き先1"
     }
 }
