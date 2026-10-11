@@ -11,9 +11,6 @@
       "Bash(./gradlew :shared:ui:testAndroidHostTest)",
       "Bash(./gradlew :shared:ui:testAndroidHostTest --tests *)",
       "Bash(./gradlew lint)",
-      "Bash(./gradlew pixel6Api35Check)",
-      "Bash(./gradlew pixel6Api35Check -P*)",
-      "Bash(./gradlew pixel6Api35Check --no-daemon*)",
       "Bash(./gradlew installDebug)",
       "Bash(./gradlew tasks)",
       "Bash(./gradlew tasks --all)",
@@ -22,7 +19,6 @@
       "Bash(./gradlew clean)",
       "Bash(./gradlew iosSimulatorArm64Test)",
       "Bash(./gradlew :shared:ui:linkDebugFrameworkIosSimulatorArm64)",
-      "Bash(xcodebuild -project iosApp/iosApp.xcodeproj *)",
       "Bash(xcrun simctl list*)",
       "Bash(xcrun simctl boot *)",
       "Bash(xcrun simctl install booted *)",
@@ -68,7 +64,9 @@
       "Bash(git push origin main*)",
       "Bash(gh repo edit*)",
       "Bash(gh release*)",
-      "Bash(gh api repos/*)"
+      "Bash(gh api repos/*)",
+      "Bash(./gradlew pixel6Api35Check:*)",
+      "Bash(xcodebuild:*)"
     ],
     "deny": [
       "Bash(keytool *)",
@@ -151,8 +149,7 @@
         "~/.gradle/init.d",
         "~/.gradle/init.gradle",
         "~/.gradle/init.gradle.kts",
-        "~/.gradle/gradle.properties",
-        "~/.gradle/wrapper/dists"
+        "~/.gradle/gradle.properties"
       ]
     },
     "network": {
@@ -163,6 +160,7 @@
         "repo.maven.apache.org",
         "plugins.gradle.org",
         "services.gradle.org",
+        "downloads.gradle.org",
         "download.jetbrains.com"
       ],
       "allowMachLookup": [
