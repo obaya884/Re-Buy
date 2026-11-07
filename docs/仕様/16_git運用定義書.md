@@ -29,7 +29,7 @@
 
 ### 1.3 マージ規律
 
-- **`main` への push とマージは常にオーナーの合図が前提**（トピックブランチへの push は合図不要）。自動マージ・ブランチ保護は設けない
+- **`main` への push とマージは常にオーナーの合図が前提**（トピックブランチへの push は合図不要）。自動マージ・PR 必須化は設けない。`main` の force push と削除だけは ruleset `protect-default-branch` で禁止する
 - マージ方式は squash のみ（merge commit / rebase はリポジトリ設定で無効）
 - CI（`docs`・`build`・`instrumented`）が緑でないものはマージしない
 
