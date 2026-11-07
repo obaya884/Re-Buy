@@ -48,6 +48,7 @@
 | T-44 | ③ 段 4 iOS の外枠をネイティブに置き換える | 内部設計 | 高 | 完了 2026-09-13 | [詳細](#t-44) |
 | T-21 | インストルメンテーションテストの DB を in-memory にする | テスト | 中 | 完了 2026-10-10 | [詳細](#t-21) |
 | T-47 | 対象と置き場所がずれている instrumented 2 件を移す | テスト | 低 | 完了 2026-10-10 | [詳細](#t-47) |
+| T-59 | DB のファイルの置き場所に網を張る | テスト | 中 | 完了 2026-11-07 | [詳細](#t-59) |
 
 ## 詳細
 
@@ -376,3 +377,12 @@
   - **スキーマを assets に載せるのに `androidResources { enable = true }` が要った。** Room の Gradle プラグインは KMP の device test の assets を設定しないので、`androidComponents.onVariants` で足している。assets の置き場はリソースを有効にしないと null（実測）
   - `NavigationStateRestorationTest` と `StringResourceFormatTest` の去就（上の未判断）は扱っていない
 - 関連: [T-21](#t-21)（補足でこの判断を保留していた）／ [T-46](./23_技術改善バックログ.md#t-46)（逆に、実物を起動する層は増やす方向）
+
+### T-59
+
+- 背景: 本番の DB のファイルの置き場所——Android の `context.getDatabasePath(APP_DATABASE_NAME)`、iOS の `databaseFilePath()`、そして `APP_DATABASE_NAME` そのもの——を見るテストが 1 本も無い。`DataModule.android.kt` の KDoc は「`File(context.dataDir, "databases/…")` のように単純化すると初回起動が壊れる」「変えると既存端末のデータを見失う」と警告しているのに、**別の妥当な場所に変えても空の DB が作られて全件緑のまま**通る。`KoinGraphTest` は `assertSame` だけで DB を開かず、instrumented の画面テストは既存データに依存しない
+- 対応方針: Koin から取った `AppDatabase` に 1 行入れ、`context.getDatabasePath(APP_DATABASE_NAME)` を生の `SQLiteDatabase` で開いてその行が見えることを確かめる（`RoomMigrationTest` の `namesInFile()` と同じ手）。**DB 名と `databases/` の位置を同時に固定できる**。iOS 側（`databaseFilePath()`）は実物のアプリを起動しないと通らないので [T-46](./23_技術改善バックログ.md#t-46) が持つ
+- 着手条件: いつでも。**[T-21](./closed_23_技術改善バックログ.md#t-21) で in-memory へ寄せたとき、実ファイルの経路の半分は `:shared:data` の `DataModuleTest` が引き取った**（本番の `dataModule` で `databases/` ごと無い状態から開き、`getDatabasePath()` の位置にファイルができることを見る）。残るのは **DB 名そのもの**（テストが定数を共有している）と iOS 側。**あわせて実測で分かったこと**: `DataModule.android.kt` の KDoc は「同梱 driver は親ディレクトリを作らないので `File(context.dataDir, "databases/…")` へ単純化すると初回起動が壊れる」と警告しているが、`databases/` ごと消してからその形で開いても開けた（2026-10-10、GMD の API 35）。**KDoc の警告は今の版では成り立っていない**ので、着手時に直すか根拠を取り直す
+- 優先度の根拠: 失敗の向きが「実機のデータだけが黙って見えなくなる」で、[T-51](./closed_23_技術改善バックログ.md#t-51) と同じ系統。ただし置き場所を触る機会自体が稀
+- **結果（2026-11-07）: `DataModuleTest` を「ファイルがあること」から「本番の `dataModule` で入れた行を、直書きの `databases/app_database` から生の SQLite で読めること」に強めた。** 変異で確かめた: `APP_DATABASE_NAME` の変更と `filesDir` への移動は、どちらもこのテストだけが落ちる。名前は `commonMain` の定数なので iOS と共通。**iOS の置き場所（`NSDocumentDirectory`）は [T-46](./23_技術改善バックログ.md#t-46) の (d) に残る**。`DataModule.android.kt` の KDoc と 15 §2.2 の「親ディレクトリを作らないので初回起動が壊れる」は、実測と合わないので消した
+- 関連: T-51 のレビューで test-reviewer が指摘

@@ -22,9 +22,8 @@ actual val platformDataModule: Module = module {
  * `getDatabasePath(APP_DATABASE_NAME)` は、旧コードの `Room.databaseBuilder(context, klass, name)`
  * が相対名から解決していた場所と同じ。
  *
- * **`getDatabasePath()` は `databases/` ディレクトリが無ければ作る。** 同梱 driver は
- * 親ディレクトリを作らないので、`File(context.dataDir, "databases/…")` のように
- * 「単純化」すると初回起動が壊れる。
+ * **場所と名前を変えると、既存端末のデータが見えなくなる。** 新しい場所に空の DB ができるだけで
+ * エラーにはならない。`DataModuleTest` が固定している。
  */
 private fun createAppDatabase(context: Context): AppDatabase {
     // Activity を握り続けないための保険

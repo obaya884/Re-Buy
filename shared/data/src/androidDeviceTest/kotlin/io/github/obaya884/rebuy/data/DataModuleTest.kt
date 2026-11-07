@@ -1,17 +1,18 @@
 package io.github.obaya884.rebuy.data
 
+import android.database.sqlite.SQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.obaya884.rebuy.data.category.CategoryDao
 import io.github.obaya884.rebuy.data.destination.DestinationDao
 import io.github.obaya884.rebuy.data.di.dataModule
+import io.github.obaya884.rebuy.data.item.Item
 import io.github.obaya884.rebuy.data.item.ItemDao
 import io.github.obaya884.rebuy.data.settings.SettingsStore
 import java.io.File
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
-import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.android.ext.koin.androidContext
@@ -28,9 +29,9 @@ import org.koin.dsl.koinApplication
  * 本番の `platformDataModule` の定義が解かれるのはここだけ。Repository から上の単一性は
  * `:androidApp` の `KoinGraphTest` が見る。
  *
- * **Android で本番の定義から DB ファイルを開くのもここだけ。** 開けること・`databases/` の下に
- * できることを見る。ライブラリのテスト APK は自分自身を計測するので、ファイルはテスト APK の
- * `databases/` に落ち、アプリの DB には触れない。**DB 名そのものは定数を共有しているので見ていない**（T-59）。
+ * **Android で本番の定義から DB ファイルを開くのもここだけ。** 既存端末のデータがある場所に
+ * 書くことを見る。ライブラリのテスト APK は自分自身を計測するので、ファイルはテスト APK の
+ * `databases/` に落ち、アプリの DB には触れない。
  *
  * global な Koin を使わず [koinApplication] のローカルコンテナで解く。
  */
@@ -59,17 +60,25 @@ class DataModuleTest {
         }
     }
 
+    /**
+     * **既存端末のデータは `databases/app_database` にある。** 名前も場所も本番の定数や
+     * `getDatabasePath()` を使わず直書きする——共有すると、変えたときにテストも一緒に動いて
+     * 緑のままになる。
+     *
+     * ここで落ちたら、テストを直す前に既存端末のデータの引き継ぎを考えること。
+     */
     @Test
-    fun 本番のモジュールのDBはdatabasesの下にファイルを作って開ける() {
+    fun 本番のモジュールのDBは既存端末と同じファイルに書く() {
         // 新品の端末と同じく `databases/` ごと無い状態から開き、前の実行が残したファイルで
         // 素通りさせない。**親ディレクトリを作ること自体は見ていない**（無くても開ける。log_23）
         databasesDir().deleteRecursively()
         val app = productionKoin()
         try {
-            // Room は最初のクエリで接続を開く
-            runBlocking { app.koin.get<ItemDao>().getAllItems().first() }
+            runBlocking { app.koin.get<ItemDao>().insertItem(Item(name = "アイテム1")) }
+            // Room の接続を閉じてから、別の接続でファイルを読む
+            app.koin.get<AppDatabase>().close()
 
-            assertTrue(context.getDatabasePath(APP_DATABASE_NAME).exists())
+            assertEquals(listOf("アイテム1"), itemNamesInFile(File(databasesDir(), "app_database")))
         } finally {
             app.koin.get<AppDatabase>().close()
             app.close()
@@ -78,4 +87,15 @@ class DataModuleTest {
     }
 
     private fun databasesDir() = File(context.dataDir, "databases")
+
+    /** Room を通さずにファイルの中身を見る。Room で開くと、無いファイルも空の DB として作ってしまう。 */
+    private fun itemNamesInFile(file: File): List<String> =
+        SQLiteDatabase.openDatabase(file.path, null, SQLiteDatabase.OPEN_READONLY)
+            .use { database ->
+                database.rawQuery("SELECT name FROM items", null).use { cursor ->
+                    buildList {
+                        while (cursor.moveToNext()) add(cursor.getString(0))
+                    }
+                }
+            }
 }
