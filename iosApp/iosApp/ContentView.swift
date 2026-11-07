@@ -60,6 +60,8 @@ struct ContentView: View {
         if let countText = toolbar.countText {
             ToolbarItem(placement: .topBarTrailing) {
                 Text(countText)
+                    // 指定しないとツールバーが幅を詰め、「全 1…」と切れる（FB-20）
+                    .fixedSize()
                     .accessibilityIdentifier(ifPresent: toolbar.countAccessibilityId)
             }
             .sharedBackgroundVisibility(.hidden)
