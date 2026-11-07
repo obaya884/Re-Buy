@@ -1,7 +1,6 @@
 package io.github.obaya884.rebuy.ui.screen.manage
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,6 +16,7 @@ import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.resources.*
 import io.github.obaya884.rebuy.ui.screen.NameTarget
 import io.github.obaya884.rebuy.ui.screen.NameTextField
+import io.github.obaya884.rebuy.ui.screen.ReBuyAlertDialog
 import io.github.obaya884.rebuy.ui.screen.ReBuyBottomSheet
 import io.github.obaya884.rebuy.ui.theme.ReBuyTheme
 import org.jetbrains.compose.resources.stringResource
@@ -72,7 +72,7 @@ fun ManageEditSheet(
     }
 
     if (isDeleteDialogOpen) {
-        AlertDialog(
+        ReBuyAlertDialog(
             onDismissRequest = { isDeleteDialogOpen = false },
             title = {
                 Text(

@@ -3,11 +3,13 @@ package io.github.obaya884.rebuy.ui
 import androidx.compose.ui.test.ComposeUiTest
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.longClick
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
 import androidx.navigationevent.DirectNavigationEventInput
 import io.github.obaya884.rebuy.data.item.ItemStatus
@@ -220,6 +222,33 @@ class ShoppingIosTest {
         onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
         onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).assertDoesNotExist()
         probe.assertScreen("行き先1で買い物中")
+        onNodeWithTag(TestTags.SHOPPING_FINISH_BUTTON).assertExists()
+    }
+
+    /** シートを閉じると 04 の戻りが有効に戻る。戻らないと、以後の戻りが離脱確認に届かない。 */
+    @Test
+    fun 気づいたものを足すシートを閉じたあとの戻りは離脱確認を出す() = shopping(withAnywhere) { probe ->
+        onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
+        pressSystemBack(probe.systemBack)
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertDoesNotExist()
+
+        pressSystemBack(probe.systemBack)
+
+        onNodeWithTag(TestTags.SHOPPING_LEAVE_CONFIRM).assertExists()
+    }
+
+    /** 保存されていない入力は破棄する（画面定義書 §2）。 */
+    @Test
+    fun 気づいたものを足すシートの入力は戻ると破棄される() = shopping(withAnywhere) { probe ->
+        onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).performTextInput("打ちかけ")
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertTextEquals("打ちかけ")
+
+        pressSystemBack(probe.systemBack)
+
+        onNodeWithTag(TestTags.SHOPPING_ADD_NOTICED_ROW).performClick()
+        onNodeWithTag(TestTags.ADD_NOTICED_SEARCH_FIELD).assertExists()
+        onNodeWithText("打ちかけ").assertDoesNotExist()
     }
 
     /** ← の離脱確認で「続ける」を選ぶと 04 に留まる（画面 04）。 */

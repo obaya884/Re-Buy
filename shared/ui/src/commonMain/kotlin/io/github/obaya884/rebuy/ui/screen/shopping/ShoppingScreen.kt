@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +32,7 @@ import io.github.obaya884.rebuy.ui.Screen
 import io.github.obaya884.rebuy.ui.TestTags
 import io.github.obaya884.rebuy.ui.navigation.Navigator
 import io.github.obaya884.rebuy.ui.resources.*
+import io.github.obaya884.rebuy.ui.screen.ReBuyAlertDialog
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppBarState
 import io.github.obaya884.rebuy.ui.screen.ReBuyAppScaffold
 import io.github.obaya884.rebuy.ui.screen.ReBuyBottomCta
@@ -206,7 +206,7 @@ private data class ElsewhereNotice(val serial: Int, val destinationName: String)
  */
 @Composable
 private fun LeaveDialog(onLeave: () -> Unit, onStay: () -> Unit) {
-    AlertDialog(
+    ReBuyAlertDialog(
         onDismissRequest = onStay,
         title = { Text(stringResource(Res.string.shopping_leave_dialog_title)) },
         text = { Text(stringResource(Res.string.shopping_leave_dialog_message)) },
