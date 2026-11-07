@@ -5,7 +5,7 @@ import android.content.Context
 private const val PREFERENCES_NAME = "rebuy_settings"
 
 /**
- * `SharedPreferences` に載せる。**ファイル名を変えると設定を見失う**ので固定する。
+ * `SharedPreferences` に載せる。**ファイル名を変えると設定を見失う**ので固定する（`DataModuleTest`）。
  *
  * `apply()` は非同期に書き出すが、以後の読み出しは同じインスタンスのメモリ上の値を返すので、
  * 選んだ直後の読み出しでも新しい値が見える。

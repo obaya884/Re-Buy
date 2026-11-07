@@ -1,5 +1,6 @@
 package io.github.obaya884.rebuy.data
 
+import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -12,6 +13,7 @@ import io.github.obaya884.rebuy.data.settings.SettingsStore
 import java.io.File
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -83,6 +85,30 @@ class DataModuleTest {
             app.koin.get<AppDatabase>().close()
             app.close()
             databasesDir().deleteRecursively()
+        }
+    }
+
+    /**
+     * **既存端末の設定値は `rebuy_settings` にある。** 名前を本番の定数と共有しない理由は上と同じ。
+     *
+     * ここで落ちたら、テストを直す前に既存端末の設定値の引き継ぎを考えること。
+     */
+    @Test
+    fun 本番のモジュールの設定値は既存端末と同じファイルを読み書きする() {
+        val preferences = context.getSharedPreferences("rebuy_settings", Context.MODE_PRIVATE)
+        preferences.edit().clear().putString("既存のキー", "既存の値").commit()
+        val app = productionKoin()
+        try {
+            val store = app.koin.get<SettingsStore>()
+
+            assertEquals("既存の値", store.getString("既存のキー"))
+            assertNull(store.getString("無いキー"))
+
+            store.putString("新しいキー", "新しい値")
+            assertEquals("新しい値", preferences.getString("新しいキー", null))
+        } finally {
+            app.close()
+            preferences.edit().clear().commit()
         }
     }
 

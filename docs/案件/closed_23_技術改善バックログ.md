@@ -51,6 +51,7 @@
 | T-59 | DB のファイルの置き場所に網を張る | テスト | 中 | 完了 2026-11-07 | [詳細](#t-59) |
 | T-25 | 日時の DB 越しの往復と旧 DB 起動時の挙動のテスト | テスト | 中 | 完了 2026-11-07 | [詳細](#t-25) |
 | T-49 | 外部キー制約が効いていることを見る | テスト | 低 | 完了 2026-11-07 | [詳細](#t-49) |
+| T-69 | 設定値のファイルの置き場所に網を張る | テスト | 中 | 完了 2026-11-07 | [詳細](#t-69) |
 
 ## 詳細
 
@@ -409,3 +410,12 @@
 - 優先度の根拠: 壊れてもすぐには気づかず、**データの整合性が静かに崩れる**方向の失敗。ただし現状のアプリはカテゴリー削除をあまり踏まない
 - **結果（2026-11-07）: `AppDatabaseDeviceTest` が Android で 4 件（存在しない親の拒否と親の削除の `SET_NULL` を、カテゴリーと行き先の両方）、`AppDatabaseIosTest` が存在しないカテゴリーの拒否を見る。** 接続で `PRAGMA foreign_keys = OFF` にする変異では、Android のこの 4 件が落ち、既存のテストは素通りした。iOS の追加分は手元の `iosSimulatorArm64Test` で通したが、変異は当てていない
 - 関連: [T-35](./closed_23_技術改善バックログ.md#t-35) のレビューで test-reviewer が指摘。[T-21](./closed_23_技術改善バックログ.md#t-21)
+
+### T-69
+
+- 背景: `SharedPreferencesSettingsStore` の KDoc は「ファイル名を変えると設定を見失う」と警告しているが、この実装を実際に動かすテストが無い。`DataModuleTest` は `assertSame` だけで、アプリ側の instrumented はメモリ上の実装に差し替えている。**`PREFERENCES_NAME` を変えても全件緑のまま通り、設定が黙って初期値に戻る**
+- 対応方針: `DataModuleTest` で本番の `SettingsStore` に `putString` し、`getSharedPreferences("rebuy_settings", MODE_PRIVATE)` を直書きして読む（[T-59](./closed_23_技術改善バックログ.md#t-59) と同じ形）
+- 着手条件: いつでも
+- 優先度の根拠: 失敗の向きは T-59 と同じで、黙って起きる。ただし失うのはテーマなどの設定値で、品目のデータではない
+- **結果（2026-11-07）: `DataModuleTest` が、直書きの `rebuy_settings` と本番の `SettingsStore` の間で両方向に読み書きする。** 変異で確かめた——`PREFERENCES_NAME` の変更と `getString` を `null` にする変更は、どちらもこのテストだけが落ちる
+- 関連: T-59 のレビューで test-reviewer が指摘
