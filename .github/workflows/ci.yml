@@ -98,6 +98,10 @@ jobs:
       - name: Instrumented tests (Gradle Managed Device)
         run: ./gradlew pixel6Api35Check -Pandroid.testoptions.manageddevices.emulator.gpu=swiftshader_indirect
 
+      # Gradle は 0 件でも、片方のモジュールのタスクが消えても緑で終わる（実測。17 §4）
+      - name: モジュールごとに 1 件以上走ったかを見る
+        run: python3 scripts/check-instrumented-ran.py
+
       - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v7
@@ -106,8 +110,8 @@ jobs:
           path: |
             androidApp/build/outputs/androidTest-results/
             androidApp/build/reports/androidTests/
-            shared/data/build/outputs/androidTest-results/
-            shared/data/build/reports/androidTests/
+            shared/*/build/outputs/androidTest-results/
+            shared/*/build/reports/androidTests/
 
   # Kotlin/Native のテストと iOS アプリのビルド。macOS でしか走らない。
   # Linux の build ジョブは iOS のタスクを落とすのではなく「このホストでは走らない」と
