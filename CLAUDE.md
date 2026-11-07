@@ -102,7 +102,7 @@ Kotlin + Jetpack Compose、4 モジュール構成 `:androidApp` / `:shared:ui` 
 
 1. **サブエージェントによるレビュー**: `verifier`・`code-quality-reviewer` は常に、`test-reviewer`・`spec-reviewer` は「起動の契機」の条件に当たれば並列起動し、指摘があればメインセッションで対処する
 2. **オーナーによる動作確認**: メインセッションが `./gradlew installDebug`（実機）または `android emulator start` → `installDebug`（エミュレータ）で入れ、**確認手順を提示する**。オーナーが実機で挙動を確認する
-3. **コミット / push**: 上記 2 つを通してからコミットする。push・マージはオーナーの合図を待つ
+3. **コミット / push**: 上記 2 つを通してからコミットする。トピックブランチへの push は合図なしでよい（`git push -u origin <ブランチ名>` と明示する）。`main` への push とマージはオーナーの合図を待つ
 
 軽微な変更は 1・2 を省略してよい。
 
