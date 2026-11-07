@@ -49,6 +49,8 @@
 | T-21 | インストルメンテーションテストの DB を in-memory にする | テスト | 中 | 完了 2026-10-10 | [詳細](#t-21) |
 | T-47 | 対象と置き場所がずれている instrumented 2 件を移す | テスト | 低 | 完了 2026-10-10 | [詳細](#t-47) |
 | T-59 | DB のファイルの置き場所に網を張る | テスト | 中 | 完了 2026-11-07 | [詳細](#t-59) |
+| T-25 | 日時の DB 越しの往復と旧 DB 起動時の挙動のテスト | テスト | 中 | 完了 2026-11-07 | [詳細](#t-25) |
+| T-49 | 外部キー制約が効いていることを見る | テスト | 低 | 完了 2026-11-07 | [詳細](#t-49) |
 | T-69 | 設定値のファイルの置き場所に網を張る | テスト | 中 | 完了 2026-11-07 | [詳細](#t-69) |
 
 ## 詳細
@@ -296,7 +298,7 @@
   - (2) `RoomMigrationTest` に「移行できない DB は落ちてデータが残る」を足した。**本番の設定関数を通す**ので `fallbackToDestructiveMigration` を戻すと落ちる（例外側・データ側の両方が独立に落ちることを変異で実測）
   - (3) スキーマ version を **3 から 1 へ畳んだ**（オーナーの判断）。1・2・3 のどの区間にも Migration が無く、3 を起点にすると「この 2 世代は永久に開けない」という但し書きが残るため。**端末の DB は捨てて入れ直した**。経緯は[データモデル定義書の決定ログ](../仕様/log_14_データモデル定義書.md) 2026-09-03
   - version の二重管理は `APP_DATABASE_VERSION` の `const` で解いた（`@Database` は retention が BINARY で実行時に読めない）
-- 関連: [T-25](./23_技術改善バックログ.md#t-25)（(c)(d) はこの作業で埋まった）／ [T-17](./23_技術改善バックログ.md#t-17)（スキーマ検証）／ [T-34](./23_技術改善バックログ.md#t-34)（`RoomMigrationTest` の driver 経路。開く側は埋まった）
+- 関連: [T-25](#t-25)（(c)(d) はこの作業で埋まった）／ [T-17](./23_技術改善バックログ.md#t-17)（スキーマ検証）／ [T-34](./23_技術改善バックログ.md#t-34)（`RoomMigrationTest` の driver 経路。開く側は埋まった）
 
 ### T-50
 
@@ -387,6 +389,27 @@
 - 優先度の根拠: 失敗の向きが「実機のデータだけが黙って見えなくなる」で、[T-51](./closed_23_技術改善バックログ.md#t-51) と同じ系統。ただし置き場所を触る機会自体が稀
 - **結果（2026-11-07）: `DataModuleTest` を「ファイルがあること」から「本番の `dataModule` で入れた行を、直書きの `databases/app_database` から生の SQLite で読めること」に強めた。** 変異で確かめた: `APP_DATABASE_NAME` の変更と `filesDir` への移動は、どちらもこのテストだけが落ちる。名前は `commonMain` の定数なので iOS と共通。**iOS の置き場所（`NSDocumentDirectory`）は [T-46](./23_技術改善バックログ.md#t-46) の (d) に残る**。`DataModule.android.kt` の KDoc と 15 §2.2 の「親ディレクトリを作らないので初回起動が壊れる」は、実測と合わないので消した
 - 関連: T-51 のレビューで test-reviewer が指摘
+
+### T-25
+
+- 背景: T-24 の日時テストはコンバータ単体（純粋関数）で止まっており、DB を越える経路が未検証。押さえられていないのは 3 点。(a) 列の affinity が `INTEGER` であること——`2.json` はビルドのたびに生成し直されるので退行検知にならない、(b) `lastBoughtAt = null` の往復——Room が生成する null 分岐はコンバータの非 null シグネチャでは表現できず、`getString` → `getLong` へ経路が変わった箇所、(c) 旧 v1 の DB を持つ端末が起動時に落ちること——T-24 でオーナーが決めた挙動なのに、誰かが `fallbackToDestructiveMigration()` を足しても全件緑のまま通る
+- 対応方針: (a)(b) は in-memory DB で DAO の往復を見る
+- **追加（2026-08-30、T-31 ステップ 8）**: (d) **旧経路で作った DB を新経路で開けること**。本番の DB オープンは「framework SQLite ＋ 相対名」から「`BundledSQLiteDriver` ＋ 絶対パス」へ変わったが、これを通るテストが 1 本も無い
+- **(c)(d) は [T-51](./closed_23_技術改善バックログ.md#t-51) で埋まった（2026-09-03）**。`RoomMigrationTest` が `MigrationTestHelper`（旧経路）で**書いた行**を `applyAppDatabaseOptions()`（新経路）で読み、移行できない DB では落ちてデータが残ることまで見る。**残るのは (a)(b) の Android 側**——(b) の iOS 版は `AppDatabaseIosTest` にある
+- 着手条件: T-21 で in-memory DB への差し替えを入れるとき。同じ足場を使う
+- 優先度の根拠: (c) はデータが黙って消える方向への退行を素通しする。ただし ⑤ までは守るべき実データが無いので急がない
+- **結果（2026-11-07）: `AppDatabaseDeviceTest` が Android の本物の SQLite で、買い物の終了の `UPDATE` で書いた `lastBoughtAt` の `typeof()` と生の値を Room を通さずに読む。** 変換の両側を文字列に変える変異で `typeof = text` として落ちた（`RoomMigrationTest` もスキーマの不一致で落ちる）。保存を秒に変える変異でも落ちるが、これは Room を通した往復でも崩れる。`NULL` の分岐は変異を当てていない
+- 関連: T-24 のレビューで test-reviewer が指摘
+
+### T-49
+
+- 背景: `Item` は `Category` への外部キーを持ち、親の削除で `SET_NULL` になる。**この制約が実際に効いているかを見るテストが Android にも iOS にも無い。** `FakeDatabase` は挙動を真似ているだけで、本物の SQLite で `PRAGMA foreign_keys` が有効かは別問題——**接続の設定に依存する**ので、driver を変えた iOS ではとくに保証が無い
+- 対応方針: `:shared:data` の `iosTest` の `AppDatabaseIosTest` に in-memory で 2 件。存在しない `categoryId` を持つ `Item` の insert が失敗すること、`Category` を消すと紐づく `Item` の `categoryId` が null になること。Android 側は instrumented（[T-21](./closed_23_技術改善バックログ.md#t-21) で in-memory を入れるときに同じ足場で）
+- **行き先側は F-002 で入った**（`AppDatabaseIosTest` の「行き先を消しても品目は残る」が native の `SET_NULL` を見ている）。残っているのはカテゴリー側の 2 件と Android 側
+- 着手条件: いつでも。iOS 側は `AppDatabaseIosTest` があるので今すぐ足せる
+- 優先度の根拠: 壊れてもすぐには気づかず、**データの整合性が静かに崩れる**方向の失敗。ただし現状のアプリはカテゴリー削除をあまり踏まない
+- **結果（2026-11-07）: `AppDatabaseDeviceTest` が Android で 4 件（存在しない親の拒否と親の削除の `SET_NULL` を、カテゴリーと行き先の両方）、`AppDatabaseIosTest` が存在しないカテゴリーの拒否を見る。** 接続で `PRAGMA foreign_keys = OFF` にする変異では、Android のこの 4 件が落ち、既存のテストは素通りした。iOS の追加分は手元の `iosSimulatorArm64Test` で通したが、変異は当てていない
+- 関連: [T-35](./closed_23_技術改善バックログ.md#t-35) のレビューで test-reviewer が指摘。[T-21](./closed_23_技術改善バックログ.md#t-21)
 
 ### T-69
 
