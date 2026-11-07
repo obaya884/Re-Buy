@@ -19,3 +19,16 @@ import androidx.compose.runtime.Composable
  */
 @Composable
 expect fun SystemBackHandler(enabled: Boolean = true, onBack: () -> Unit)
+
+/**
+ * シートとダイアログを、iOS の端スワイプで閉じる。**シートやダイアログの呼び出しの直後に置く。**
+ *
+ * **iOS の `Dialog` と `ModalBottomSheet` は端スワイプで閉じない。** 上流の `OnBackClickEventHandler`
+ * は進捗を受けた戻りを消費するだけで `onDismissRequest` を呼ばない（CMP 1.12.1）。配る側は最後に
+ * 登録されたハンドラを選ぶので、**直後に置く**とこちらが先に受ける。
+ *
+ * **Android では何もしない。** `ModalBottomSheet` と `Dialog` が自分で閉じるうえ、ここで受けると
+ * シートの予測型の戻りを奪う。
+ */
+@Composable
+expect fun IosEdgeSwipeDismissHandler(onDismiss: () -> Unit)

@@ -33,3 +33,8 @@ actual fun SystemBackHandler(enabled: Boolean, onBack: () -> Unit) {
         onBackCompleted = onBack
     )
 }
+
+@Composable
+actual fun IosEdgeSwipeDismissHandler(onDismiss: () -> Unit) {
+    SystemBackHandler(onBack = onDismiss)
+}

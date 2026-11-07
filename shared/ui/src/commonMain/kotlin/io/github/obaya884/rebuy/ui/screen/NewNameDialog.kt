@@ -1,6 +1,5 @@
 package io.github.obaya884.rebuy.ui.screen
 
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -13,7 +12,7 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * 新しいカテゴリ／行き先（画面 02b）。名前入力欄だけの小さなダイアログ。
  *
- * **システムバックはダイアログだけを閉じる**（画面定義書 §2）——`Dialog` の既定の挙動。
+ * **システムバックはダイアログだけを閉じる**（画面定義書 §2）。
  *
  * 旧 `TextFieldAddDialog` と形は似ているが寄せていない。あちらは入力を自分で持つ作りで、
  * ここは**入力も検証の結果も ViewModel が持つ**（弾かれたら開いたまま理由を出す）。
@@ -26,7 +25,7 @@ fun NewNameDialog(
     onCreate: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    AlertDialog(
+    ReBuyAlertDialog(
         onDismissRequest = onDismiss,
         title = {
             Text(

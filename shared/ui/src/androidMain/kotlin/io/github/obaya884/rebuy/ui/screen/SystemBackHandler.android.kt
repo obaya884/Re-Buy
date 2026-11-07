@@ -10,3 +10,6 @@ import androidx.compose.runtime.Composable
 actual fun SystemBackHandler(enabled: Boolean, onBack: () -> Unit) {
     BackHandler(enabled = enabled, onBack = onBack)
 }
+
+@Composable
+actual fun IosEdgeSwipeDismissHandler(onDismiss: () -> Unit) = Unit

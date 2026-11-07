@@ -33,6 +33,10 @@ internal fun InstallSystemBack(input: DirectNavigationEventInput) {
 /**
  * 端スワイプを最後まで引く。
  *
+ * **開始・進捗・完了の順で流す。** `UIKitNavigationEventInput` が実機で流す順序で、上流の
+ * `Dialog` と `ModalBottomSheet` のハンドラは**進捗を受けると閉じない**。完了だけを流すのは
+ * 「戻るボタンのクリック」相当で、実機の端スワイプとは別の経路を通る（FB-19）。
+ *
  * **同期はここで畳む。** ハンドラの有効・無効は `SideEffect` で押し込まれるので、composition の
  * 直後に流すと古い値のまま扱われ、**有効なのに配られない／無効なのに配られる**という逆の結果が出る
  * （両方を実測。上流も `NavigationEventHandler` の KDoc に "Timing Consideration" として書いている）。
@@ -40,6 +44,19 @@ internal fun InstallSystemBack(input: DirectNavigationEventInput) {
  */
 @OptIn(ExperimentalTestApi::class)
 internal fun ComposeUiTest.pressSystemBack(input: DirectNavigationEventInput) {
+    waitForIdle()
+    input.backStarted(NavigationEvent(progress = 0f))
+    input.backProgressed(NavigationEvent(progress = 0.5f))
+    input.backCompleted()
+    waitForIdle()
+}
+
+/**
+ * 進捗を挟まない戻り。Escape キーと VoiceOver のエスケープがこの形で流れる。[pressSystemBack] とは
+ * 上流の別の経路を通るので、どちらでも 1 枚だけ閉じることを見るために分けている。
+ */
+@OptIn(ExperimentalTestApi::class)
+internal fun ComposeUiTest.pressBackWithoutProgress(input: DirectNavigationEventInput) {
     waitForIdle()
     input.backCompleted()
     waitForIdle()
