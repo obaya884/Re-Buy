@@ -49,6 +49,7 @@
 | T-21 | インストルメンテーションテストの DB を in-memory にする | テスト | 中 | 完了 2026-10-10 | [詳細](#t-21) |
 | T-47 | 対象と置き場所がずれている instrumented 2 件を移す | テスト | 低 | 完了 2026-10-10 | [詳細](#t-47) |
 | T-59 | DB のファイルの置き場所に網を張る | テスト | 中 | 完了 2026-11-07 | [詳細](#t-59) |
+| T-69 | 設定値のファイルの置き場所に網を張る | テスト | 中 | 完了 2026-11-07 | [詳細](#t-69) |
 
 ## 詳細
 
@@ -386,3 +387,12 @@
 - 優先度の根拠: 失敗の向きが「実機のデータだけが黙って見えなくなる」で、[T-51](./closed_23_技術改善バックログ.md#t-51) と同じ系統。ただし置き場所を触る機会自体が稀
 - **結果（2026-11-07）: `DataModuleTest` を「ファイルがあること」から「本番の `dataModule` で入れた行を、直書きの `databases/app_database` から生の SQLite で読めること」に強めた。** 変異で確かめた: `APP_DATABASE_NAME` の変更と `filesDir` への移動は、どちらもこのテストだけが落ちる。名前は `commonMain` の定数なので iOS と共通。**iOS の置き場所（`NSDocumentDirectory`）は [T-46](./23_技術改善バックログ.md#t-46) の (d) に残る**。`DataModule.android.kt` の KDoc と 15 §2.2 の「親ディレクトリを作らないので初回起動が壊れる」は、実測と合わないので消した
 - 関連: T-51 のレビューで test-reviewer が指摘
+
+### T-69
+
+- 背景: `SharedPreferencesSettingsStore` の KDoc は「ファイル名を変えると設定を見失う」と警告しているが、この実装を実際に動かすテストが無い。`DataModuleTest` は `assertSame` だけで、アプリ側の instrumented はメモリ上の実装に差し替えている。**`PREFERENCES_NAME` を変えても全件緑のまま通り、設定が黙って初期値に戻る**
+- 対応方針: `DataModuleTest` で本番の `SettingsStore` に `putString` し、`getSharedPreferences("rebuy_settings", MODE_PRIVATE)` を直書きして読む（[T-59](./closed_23_技術改善バックログ.md#t-59) と同じ形）
+- 着手条件: いつでも
+- 優先度の根拠: 失敗の向きは T-59 と同じで、黙って起きる。ただし失うのはテーマなどの設定値で、品目のデータではない
+- **結果（2026-11-07）: `DataModuleTest` が、直書きの `rebuy_settings` と本番の `SettingsStore` の間で両方向に読み書きする。** 変異で確かめた——`PREFERENCES_NAME` の変更と `getString` を `null` にする変更は、どちらもこのテストだけが落ちる
+- 関連: T-59 のレビューで test-reviewer が指摘
