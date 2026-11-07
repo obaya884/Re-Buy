@@ -31,7 +31,7 @@ import kotlin.time.Instant
  * 3. `@TypeConverters`（`Instant` と `ItemStatus`）が本物の SQLite を往復すること
  *
  * **`commonTest` には置けない。** `Room.inMemoryDatabaseBuilder` は native にしか無い。
- * Android 側の同じ守りは instrumented の `RoomMigrationTest` が持つ。
+ * Android 側の同じ守りは instrumented の `RoomMigrationTest` と `AppDatabaseDeviceTest` が持つ。
  *
  * ### この網が見ないもの
  *
@@ -149,9 +149,6 @@ class AppDatabaseIosTest {
     }
 
     /**
-     * **アプリが実際に読むのはこちら。** 3 つの ViewModel はどれも
-     * `getAllItemsWithCategory()` を通り、`getAllItems()` を呼ぶ経路はどこからも使われていない。
-     *
      * `@Transaction` ＋ `@Relation` は Room が別経路（親クエリと関連の一括引き）を生成するので、
      * 上の 2 件とは違うコードが動く。**`categoryDao()` の生成実装を通す唯一のテスト**でもある。
      */
@@ -356,6 +353,17 @@ class AppDatabaseIosTest {
     }
 
     @Test
+    fun 存在しないカテゴリーの品目は入らない() = runBlocking {
+        val dao = database.itemDao()
+
+        assertFailsWith<SQLiteException> {
+            dao.insertItem(item(name = "アイテム1", categoryId = 999))
+        }
+
+        assertTrue(dao.getAllItems().first().isEmpty())
+    }
+
+    @Test
     fun 品目をidで消せる() = runBlocking {
         val dao = database.itemDao()
         val id = dao.insertItem(item(name = "アイテム1")).toInt()
@@ -370,8 +378,8 @@ class AppDatabaseIosTest {
      * 行き先を消すと、それを指していた品目が「どこでも買えるもの」に戻ること
      * （外部キーの `SET_NULL`。データモデル定義書 §7）。
      *
-     * **native の driver で外部キー制約が効いているかを見る唯一のテスト**でもある（T-49）。
-     * 効いていなければ消えた行き先の id が品目に残り、どの買い物モードにも出てこなくなる。
+     * native の driver で外部キー制約が効いていなければ、消えた行き先の id が品目に残り、
+     * どの買い物モードにも出てこなくなる。
      *
      * **消すのは id 版**——09b の削除が通るのはこちらで、実体版はもう本番から呼ばれない。
      */
