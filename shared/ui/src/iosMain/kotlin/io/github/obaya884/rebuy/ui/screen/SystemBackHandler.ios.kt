@@ -21,8 +21,9 @@ import androidx.navigationevent.compose.rememberNavigationEventState
  * シートやダイアログが開いていればそちらが先に取るので、**こちらが有効かどうかに関わらず
  * 呼ばれない**。単体で描く `SystemBackHandlerIosTest` が結線を守る。
  *
- * **端スワイプが使えるかは OS の版で変わる**——iOS 26.5 では効かない（**原因は未特定**。
- * 技術改善バックログ T-62）。使えない版ではこの実装が呼ばれないだけで、戻る道はアプリバーの ← が残る。
+ * **端スワイプが効くかは OS の版と依存の組み合わせで変わりうる**——CMP 1.12.0 では iOS 26.5 で効かず、
+ * 1.12.2 では効いた（**どの変数が効いたかは未特定**。技術改善バックログ T-62）。効かない組み合わせでは
+ * この実装が呼ばれないだけで、戻る道はアプリバーの ← が残る。
  */
 @Composable
 actual fun SystemBackHandler(enabled: Boolean, onBack: () -> Unit) {
